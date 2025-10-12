@@ -177,7 +177,7 @@ export const currentClient = client; // Alias for legacy code
     devTools: true
   },
   endpoints: {
-    errorReporting: "http://localhost:5173/dev/error-reports"
+    errorReporting: "https://dev.thepia.net:5173/dev/error-reports"
   }
 }
 ```

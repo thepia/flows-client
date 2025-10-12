@@ -1,15 +1,44 @@
 <script lang="ts">
 import { page } from '$app/stores';
 import { onMount } from 'svelte';
+import { browser } from '$app/environment';
 import '../app.pcss';
 import AppHeader from '$lib/components/layout/AppHeader.svelte';
+import { setupAuthContext } from '@thepia/flows-auth';
+import '@thepia/flows-auth/style.css';
+import { getFlowsDB } from '@thepia/flows-db/client';
 
 // Determine page context
 $: isSettingsPage = $page.url.pathname === '/settings';
-$: pageTitle = isSettingsPage ? 'Settings' : 'Flows';
+$: isAuthTestPage = $page.url.pathname === '/auth-test';
+$: pageTitle = isSettingsPage ? 'Settings' : isAuthTestPage ? 'Auth Test' : 'Flows';
+
+// Get flows-db client for session persistence
+const flowsDB = getFlowsDB();
+
+// Setup auth context for entire app (SSR disabled, so this is safe)
+const authConfig = {
+  apiBaseUrl: 'https://api.thepia.com', // Auto-detects local dev server
+  clientId: 'demo',
+  appCode: 'demo',
+  domain: 'thepia.net',
+  enablePasskeys: false,
+  enableMagicLinks: false,
+  branding: {
+    companyName: 'Thepia Flows',
+    // primaryColor: '#3b82f6'
+  },
+  // Automatic session persistence via flows-db service worker
+  database: flowsDB.session
+};
+
+const authStore = setupAuthContext(authConfig);
+console.log('🔐 Auth store initialized in layout with database persistence');
 
 // Initialize error reporting and store bridge on app startup
 onMount(async () => {
+  if (!browser) return;
+
   try {
     // Initialize error reporting
     const { initializeAdminErrorReporting, enableGlobalAdminErrorReporting } = await import(
@@ -23,7 +52,7 @@ onMount(async () => {
     const { initializeStoreBridge } = await import('../lib/stores/store-bridge');
     initializeStoreBridge();
 
-    console.log('[Admin Demo] Application initialized with error reporting and store bridge');
+    console.log('[Admin Demo] Application initialized with error reporting, store bridge, and auth');
   } catch (error) {
     console.error('[Admin Demo] Failed to initialize application:', error);
   }

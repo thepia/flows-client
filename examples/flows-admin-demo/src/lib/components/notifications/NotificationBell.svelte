@@ -4,7 +4,7 @@ import type { NotificationStats } from '$lib/types/notifications';
 import { Bell } from 'lucide-svelte';
 import { onDestroy, onMount } from 'svelte';
 
-export let onClick: (() => void) | undefined = undefined;
+export let onclick: (() => void) | undefined = undefined;
 export let size: 'sm' | 'md' | 'lg' = 'md';
 
 let stats: NotificationStats = {
@@ -52,16 +52,16 @@ onDestroy(() => {
 });
 
 function handleClick() {
-  if (onClick) {
-    onClick();
+  if (onclick) {
+    onclick();
   }
 }
 </script>
 
-<button 
+<button
 	data-testid="notification-bell"
 	class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-	on:click={handleClick}
+	onclick={handleClick}
 	disabled={loading}
 >
 	<Bell class={sizeClasses[size]} />

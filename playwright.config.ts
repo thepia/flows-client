@@ -18,7 +18,7 @@ export default defineConfig({
 
   use: {
     // Base URL for flows-admin-demo
-    baseURL: process.env.DEMO_BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.DEMO_BASE_URL || 'https://dev.thepia.net:5173',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',

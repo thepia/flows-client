@@ -163,9 +163,13 @@ async function generateDemoData() {
 
 {#if isOpen}
 	<!-- Backdrop -->
-	<div 
+	<div
 		class="fixed inset-0 bg-black bg-opacity-25 z-40"
+		role="button"
+		tabindex="0"
 		on:click={handleClose}
+		on:keydown={(e) => e.key === 'Escape' && handleClose()}
+		aria-label="Close notifications"
 		data-testid="notification-backdrop"
 	></div>
 
@@ -248,8 +252,9 @@ async function generateDemoData() {
 					<div class="grid grid-cols-1 gap-3">
 						<!-- Status filter -->
 						<div>
-							<label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
-							<select 
+							<label for="status-filter" class="block text-xs font-medium text-gray-700 mb-1">Status</label>
+							<select
+								id="status-filter"
 								bind:value={activeFilters.status}
 								on:change={applyFilters}
 								class="w-full text-sm border border-gray-300 rounded px-2 py-1"
@@ -263,8 +268,9 @@ async function generateDemoData() {
 
 						<!-- Type filter -->
 						<div>
-							<label class="block text-xs font-medium text-gray-700 mb-1">Type</label>
-							<select 
+							<label for="type-filter" class="block text-xs font-medium text-gray-700 mb-1">Type</label>
+							<select
+								id="type-filter"
 								bind:value={activeFilters.type}
 								on:change={applyFilters}
 								class="w-full text-sm border border-gray-300 rounded px-2 py-1"
@@ -278,8 +284,9 @@ async function generateDemoData() {
 
 						<!-- Priority filter -->
 						<div>
-							<label class="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-							<select 
+							<label for="priority-filter" class="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+							<select
+								id="priority-filter"
 								bind:value={activeFilters.priority}
 								on:change={applyFilters}
 								class="w-full text-sm border border-gray-300 rounded px-2 py-1"

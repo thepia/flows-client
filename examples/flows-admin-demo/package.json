@@ -4,8 +4,9 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
+    "dev": "cd ../.. && pnpm build:sw && cd examples/flows-admin-demo && pnpm copy:sw && vite dev",
+    "build": "pnpm copy:sw && vite build",
+    "copy:sw": "node ../../scripts/copy-sw.js static",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -38,6 +39,7 @@
     "@sveltejs/adapter-auto": "^6.0.0",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4.1.14",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.8",
     "autoprefixer": "^10.4.20",
@@ -55,6 +57,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
+    "@thepia/flows-auth": "file:../../../flows-auth",
+    "@thepia/flows-db": "workspace:*",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-svelte": "^0.451.0",
@@ -63,6 +67,6 @@
     "tailwind-variants": "^0.2.1"
   },
   "optionalDependencies": {
-    "@thepia/branding": "^1.0.0"
+    "@thepia/branding": "^1.0.1"
   }
 }

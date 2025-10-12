@@ -7,6 +7,9 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+static/flows-sw.js
+static/flows-sw.js.map
+static/flows-sw-seed.js
 
 # OS
 .DS_Store

@@ -63,16 +63,39 @@ For detailed information about client persistence and demo data patterns:
    pnpm dev
    ```
 
-4. Open your browser to `http://localhost:5173`
+4. Open your browser to `https://dev.thepia.net:5173`
 
 ### Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
+- `pnpm dev` - Start development server (builds service worker locally)
+- `pnpm build` - Build for production (copies service worker from package)
 - `pnpm preview` - Preview production build
 - `pnpm check` - Run Svelte/TypeScript checks
-- `pnpm lint` - Run ESLint
-- `pnpm format` - Format code with Prettier
+- `pnpm lint` - Run Biome linting
+- `pnpm format` - Format code with Biome
+
+### Service Worker Architecture
+
+The demo uses a service worker for offline data management and IndexedDB:
+
+**Development**: `pnpm dev` builds the service worker locally from `src/service-worker/` for fast iteration.
+
+**Production**: `pnpm build` copies the pre-built service worker from `@thepia/flows-db/dist/flows-sw.js` to ensure consistency with the published package.
+
+To use the service worker in your own app:
+```bash
+# Copy service worker to your static folder
+node node_modules/@thepia/flows-db/scripts/copy-sw.js static
+```
+
+Add to your build script:
+```json
+{
+  "scripts": {
+    "build": "node node_modules/@thepia/flows-db/scripts/copy-sw.js static && vite build"
+  }
+}
+```
 
 ## Project Structure
 

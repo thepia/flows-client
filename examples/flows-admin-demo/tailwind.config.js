@@ -3,7 +3,11 @@ import { fontFamily } from 'tailwindcss/defaultTheme';
 /** @type {import('tailwindcss').Config} */
 const config = {
   darkMode: ['class'],
-  content: ['./src/**/*.{html,js,svelte,ts}'],
+  content: [
+    './src/**/*.{html,js,svelte,ts}',
+    // CRITICAL: Include flows-auth package files to ensure all component classes are built
+    './node_modules/@thepia/flows-auth/**/*.{js,svelte,ts}'
+  ],
   safelist: ['dark'],
   theme: {
     container: {

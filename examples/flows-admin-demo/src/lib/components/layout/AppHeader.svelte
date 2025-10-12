@@ -1,18 +1,29 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { page } from '$app/stores';
 import { NotificationBell, NotificationPanel } from '$lib/components/notifications';
 import { Button } from '$lib/components/ui/button';
 import { client, loadingProgress } from '$lib/stores/data';
-import { ArrowLeft, ChevronLeft, Settings, User } from 'lucide-svelte';
+import { ArrowLeft, Settings, User } from 'lucide-svelte';
 import LogoWrapper from '../branding/LogoWrapper.svelte';
+import { getAuthStoreFromContext, SignInForm } from '@thepia/flows-auth';
 
 // Props
 export const title: string = 'Flows Dashboard';
 export const showBackButton: boolean = false;
 
-// Notification state
-let showNotifications = false;
+// Get auth store from context
+const authStore = getAuthStoreFromContext();
+
+// State
+let showNotifications = $state(false);
+let showAuthDialog = $state(false);
+let isAuthenticated = $state(false);
+let userEmail = $state<string | null>(null);
+
+// Subscribe to auth state
+authStore.subscribe((state: any) => {
+	isAuthenticated = state.isAuthenticated;
+	userEmail = state.user?.email || null;
+});
 
 // Navigation handlers
 function navigateToSettings() {
@@ -34,7 +45,18 @@ function closeNotifications() {
 }
 
 function openProfile() {
-  console.log('Profile clicked - feature coming soon');
+	if (isAuthenticated) {
+		// If authenticated, show user menu with sign out option
+		showAuthDialog = true;
+	} else {
+		// If not authenticated, show sign in form
+		showAuthDialog = true;
+	}
+}
+
+async function handleSignOut() {
+	await authStore.signOut();
+	showAuthDialog = false;
 }
 </script>
 
@@ -44,10 +66,10 @@ function openProfile() {
 			<!-- Left section -->
 			<div class="flex items-center">
 				{#if showBackButton}
-					<Button 
-						variant="ghost" 
-						size="sm" 
-						on:click={navigateBack}
+					<Button
+						variant="ghost"
+						size="sm"
+						onclick={navigateBack}
 						class="mr-4 -ml-2"
 					>
 						<ArrowLeft class="w-5 h-5" />
@@ -94,9 +116,9 @@ function openProfile() {
 			<div class="flex items-center space-x-2">
 				<!-- Settings button (only show on main page) -->
 				{#if !showBackButton}
-					<button 
+					<button
 						type="button"
-						on:click={navigateToSettings}
+						onclick={navigateToSettings}
 						class="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-gray-100 text-gray-600"
 						title="Settings"
 					>
@@ -105,16 +127,16 @@ function openProfile() {
 				{/if}
 
 				<!-- Notifications -->
-				<NotificationBell 
-					onClick={toggleNotifications}
+				<NotificationBell
+					onclick={toggleNotifications}
 					size="md"
 				/>
 
 				<!-- Profile button -->
-				<Button 
-					variant="ghost" 
+				<Button
+					variant="ghost"
 					size="icon"
-					on:click={openProfile}
+					onclick={openProfile}
 					class="w-9 h-9 rounded-full hover:bg-gray-100"
 					title="Profile"
 				>
@@ -126,10 +148,61 @@ function openProfile() {
 </header>
 
 <!-- Notification Panel -->
-<NotificationPanel 
+<NotificationPanel
 	isOpen={showNotifications}
 	onClose={closeNotifications}
 />
+
+<!-- Auth Dialog -->
+{#if showAuthDialog}
+	{#if isAuthenticated}
+		<!-- Authenticated user menu -->
+		<div
+			class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+			onclick={() => showAuthDialog = false}
+			onkeydown={(e) => e.key === 'Escape' && (showAuthDialog = false)}
+			role="button"
+			tabindex="0"
+		>
+			<div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
+				<div class="flex items-center justify-between mb-4">
+					<h2 class="text-lg font-semibold text-gray-900">Account</h2>
+					<button
+						type="button"
+						onclick={() => showAuthDialog = false}
+						class="text-gray-400 hover:text-gray-600"
+					>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+				</div>
+
+				<div class="mb-6">
+					<p class="text-sm text-gray-600 mb-1">Signed in as</p>
+					<p class="text-base font-medium text-gray-900">{userEmail}</p>
+				</div>
+
+				<Button
+					variant="outline"
+					class="w-full"
+					onclick={handleSignOut}
+				>
+					Sign Out
+				</Button>
+			</div>
+		</div>
+	{:else}
+		<!-- Sign in form using popup variant -->
+		<SignInForm
+			variant="popup"
+			showCloseButton={true}
+			closeOnEscape={true}
+			on:close={() => showAuthDialog = false}
+			on:success={() => showAuthDialog = false}
+		/>
+	{/if}
+{/if}
 
 <style>
 	/* Ensure consistent icon button styling */

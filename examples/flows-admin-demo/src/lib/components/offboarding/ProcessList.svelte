@@ -80,13 +80,15 @@ $: filteredProcesses = processes.filter((process) => {
       case 'ending_soon':
         matches =
           matches &&
-          process.status === 'active' && process.target_completion_date &&
+          process.status === 'active' &&
+          process.target_completion_date &&
           new Date(process.target_completion_date) <= sevenDaysFromNow;
         break;
       case 'recent_completed':
         matches =
           matches &&
-          process.status === 'completed' && process.actual_completion_date &&
+          process.status === 'completed' &&
+          process.actual_completion_date &&
           new Date(process.actual_completion_date) >= thirtyDaysAgo;
         break;
       case 'this_month':

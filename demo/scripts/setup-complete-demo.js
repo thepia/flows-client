@@ -1350,7 +1350,7 @@ async function setupCompleteDemo(options = {}) {
 
     console.log(chalk.green('\n🚀 Demo is ready!'));
     console.log(`   Launch: ${chalk.yellow('pnpm run demo:admin')}`);
-    console.log(`   URL: ${chalk.yellow('http://localhost:5173/')}`);
+    console.log(`   URL: ${chalk.yellow('https://dev.thepia.net:5173/')}`);
     console.log(`   Expected test counts: ~1020 active, ~144 former, ~36 future, 10 associates`);
     console.log('');
 

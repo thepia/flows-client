@@ -19,7 +19,7 @@ describe('Error Reporting System', () => {
         protocol: 'http:',
         hostname: 'localhost',
         port: '5173',
-        href: 'http://localhost:5173/test',
+        href: 'https://dev.thepia.net:5173/test',
       },
       navigator: {
         userAgent: 'Test Browser',
@@ -104,7 +104,7 @@ describe('Error Reporting System', () => {
       const { initializeAdminErrorReporter } = await import('$lib/utils/errorReporter');
       const config = {
         enabled: true,
-        endpoint: 'http://localhost:5173/dev/error-reports',
+        endpoint: 'https://dev.thepia.net:5173/dev/error-reports',
         debug: true,
       };
 
@@ -144,7 +144,7 @@ describe('Error Reporting System', () => {
 
       initializeAdminErrorReporter({
         enabled: true,
-        endpoint: 'http://localhost:5173/dev/error-reports',
+        endpoint: 'https://dev.thepia.net:5173/dev/error-reports',
         debug: false,
       });
 

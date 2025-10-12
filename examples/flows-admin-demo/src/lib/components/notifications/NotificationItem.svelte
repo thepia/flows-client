@@ -216,8 +216,12 @@ function handlePrimaryAction() {
 
 <!-- Close menu when clicking outside -->
 {#if showActions}
-	<div 
-		class="fixed inset-0 z-0" 
+	<div
+		class="fixed inset-0 z-0"
+		role="button"
+		tabindex="0"
 		on:click={() => showActions = false}
+		on:keydown={(e) => e.key === 'Escape' && (showActions = false)}
+		aria-label="Close menu"
 	></div>
 {/if}

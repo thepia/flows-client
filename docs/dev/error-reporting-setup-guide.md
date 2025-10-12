@@ -785,7 +785,7 @@ await reportComponentError('UserForm', 'submit', error, { form_data });
 ### Testing
 
 1. **Launch your demo**: `pnpm run dev`
-2. **Test health check**: `curl http://localhost:5173/dev/error-reports`
+2. **Test health check**: `curl https://dev.thepia.net:5173/dev/error-reports`
 3. **Send test error**: Use the status component or curl command
 4. **Check console**: Error reports appear in terminal with rich formatting
 

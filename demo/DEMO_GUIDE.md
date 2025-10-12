@@ -34,7 +34,7 @@ pnpm run demo:admin
 ```
 
 ### 2. View Demo Content
-- **Admin Dashboard**: `http://localhost:5173`
+- **Admin Dashboard**: `https://dev.thepia.net:5173`
 - **Supabase Dashboard**: View database tables in `api` schema
 - **Demo Client**: `nets-demo.thepia.net` (configured)
 
