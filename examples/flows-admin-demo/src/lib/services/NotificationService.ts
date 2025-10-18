@@ -1,4 +1,19 @@
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore } from '$lib/contexts/supabase-context';
+import { get } from 'svelte/store';
+
+// Get current Supabase client from store (returns null if not available)
+function getCurrentSupabaseClient(): SupabaseClient | null {
+  return get(supabaseClientStore);
+}
+
+// Get current Supabase client from store (throws if not available)
+function getRequiredSupabaseClient(): SupabaseClient {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to access notifications');
+  }
+  return client;
+}
 import type {
   NotificationService as INotificationService,
   Notification,
@@ -19,10 +34,29 @@ class NotificationService implements INotificationService {
   private realtimeChannel: any = null;
 
   constructor() {
-    this.initializeRealtime();
+    // Initialize realtime when Supabase client becomes available
+    this.initializeRealtimeWhenReady();
   }
 
-  private initializeRealtime() {
+  private initializeRealtimeWhenReady() {
+    // Wait for client to become available using store subscription
+    const unsubscribe = supabaseClientStore.subscribe((client) => {
+      if (client) {
+        console.log('✅ NotificationService: Supabase client available, initializing realtime');
+        this.initializeRealtime(client);
+        unsubscribe();
+      } else {
+        console.log('⏳ NotificationService: Waiting for Supabase client...');
+      }
+    });
+  }
+
+  private initializeRealtime(supabase: any) {
+    if (!supabase) {
+      console.warn('⚠️ NotificationService: Supabase client not available, skipping realtime initialization');
+      return;
+    }
+
     // Subscribe to notification changes via Supabase realtime
     this.realtimeChannel = supabase
       .channel('notifications')
@@ -85,6 +119,12 @@ class NotificationService implements INotificationService {
 
   async getNotifications(filter?: NotificationFilter): Promise<Notification[]> {
     try {
+      const supabase = getCurrentSupabaseClient();
+      if (!supabase) {
+        // Return empty array if not authenticated yet
+        return [];
+      }
+
       let query = supabase
         .from('notifications')
         .select('*')

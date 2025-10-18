@@ -32,11 +32,6 @@ const mockSupabaseClient = {
   from: vi.fn(() => createMockChain()),
 };
 
-// Mock the supabase module
-vi.mock('$lib/supabase', () => ({
-  supabase: mockSupabaseClient,
-}));
-
 // Mock error reporting
 vi.mock('$lib/utils/errorReporter', () => ({
   reportSupabaseError: vi.fn(),

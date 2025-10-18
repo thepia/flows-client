@@ -1,7 +1,7 @@
 import { getCurrentClientId } from '$lib/utils/client-persistence';
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { reportSupabaseError } from '../config/errorReporting.js';
-import { supabase } from '../supabase.js';
+import { supabaseClientStore } from '../contexts/supabase-context';
 import type {
   Application,
   Client,
@@ -13,6 +13,15 @@ import type {
   PersonEnrollment,
   TaskStatus,
 } from '../types.js';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Supabase client not available. Please ensure authentication is set up.');
+  }
+  return client;
+}
 
 // Simple hash function for browser (demo purposes)
 async function generateSimpleHash(input: string): Promise<string> {
@@ -180,6 +189,9 @@ function transformInvitation(dbInvitation: any): Invitation {
 // Load all clients from Supabase
 export async function loadAllClients() {
   try {
+    // Get current Supabase client from store
+    const supabase = getCurrentSupabaseClient();
+
     const { data: clientsData, error: clientsError } = await supabase
       .from('clients')
       .select('*')
@@ -216,6 +228,9 @@ export async function loadClientData(clientId: string) {
   error.set(null);
 
   try {
+    // Get current Supabase client from store
+    const supabase = getCurrentSupabaseClient();
+
     // Load specific client data
     const { data: clientData, error: clientError } = await supabase
       .from('clients')
@@ -256,6 +271,9 @@ export async function loadClientData(clientId: string) {
 async function loadClientSpecificData(clientId: string) {
   loading.set(true);
   error.set(null);
+
+  // Get current Supabase client from store
+  const supabase = getCurrentSupabaseClient();
 
   // Reset progress
   loadingProgress.set({
@@ -606,12 +624,111 @@ async function loadClientSpecificData(clientId: string) {
   }
 }
 
-// Load demo data using current client from localStorage
+// Load demo data with authenticated Supabase client
+export async function loadDemoDataWithClient(authenticatedSupabase: any) {
+  loading.set(true);
+  error.set(null);
+
+  try {
+    // Get current client from localStorage (single source of truth)
+    const currentClientId = getCurrentClientId();
+    console.log(`[loadDemoDataWithClient] Loading data for client: ${currentClientId}`);
+
+    // If no client ID, we have a problem
+    if (!currentClientId) {
+      console.error('[loadDemoDataWithClient] No client ID available!');
+      error.set('No client selected. Please refresh the page.');
+      return;
+    }
+
+    // Load the selected client using authenticated client
+    const { data: clientData, error: clientError } = await authenticatedSupabase
+      .from('clients')
+      .select('*')
+      .eq('client_code', currentClientId)
+      .single();
+
+    if (clientError) {
+      console.error(`[loadDemoDataWithClient] Error loading client ${currentClientId}:`, clientError);
+
+      // If it's a PGRST116 error (no rows), try the default client
+      if (clientError.code === 'PGRST116') {
+        console.log(
+          `[loadDemoDataWithClient] Client ${currentClientId} not found, trying default: hygge-hvidlog`
+        );
+
+        const { data: fallbackData, error: fallbackError } = await authenticatedSupabase
+          .from('clients')
+          .select('*')
+          .eq('client_code', 'hygge-hvidlog')
+          .single();
+
+        if (!fallbackError && fallbackData) {
+          console.log('[loadDemoDataWithClient] Using default client: hygge-hvidlog');
+          await loadClientDataWithClient(fallbackData.id, authenticatedSupabase);
+          return;
+        }
+      }
+
+      // Clear any stale data on error
+      client.set(null);
+      applications.set([]);
+      people.set([]);
+      enrollments.set([]);
+      documents.set([]);
+      tasks.set([]);
+      invitations.set([]);
+      totalPeopleCount.set(0);
+
+      await reportSupabaseError('clients', 'select', clientError, {
+        client_code: currentClientId,
+        operation: 'loadDemoDataWithClient',
+      });
+      return;
+    }
+
+    if (clientData) {
+      console.log(
+        `[loadDemoDataWithClient] Successfully loaded client: ${clientData.client_code} (${clientData.legal_name})`
+      );
+      await loadClientDataWithClient(clientData.id, authenticatedSupabase);
+    } else {
+      // This shouldn't happen with .single() but handle it anyway
+      error.set(`Client "${currentClientId}" returned no data.`);
+      console.error(`[loadDemoDataWithClient] No data returned for client: ${currentClientId}`);
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load demo data';
+    error.set(errorMessage);
+    console.error('Error loading demo data:', err);
+
+    // Clear any stale data on error
+    client.set(null);
+    applications.set([]);
+    people.set([]);
+    enrollments.set([]);
+    documents.set([]);
+    tasks.set([]);
+    invitations.set([]);
+    totalPeopleCount.set(0);
+
+    await reportSupabaseError('general', 'select', err, {
+      operation: 'loadDemoDataWithClient',
+    });
+  } finally {
+    loading.set(false);
+  }
+}
+
+// Load demo data using current client from localStorage (legacy - uses anonymous client)
 export async function loadDemoData() {
   loading.set(true);
   error.set(null);
 
   try {
+    // Get current Supabase client from store
+    const supabase = getCurrentSupabaseClient();
+
     // Get current client from localStorage (single source of truth)
     const currentClientId = getCurrentClientId();
     console.log(`[loadDemoData] Loading data for client: ${currentClientId}`);
@@ -974,6 +1091,9 @@ export async function createEmployee(employeeData: {
 // Get meaningful business metrics for dashboard
 export async function getClientMetrics() {
   try {
+    // Get current Supabase client from store
+    const supabase = getCurrentSupabaseClient();
+
     // Get current client data
     let currentClient: Client | null = null;
     client.subscribe((c) => (currentClient = c))();

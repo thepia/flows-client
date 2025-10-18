@@ -10,7 +10,7 @@ import { Label } from '$lib/components/ui/label';
 import { Progress } from '$lib/components/ui/progress';
 import { Select } from '$lib/components/ui/select';
 import { Textarea } from '$lib/components/ui/textarea';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
 import type {
   CreateKnowledgeTransferItemRequest,
   KnowledgeTransferItem,
@@ -38,6 +38,7 @@ export const knowledgeItems: KnowledgeTransferItem[] = [];
 export const readonly = false;
 
 const dispatch = createEventDispatcher();
+// Use global stores directly
 
 let loading = false;
 let error: string | null = null;
@@ -135,11 +136,15 @@ async function handleCreateItem() {
     loading = true;
     error = null;
 
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to create knowledge transfer items');
+    }
+
     if (!formData.title?.trim()) {
       throw new Error('Knowledge item title is required');
     }
 
-    const { data, error: insertError } = await supabase
+    const { data, error: insertError } = await $supabaseClientStore
       .from('knowledge_transfer_items')
       .insert({
         offboarding_workflow_id: formData.offboarding_workflow_id,
@@ -177,7 +182,11 @@ async function handleUpdateStatus(
     loading = true;
     error = null;
 
-    const { error: updateError } = await supabase
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to update knowledge transfer items');
+    }
+
+    const { error: updateError } = await $supabaseClientStore
       .from('knowledge_transfer_items')
       .update(updates)
       .eq('id', item.id);
@@ -200,7 +209,11 @@ async function handleDeleteItem(item: KnowledgeTransferItem) {
     loading = true;
     error = null;
 
-    const { error: deleteError } = await supabase
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to delete knowledge transfer items');
+    }
+
+    const { error: deleteError } = await $supabaseClientStore
       .from('knowledge_transfer_items')
       .delete()
       .eq('id', item.id);
@@ -250,11 +263,15 @@ async function handleUpdateItem() {
     loading = true;
     error = null;
 
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to update knowledge transfer items');
+    }
+
     if (!formData.title?.trim()) {
       throw new Error('Knowledge item title is required');
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await $supabaseClientStore
       .from('knowledge_transfer_items')
       .update({
         knowledge_type: formData.knowledge_type,

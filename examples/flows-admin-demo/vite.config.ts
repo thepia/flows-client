@@ -2,7 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig, loadEnv } from 'vite';
 import restart from 'vite-plugin-restart';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'node:path';
+import path from 'node:path';
 
 export default defineConfig(({ mode }) => {
   // Load env file from current directory
@@ -41,8 +41,25 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       // Force Vite to always check @thepia packages for changes
       // This ensures local package updates are picked up immediately
-      exclude: ['@thepia/flows-auth', '@thepia/flows-db'],
+      exclude: [
+        '@thepia/flows-auth',
+        '@thepia/flows-db',
+        // Exclude Node.js-only testing frameworks from browser bundle
+        'playwright-core',
+        'playwright',
+        '@playwright/test',
+        'tmp',
+      ],
     },
+    resolve: {
+      alias: {
+        // Exclude Node.js-only dependencies from browser bundle
+        tmp: path.resolve(__dirname, 'src/lib/empty.js'),
+        crypto: path.resolve(__dirname, 'src/lib/empty.js'),
+      },
+    },
+
+
     server: {
       host: 'dev.thepia.net',
       port: 5173,
@@ -60,25 +77,13 @@ export default defineConfig(({ mode }) => {
       // Make environment variables available in the build
       'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL),
       'process.env.SUPABASE_SERVICE_ROLE_KEY': JSON.stringify(env.SUPABASE_SERVICE_ROLE_KEY),
+      // Provide crypto global for Web Crypto API usage in flows-auth
+      global: 'globalThis',
     },
+
     build: {
-      rollupOptions: {
-        input: {
-          // Main app
-          app: resolve(__dirname, 'index.html'),
-          // Service worker
-          'flows-sw': resolve(__dirname, 'src/service-worker/index.ts'),
-        },
-        output: {
-          // Put service worker in static folder
-          entryFileNames: (chunkInfo) => {
-            if (chunkInfo.name === 'flows-sw') {
-              return 'flows-sw.js';
-            }
-            return '[name]-[hash].js';
-          },
-        },
-      },
+      // Remove custom rollup options that conflict with SvelteKit static adapter
+      // The service worker is copied separately via copy:sw script
     },
   };
 });

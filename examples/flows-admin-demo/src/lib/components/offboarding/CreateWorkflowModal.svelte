@@ -8,12 +8,15 @@ import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
 import { Select } from '$lib/components/ui/select';
 import { Textarea } from '$lib/components/ui/textarea';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context.ts';
 import type { CreateOffboardingWorkflowRequest } from '$lib/types/offboarding';
 import { AlertTriangle, Building, Calendar, User, X } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
 
 const dispatch = createEventDispatcher();
+
+// Get Supabase client from context
+// Use global stores directly
 
 let open = true;
 let loading = false;
@@ -138,6 +141,11 @@ async function handleSubmit() {
     loading = true;
     error = null;
 
+    // Check authentication
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to create workflows');
+    }
+
     // Validate required fields
     if (!formData.employee_uid?.trim()) {
       throw new Error('Employee UID is required');
@@ -162,7 +170,7 @@ async function handleSubmit() {
     const finalDeadline = new Date(expectedLastDay.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days after last day
 
     // Create the workflow
-    const { data: workflow, error: workflowError } = await supabase
+    const { data: workflow, error: workflowError } = await $supabaseClientStore
       .from('offboarding_workflows')
       .insert({
         client_id: formData.client_id,
@@ -187,7 +195,7 @@ async function handleSubmit() {
     if (workflowError) throw workflowError;
 
     // Create default compliance checks using the database function
-    const { error: complianceError } = await supabase.rpc('create_default_compliance_checks', {
+    const { error: complianceError } = await $supabaseClientStore.rpc('create_default_compliance_checks', {
       p_workflow_id: workflow.id,
       p_complexity: formData.workflow_complexity,
     });
@@ -247,6 +255,15 @@ function fillDemoData() {
         <Alert variant="destructive">
           <AlertTriangle class="w-4 h-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      {/if}
+
+      {#if !$isSupabaseAuthenticatedStore}
+        <Alert variant="warning">
+          <AlertTriangle class="w-4 h-4" />
+          <AlertDescription>
+            Please sign in to create workflows. <a href="/auth-test" class="underline">Go to Auth Test page →</a>
+          </AlertDescription>
         </Alert>
       {/if}
 
@@ -444,9 +461,9 @@ function fillDemoData() {
         >
           Cancel
         </Button>
-        <Button 
-          type="submit" 
-          disabled={loading || !formData.employee_uid?.trim()}
+        <Button
+          type="submit"
+          disabled={loading || !formData.employee_uid?.trim() || !$isSupabaseAuthenticatedStore}
         >
           {#if loading}
             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

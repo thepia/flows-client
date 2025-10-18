@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
-	import type { FlowsDBClient } from '@thepia/flows-db/client';
+	import type { FlowsJourney, FlowsTask, FlowsDBClient } from '@thepia/flows-db/types';
 	import { onMount } from 'svelte';
 	import JourneysList from '$lib/components/JourneysList.svelte';
 	import JourneyDetails from '$lib/components/JourneyDetails.svelte';
@@ -16,8 +15,8 @@
 	onMount(async () => {
 		try {
 			// Dynamically import client in browser only
-			const { getFlowsDB } = await import('@thepia/flows-db/client');
-			db = getFlowsDB();
+			const { FlowsDBClient } = await import('@thepia/flows-db/client');
+			db = new FlowsDBClient();
 
 			// Query all journeys from IndexedDB via Service Worker
 			journeys = await db.query.journeys({

@@ -1,4 +1,12 @@
-# Role Architecture Decisions and Evolution
+# Role Architecture Decisions and Evolution (HISTORICAL)
+
+**⚠️ ARCHIVED**: This document contains historical context for the role system evolution.
+
+**📋 CURRENT SYSTEM**: [../USER_ROLE_MANAGEMENT.md](../USER_ROLE_MANAGEMENT.md) - v31 implementation with hybrid authentication
+
+**🗓️ ARCHIVED**: January 2025 - Historical context preserved for reference
+
+---
 
 ## Executive Summary
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 import LoadingAnimation from '$lib/components/shared/LoadingAnimation.svelte';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
 import {
   Activity,
   ArrowDownRight,
@@ -13,6 +13,8 @@ import { onMount } from 'svelte';
 
 export let clientId: string;
 
+// Use global stores directly
+
 // State
 let loading = false;
 let tfcBalance = null;
@@ -24,10 +26,15 @@ let monthlyTrend = [];
 async function loadTFCData() {
   if (!clientId) return;
 
+  if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+    console.warn('TFC data requires authentication');
+    return;
+  }
+
   loading = true;
   try {
     // Load TFC balance
-    const { data: balanceData } = await supabase
+    const { data: balanceData } = await $supabaseClientStore
       .from('tfc_client_balances')
       .select('*')
       .eq('client_id', clientId)
@@ -36,7 +43,7 @@ async function loadTFCData() {
     tfcBalance = balanceData;
 
     // Load recent transactions (last 10)
-    const { data: transactionsData } = await supabase
+    const { data: transactionsData } = await $supabaseClientStore
       .from('tfc_credit_transactions')
       .select('*')
       .eq('client_id', clientId)
@@ -46,7 +53,7 @@ async function loadTFCData() {
     recentTransactions = transactionsData || [];
 
     // Load usage analytics by workflow type
-    const { data: usageData } = await supabase
+    const { data: usageData } = await $supabaseClientStore
       .from('tfc_workflow_usage')
       .select('workflow_type, department_category, credits_consumed, consumed_at')
       .eq('client_id', clientId)

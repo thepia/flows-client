@@ -1,4 +1,4 @@
-import type { SessionData, UserData } from '../types/auth';
+import type { SessionData, UserData } from '@thepia/flows-auth';
 import { SEED_JOURNEYS, SEED_TASKS, SEED_EVIDENCE, SEED_COMMENTS } from './seed';
 import { INDEXEDDB_NAME, INDEXEDDB_VERSION } from '../constants';
 
@@ -546,10 +546,13 @@ export async function saveAuthSession(session: SessionData): Promise<void> {
 		const sessionsStore = transaction.objectStore('auth_sessions');
 
 		// Log refresh token for debugging token rotation issues
-		console.log('[SW] Saving session with refreshToken:', {
+		console.log('[SW] Saving session with tokens:', {
 			userId: session.userId,
 			refreshToken: session.refreshToken?.substring(0, 8) + '...',
 			expiresAt: new Date(session.expiresAt).toISOString(),
+			hasSupabaseToken: !!session.supabaseToken,
+			supabaseTokenPreview: session.supabaseToken?.substring(0, 20) + '...',
+			supabaseExpiresAt: session.supabaseExpiresAt ? new Date(session.supabaseExpiresAt).toISOString() : 'none',
 			savedAt: new Date(now).toISOString()
 		});
 
@@ -561,6 +564,8 @@ export async function saveAuthSession(session: SessionData): Promise<void> {
 			expiresAt: session.expiresAt,
 			refreshedAt: session.refreshedAt,
 			authMethod: session.authMethod,
+			supabaseToken: session.supabaseToken,
+			supabaseExpiresAt: session.supabaseExpiresAt,
 			savedAt: now
 		});
 
@@ -600,7 +605,13 @@ export async function getAuthSession(): Promise<SessionData | null> {
 
 			const session = sessions[0];
 			const isExpired = session.expiresAt <= Date.now();
-			console.log('[SW] Auth session loaded:', session.userId, isExpired ? '(expired)' : '(valid)');
+			const hasSupabaseToken = !!session.supabaseToken;
+			console.log('[SW] Auth session loaded:', {
+				userId: session.userId,
+				status: isExpired ? 'expired' : 'valid',
+				hasSupabaseToken,
+				supabaseTokenExpiry: session.supabaseExpiresAt ? new Date(session.supabaseExpiresAt).toISOString() : 'none'
+			});
 			resolve(session);
 		};
 

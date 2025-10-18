@@ -10,7 +10,7 @@ import { Label } from '$lib/components/ui/label';
 import { Progress } from '$lib/components/ui/progress';
 import { Select } from '$lib/components/ui/select';
 import { Textarea } from '$lib/components/ui/textarea';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
 import type {
   OffboardingComplianceCheck,
   OffboardingWorkflow,
@@ -37,6 +37,9 @@ export const complianceChecks: OffboardingComplianceCheck[] = [];
 export const readonly = false;
 
 const dispatch = createEventDispatcher();
+
+// Get Supabase client from context
+// Use global stores directly
 
 let loading = false;
 let error: string | null = null;
@@ -183,6 +186,11 @@ async function handleUpdateCheck() {
     loading = true;
     error = null;
 
+    // Check authentication
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to update compliance checks');
+    }
+
     const updates: any = {
       status: updateData.status,
     };
@@ -210,7 +218,7 @@ async function handleUpdateCheck() {
       }
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await $supabaseClientStore
       .from('offboarding_compliance_checks')
       .update(updates)
       .eq('id', selectedCheck.id);
@@ -247,6 +255,11 @@ async function quickUpdateStatus(check: OffboardingComplianceCheck, newStatus: s
     loading = true;
     error = null;
 
+    // Check authentication
+    if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
+      throw new Error('Please sign in to update compliance checks');
+    }
+
     const updates: any = { status: newStatus };
 
     if (newStatus === 'completed') {
@@ -257,7 +270,7 @@ async function quickUpdateStatus(check: OffboardingComplianceCheck, newStatus: s
       updates.completed_date = null;
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await $supabaseClientStore
       .from('offboarding_compliance_checks')
       .update(updates)
       .eq('id', check.id);

@@ -1,5 +1,15 @@
 // Create process records directly in the demo app
-import { supabase } from '../lib/supabase.ts';
+import { supabaseClientStore } from '../lib/contexts/supabase-context';
+import { get } from 'svelte/store';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to run this script');
+  }
+  return client;
+}
 
 export async function createProcessRecords() {
   console.log('🔄 Creating process records...');
@@ -9,6 +19,8 @@ export async function createProcessRecords() {
   );
 
   try {
+    const supabase = getCurrentSupabaseClient();
+
     // Get the current client (Hygge & Hvidløg)
     const { data: clients, error: clientError } = await supabase
       .from('clients')

@@ -383,7 +383,7 @@ function formatDateTime(dateString: string) {
 
 									<!-- Person Type Toggle -->
 									<div>
-										<label class="block text-sm font-medium text-gray-700 mb-2">Person Type</label>
+										<div class="block text-sm font-medium text-gray-700 mb-2">Person Type</div>
 										<div class="flex items-center space-x-4">
 											<Button 
 												variant={editFormData.employmentStatus ? "default" : "outline"} 

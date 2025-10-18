@@ -29,7 +29,7 @@ vi.mock('$app/stores', () => ({
   },
 }));
 
-// Mock Supabase
+// Mock Supabase TODO set up the client in the store instead
 vi.mock('$lib/supabase', () => ({
   supabase: {
     from: vi.fn().mockReturnThis(),

@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getAuthStoreFromContext, SignInForm } from '@thepia/flows-auth';
+	import { createFlowsSupabaseClient, decodeJWTPayload } from '@thepia/flows-db';
 
 	// Get auth store from context (set up in +layout.svelte)
 	const authStore = getAuthStoreFromContext();
+	window.authStore = authStore;
 
 	// Import IndexedDB constants
 	let INDEXEDDB_NAME: string;
@@ -23,7 +25,18 @@
 		loading: false,
 		error: null as string | null
 	});
+	let supabaseData = $state({
+		hasSupabaseToken: false,
+		tokenPreview: 'none',
+		tokenExpiry: null as string | null,
+		dbConnectionTest: null as any,
+		loading: false,
+		error: null as string | null
+	});
 	let isLoadingDB = false; // Guard against concurrent loads
+
+	// Decode JWT payload using utility function
+	const jwtPayload = $derived(authState?.supabase_token ? decodeJWTPayload(authState.supabase_token) : null);
 
 	onMount(async () => {
 		if (!browser) return;
@@ -46,6 +59,9 @@
 					session: state.session
 				};
 
+				// Update Supabase token information
+				updateSupabaseInfo(state);
+
 				// Reload IndexedDB data when auth state changes
 				if (wasAuthenticated !== state.isAuthenticated) {
 					setTimeout(() => loadIndexedDBData(), 500);
@@ -53,8 +69,8 @@
 			});
 
 			// Get flows-db client
-			const { getFlowsDB } = await import('@thepia/flows-db/client');
-			flowsDB = getFlowsDB();
+			const { FlowsDBClient } = await import('@thepia/flows-db/client');
+			flowsDB = new FlowsDBClient();
 
 			// Wait for service worker to be ready before accessing IndexedDB
 			if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -76,6 +92,119 @@
 			await authStore.signOut();
 		} catch (err) {
 			console.error('[Auth Test] Sign out failed:', err);
+		}
+	}
+
+	function updateSupabaseInfo(authState: any) {
+		supabaseData.hasSupabaseToken = !!authState.supabase_token;
+		supabaseData.tokenPreview = authState.supabase_token
+			? `${authState.supabase_token.substring(0, 20)}...`
+			: 'none';
+		supabaseData.tokenExpiry = authState.supabase_expires_at
+			? new Date(authState.supabase_expires_at).toISOString()
+			: null;
+	}
+
+	async function testSupabaseConnection() {
+		supabaseData.loading = true;
+		supabaseData.error = null;
+		supabaseData.dbConnectionTest = null;
+
+		try {
+			const supabaseClient = createFlowsSupabaseClient(authStore, {
+				clientCode: 'hygge-hvidlog'
+			});
+			window.supabaseClient = supabaseClient;
+
+			// Debug: Show what's actually in the JWT
+			console.log('Auth state:', authStore.getState());
+			console.log('Supabase client:', supabaseClient);
+
+			// Decode and show JWT contents
+			const authState = authStore.getState();
+			if (authState.supabase_token) {
+				try {
+					const token = authState.supabase_token;
+					const payload = JSON.parse(atob(token.split('.')[1]));
+					console.log('JWT payload:', payload);
+					console.log('User metadata:', payload.user_metadata);
+				} catch (jwtError) {
+					console.error('Failed to decode JWT:', jwtError);
+				}
+			}
+
+			// Test basic connection
+			const { data: healthCheck, error: healthError } = await supabaseClient
+				.from('clients')
+				.select('id, client_code')
+				.limit(1);
+
+			if (healthError) {
+				throw new Error(`Database connection failed: ${healthError.message}`);
+			}
+
+			// Test RLS context - handle missing function gracefully
+			let contextTest = 'none';
+			let contextError = null;
+			let userRole = 'none';
+			let userRoleError = null;
+
+			try {
+				const { data, error } = await supabaseClient.rpc('get_current_client_id');
+				if (error) {
+					contextError = error.message;
+				} else {
+					contextTest = data || 'none';
+				}
+			} catch (err) {
+				contextError = err instanceof Error ? err.message : 'RLS function not available';
+			}
+
+			// Test user role function
+			let rawUserId = 'none';
+			let rawUserIdError = null;
+
+			try {
+				const { data, error } = await supabaseClient.rpc('get_current_thepia_user_id');
+				if (error) {
+					rawUserIdError = error.message;
+				} else {
+					rawUserId = data || 'none';
+				}
+			} catch (err) {
+				rawUserIdError = err instanceof Error ? err.message : 'User ID function not available';
+			}
+
+			try {
+				const { data, error } = await supabaseClient.rpc('get_current_user_role');
+				if (error) {
+					userRoleError = error.message;
+				} else {
+					userRole = data || 'authenticated';
+				}
+			} catch (err) {
+				userRoleError = err instanceof Error ? err.message : 'User role function not available';
+			}
+
+			supabaseData.dbConnectionTest = {
+				success: true,
+				healthCheck: healthCheck?.length || 0,
+				currentClientId: contextTest,
+				contextError: contextError,
+				rawUserId: rawUserId,
+				rawUserIdError: rawUserIdError,
+				userRole: userRole,
+				userRoleError: userRoleError,
+				timestamp: new Date().toISOString()
+			};
+
+			// Use $state.snapshot to avoid proxy warnings
+			console.log('[Auth Test] Supabase connection test successful:', $state.snapshot(supabaseData.dbConnectionTest));
+		} catch (err) {
+			console.error('[Auth Test] Supabase connection test failed:', err);
+			supabaseData.error = err instanceof Error ? err.message : 'Connection test failed';
+		} finally {
+			supabaseData.loading = false;
 		}
 	}
 
@@ -255,6 +384,20 @@
 									{new Date(authState.session.tokens.expiresAt).toLocaleString()}
 								</span>
 							</div>
+							{#if authState.session.tokens.supabase_token}
+								<div class="text-sm">
+									<span class="font-medium text-gray-700">Supabase Token:</span>
+									<span class="text-green-600 ml-2">✓ Available</span>
+								</div>
+							{/if}
+							{#if authState.session.tokens.supabase_expires_at}
+								<div class="text-sm">
+									<span class="font-medium text-gray-700">Supabase Expires:</span>
+									<span class="text-gray-600 ml-2">
+										{new Date(authState.session.tokens.supabase_expires_at).toLocaleString()}
+									</span>
+								</div>
+							{/if}
 						</div>
 
 						<button
@@ -274,7 +417,7 @@
 				{/if}
 			</div>
 
-			<!-- Session Info & Actions -->
+			<!-- Service Worker Session -->
 			<div class="bg-white rounded-lg shadow p-6">
 				<h2 class="text-xl font-semibold mb-4">Service Worker Session</h2>
 
@@ -291,6 +434,8 @@
 						<h3 class="font-semibold text-gray-800 mb-2">Test Flow:</h3>
 						<ol class="list-decimal list-inside space-y-2 text-sm text-gray-600">
 							<li>Enter email and sign in</li>
+							<li>Verify Supabase token appears in middle panel</li>
+							<li>Click "Test Database Connection" to verify RLS access</li>
 							<li>Session should be saved to Service Worker automatically (via +layout.svelte)</li>
 							<li>Click "Check Service Worker Session" to verify</li>
 							<li>Open DevTools → Application → IndexedDB → flows-data → auth_sessions</li>
@@ -446,6 +591,190 @@
 					<strong>Auth sessions table:</strong> Active session tokens - cleared when you
 					sign out
 				</p>
+			</div>
+		</div>
+
+		<!-- Supabase Session Info -->
+		<div class="mt-6 bg-white rounded-lg shadow p-6">
+			<h2 class="text-xl font-semibold mb-4">Supabase Session & Database Connection</h2>
+
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<!-- Token Information -->
+				<div class="space-y-4">
+					<h3 class="font-semibold text-gray-800">Token Status</h3>
+
+					<!-- Token Status -->
+					<div class="border rounded p-4 {supabaseData.hasSupabaseToken ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}">
+						<div class="flex items-center gap-2 mb-3">
+							<span class="text-lg">
+								{supabaseData.hasSupabaseToken ? '✅' : '❌'}
+							</span>
+							<span class="font-medium">
+								{supabaseData.hasSupabaseToken ? 'Supabase Token Available' : 'No Supabase Token'}
+							</span>
+						</div>
+						<div class="text-sm text-gray-600 space-y-2">
+							<div>
+								<span class="font-medium">Token Preview:</span>
+								<span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded ml-2">{supabaseData.tokenPreview}</span>
+							</div>
+							{#if supabaseData.tokenExpiry}
+								<div>
+									<span class="font-medium">Expires:</span>
+									<span class="ml-2">{new Date(supabaseData.tokenExpiry).toLocaleString()}</span>
+								</div>
+							{/if}
+
+							{#if supabaseData.hasSupabaseToken && authState?.supabase_token}
+								<div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+									<span class="font-medium text-blue-800">JWT Contents:</span>
+									{#if jwtPayload}
+										<div class="mt-2 space-y-1 text-xs">
+											<div><strong>sub:</strong> <code class="bg-blue-100 px-1">{jwtPayload.sub}</code></div>
+											<div><strong>email:</strong> <code class="bg-blue-100 px-1">{jwtPayload.email}</code></div>
+											{#if jwtPayload.role}
+												<div><strong>supabase_role:</strong> <code class="bg-blue-100 px-1">{jwtPayload.role}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.role}
+												<div><strong>admin_role:</strong> <code class="bg-green-100 px-1 text-green-800">{jwtPayload.user_metadata.role}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.thepia_user_id}
+												<div><strong>thepia_user_id:</strong> <code class="bg-purple-100 px-1 text-purple-800">{jwtPayload.user_metadata.thepia_user_id}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.client_id}
+												<div><strong>client_id:</strong> <code class="bg-orange-100 px-1 text-orange-800">{jwtPayload.user_metadata.client_id}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.employee_id}
+												<div><strong>employee_id:</strong> <code class="bg-cyan-100 px-1 text-cyan-800">{jwtPayload.user_metadata.employee_id}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.department}
+												<div><strong>department:</strong> <code class="bg-indigo-100 px-1 text-indigo-800">{jwtPayload.user_metadata.department}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata?.access_level}
+												<div><strong>access_level:</strong> <code class="bg-emerald-100 px-1 text-emerald-800">{jwtPayload.user_metadata.access_level}</code></div>
+											{/if}
+											{#if jwtPayload.user_metadata}
+												<div class="mt-3"><strong>All user_metadata:</strong></div>
+												<div class="ml-4 space-y-1">
+													{#each Object.entries(jwtPayload.user_metadata) as [key, value]}
+														<div><strong>{key}:</strong> <code class="bg-gray-100 px-1 text-xs">{value}</code></div>
+													{/each}
+												</div>
+											{/if}
+										</div>
+									{:else}
+										<div class="text-red-600 text-xs mt-1">Failed to decode JWT</div>
+									{/if}
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<div class="border-t pt-4">
+						<h4 class="font-semibold text-gray-800 mb-2">Token Usage Guide:</h4>
+						<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+							<li><code class="bg-gray-100 px-1">supabase_token</code> - Database access with RLS policies</li>
+							<li><code class="bg-gray-100 px-1">access_token</code> - API access (WorkOS/Auth0 only)</li>
+							<li>Never mix tokens between services</li>
+							<li>Supabase client uses only <code class="bg-gray-100 px-1">supabase_token</code></li>
+						</ul>
+					</div>
+
+					<div class="border-t pt-4">
+						<h4 class="font-semibold text-gray-800 mb-2">User Roles:</h4>
+						<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+							<li><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-xs font-mono">thepia_staff</span> - Full cross-client access</li>
+							<li><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-mono">client_manager</span> - Manager within specific client</li>
+							<li><span class="px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-mono">client_employee</span> - Employee within specific client</li>
+							<li><span class="px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-mono">authenticated</span> - Default role (no special permissions)</li>
+						</ul>
+					</div>
+				</div>
+
+				<!-- Database Connection Testing -->
+				<div class="space-y-4">
+					<h3 class="font-semibold text-gray-800">Database Connection</h3>
+
+					<!-- Test Button -->
+					<button
+						onclick={testSupabaseConnection}
+						disabled={!supabaseData.hasSupabaseToken || supabaseData.loading}
+						class="w-full bg-purple-500 text-white py-3 px-4 rounded-lg hover:bg-purple-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+					>
+						{supabaseData.loading ? '🔄 Testing Connection...' : '🔍 Test Database Connection'}
+					</button>
+
+					{#if supabaseData.error}
+						<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+							<p class="text-red-800 font-semibold">❌ Connection Error</p>
+							<p class="text-red-600 text-sm mt-1">{supabaseData.error}</p>
+						</div>
+					{/if}
+
+					{#if supabaseData.dbConnectionTest}
+						<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+							<p class="text-blue-800 font-semibold mb-3">✅ Connection Test Results</p>
+							<div class="text-sm text-blue-700 space-y-2">
+								<div class="flex justify-between">
+									<span class="font-medium">Health Check:</span>
+									<span>{supabaseData.dbConnectionTest.healthCheck} records accessible</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="font-medium">RLS Client ID:</span>
+									<span class="font-mono text-xs">{supabaseData.dbConnectionTest.currentClientId}</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="font-medium">Raw User ID:</span>
+									<span class="font-mono text-xs">{supabaseData.dbConnectionTest.rawUserId}</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="font-medium">User Role:</span>
+									<span class="font-mono text-xs px-2 py-1 rounded {supabaseData.dbConnectionTest.userRole === 'thepia_staff' ? 'bg-purple-100 text-purple-800' : supabaseData.dbConnectionTest.userRole === 'client_manager' ? 'bg-blue-100 text-blue-800' : supabaseData.dbConnectionTest.userRole === 'client_employee' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">{supabaseData.dbConnectionTest.userRole}</span>
+								</div>
+								{#if supabaseData.dbConnectionTest.contextError}
+									<div class="bg-orange-100 border border-orange-200 rounded p-2 mt-2">
+										<div class="text-orange-800 font-medium text-xs">⚠️ RLS Function Missing:</div>
+										<div class="text-orange-700 text-xs mt-1">{supabaseData.dbConnectionTest.contextError}</div>
+										<div class="text-orange-600 text-xs mt-1">
+											Run: <code class="bg-orange-200 px-1">psql -f schemas/26_fix_rls_configuration.sql</code>
+										</div>
+									</div>
+								{/if}
+								{#if supabaseData.dbConnectionTest.rawUserIdError}
+									<div class="bg-blue-100 border border-blue-200 rounded p-2 mt-2">
+										<div class="text-blue-800 font-medium text-xs">⚠️ User ID Function Missing:</div>
+										<div class="text-blue-700 text-xs mt-1">{supabaseData.dbConnectionTest.rawUserIdError}</div>
+										<div class="text-blue-600 text-xs mt-1">
+											Run: <code class="bg-blue-200 px-1">psql -f schemas/32_fix_user_id_prefix_stripping.sql</code>
+										</div>
+									</div>
+								{/if}
+								{#if supabaseData.dbConnectionTest.userRoleError}
+									<div class="bg-yellow-100 border border-yellow-200 rounded p-2 mt-2">
+										<div class="text-yellow-800 font-medium text-xs">⚠️ User Role Function Missing:</div>
+										<div class="text-yellow-700 text-xs mt-1">{supabaseData.dbConnectionTest.userRoleError}</div>
+										<div class="text-yellow-600 text-xs mt-1">
+											Run: <code class="bg-yellow-200 px-1">psql -f schemas/31_final_user_roles_complete.sql</code>
+										</div>
+									</div>
+								{/if}
+								<div class="flex justify-between text-xs">
+									<span class="font-medium">Last Tested:</span>
+									<span>{new Date(supabaseData.dbConnectionTest.timestamp).toLocaleTimeString()}</span>
+								</div>
+							</div>
+						</div>
+					{/if}
+
+					{#if !supabaseData.hasSupabaseToken}
+						<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+							<p class="text-yellow-800 font-semibold">⚠️ No Database Token</p>
+							<p class="text-yellow-700 text-sm mt-1">
+								Sign in to get a Supabase token for database access.
+							</p>
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 

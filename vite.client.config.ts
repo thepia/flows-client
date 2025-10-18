@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 export default defineConfig({
 	build: {
 		lib: {
-			entry: resolve(__dirname, 'src/lib/flows-client.ts'),
-			name: 'FlowsClient',
+			entry: resolve(__dirname, 'src/index.ts'),
+			name: 'FlowsDB',
 			fileName: () => 'flows-client.js',
 			formats: ['es']
 		},
@@ -16,7 +16,7 @@ export default defineConfig({
 			output: {
 				inlineDynamicImports: true
 			},
-			external: []
+			external: ["svelte", "svelte/store", "@supabase/supabase-js", "@thepia/flows-auth"]
 		}
 	},
 	resolve: {

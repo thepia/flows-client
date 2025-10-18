@@ -163,13 +163,13 @@ async function generateDemoData() {
 
 {#if isOpen}
 	<!-- Backdrop -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 bg-black bg-opacity-25 z-40"
-		role="button"
-		tabindex="0"
 		on:click={handleClose}
 		on:keydown={(e) => e.key === 'Escape' && handleClose()}
-		aria-label="Close notifications"
+		aria-label="Close notifications backdrop"
 		data-testid="notification-backdrop"
 	></div>
 

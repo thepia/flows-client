@@ -1,5 +1,6 @@
 import { reportSupabaseError } from '$lib/config/errorReporting';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore } from '$lib/contexts/supabase-context';
+import { get } from 'svelte/store';
 import type {
   TFCBalance,
   TFCPricingTier,
@@ -7,6 +8,15 @@ import type {
   TFCUsageAnalytics,
   TimeSavingsCalculation,
 } from './tfc.types';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to access TFC data');
+  }
+  return client;
+}
 
 export class TFCService {
   // Pricing tiers configuration
@@ -44,6 +54,7 @@ export class TFCService {
    */
   async loadBalance(clientId: string): Promise<TFCBalance | null> {
     try {
+      const supabase = getCurrentSupabaseClient();
       const { data, error } = await supabase
         .from('tfc_client_balances')
         .select('*')
@@ -74,6 +85,7 @@ export class TFCService {
    */
   async loadTransactions(clientId: string, limit = 10): Promise<TFCTransaction[]> {
     try {
+      const supabase = getCurrentSupabaseClient();
       const { data, error } = await supabase
         .from('tfc_credit_transactions')
         .select('*')
@@ -107,6 +119,7 @@ export class TFCService {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+      const supabase = getCurrentSupabaseClient();
       const { data, error } = await supabase
         .from('tfc_workflow_usage')
         .select('workflow_type, department_category, credits_consumed, consumed_at')

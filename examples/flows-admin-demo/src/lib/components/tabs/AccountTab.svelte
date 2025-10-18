@@ -35,23 +35,23 @@ export let loadingAccount = false;
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Company Name</div>
               <div class="text-sm text-gray-900">{$client?.legal_name || $client?.name || 'Loading...'}</div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Client Code</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Client Code</div>
               <div class="text-sm text-gray-900 font-mono">{$client?.client_code || $client?.code || 'Loading...'}</div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Industry</div>
               <div class="text-sm text-gray-900">{$client?.industry || 'Not specified'}</div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Domain</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Domain</div>
               <div class="text-sm text-gray-900">{$client?.domain || 'Not specified'}</div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Account Tier</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Account Tier</div>
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {
                 $client?.tier === 'enterprise' ? 'bg-purple-100 text-purple-800' :
                 $client?.tier === 'pro' ? 'bg-blue-100 text-blue-800' :
@@ -61,7 +61,7 @@ export let loadingAccount = false;
               </span>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Status</div>
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {
                 $client?.status === 'active' ? 'bg-green-100 text-green-800' :
                 $client?.status === 'trial' ? 'bg-yellow-100 text-yellow-800' :
@@ -74,7 +74,7 @@ export let loadingAccount = false;
           
           {#if $client?.description}
             <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Company Description</label>
+              <div class="block text-sm font-medium text-gray-700 mb-1">Company Description</div>
               <div class="text-sm text-gray-600 leading-relaxed">{$client.description}</div>
             </div>
           {/if}

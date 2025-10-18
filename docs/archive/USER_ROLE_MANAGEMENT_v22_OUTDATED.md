@@ -1,6 +1,14 @@
-# User Role Management System
+# User Role Management System (v22 - OUTDATED)
 
-Documentation for the Thepia Flows database user role and permission system.
+**⚠️ DEPRECATED**: This document describes an outdated system that used `auth.users(id)` foreign keys.
+
+**📋 USE INSTEAD**: [../USER_ROLE_MANAGEMENT.md](../USER_ROLE_MANAGEMENT.md) - Current v31 system with stable identity
+
+**🗓️ ARCHIVED**: January 2025 - Replaced by v31 system with hybrid authentication support
+
+---
+
+Documentation for the Thepia Flows database user role and permission system (LEGACY VERSION).
 
 ## Overview
 

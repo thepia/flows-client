@@ -160,17 +160,31 @@ async function handleSignOut() {
 		<div
 			class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
 			onclick={() => showAuthDialog = false}
-			onkeydown={(e) => e.key === 'Escape' && (showAuthDialog = false)}
-			role="button"
+			onkeydown={(e) => {
+				if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					showAuthDialog = false;
+				}
+			}}
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="auth-dialog-title"
 			tabindex="0"
 		>
-			<div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
+			<!-- Dialog content - click handler prevents dialog from closing when clicking inside -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4"
+				onclick={(e) => e.stopPropagation()}
+			>
 				<div class="flex items-center justify-between mb-4">
-					<h2 class="text-lg font-semibold text-gray-900">Account</h2>
+					<h2 id="auth-dialog-title" class="text-lg font-semibold text-gray-900">Account</h2>
 					<button
 						type="button"
 						onclick={() => showAuthDialog = false}
 						class="text-gray-400 hover:text-gray-600"
+						aria-label="Close dialog"
 					>
 						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

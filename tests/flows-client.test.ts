@@ -13,7 +13,7 @@ describe('FlowsDBClient', () => {
 	let client: FlowsDBClient;
 	let mockServiceWorker: any;
 	let mockRegistration: any;
-	let messageHandlers: Map<string, Function>;
+	let messageHandlers: Map<string, (payload: any) => any>;
 
 	beforeEach(() => {
 		messageHandlers = new Map();
@@ -44,14 +44,14 @@ describe('FlowsDBClient', () => {
 			active: mockServiceWorker
 		};
 
-		// Mock navigator.serviceWorker
-		global.navigator = {
+		// Mock navigator.serviceWorker using vi.stubGlobal
+		vi.stubGlobal('navigator', {
 			serviceWorker: {
 				register: vi.fn().mockResolvedValue(mockRegistration),
 				ready: Promise.resolve(mockRegistration),
 				controller: mockServiceWorker
 			}
-		} as any;
+		});
 
 		// Mock MessageChannel
 		global.MessageChannel = class {
@@ -85,6 +85,7 @@ describe('FlowsDBClient', () => {
 
 	afterEach(() => {
 		vi.clearAllMocks();
+		vi.unstubAllGlobals();
 		messageHandlers.clear();
 	});
 
@@ -281,13 +282,13 @@ describe('FlowsDBClient', () => {
 
 		it('should throw error when no service worker available', async () => {
 			// Create client without service worker
-			global.navigator = {
+			vi.stubGlobal('navigator', {
 				serviceWorker: {
 					register: vi.fn().mockResolvedValue({ active: null }),
 					ready: Promise.resolve({ active: null }),
 					controller: null
 				}
-			} as any;
+			});
 
 			const brokenClient = new FlowsDBClient();
 

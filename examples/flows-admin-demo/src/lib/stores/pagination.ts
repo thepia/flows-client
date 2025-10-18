@@ -5,9 +5,18 @@
  * and improve performance with large datasets (1000+ records).
  */
 
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore } from '$lib/contexts/supabase-context';
 import type { Person, ProcessSummary } from '$lib/types';
 import { derived, get, writable } from 'svelte/store';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to access pagination data');
+  }
+  return client;
+}
 
 // Pagination configuration
 export const PAGINATION_CONFIG = {
@@ -71,6 +80,7 @@ export async function loadPeoplePage(
     filters?: Record<string, any>;
   } = {}
 ) {
+  const supabase = getCurrentSupabaseClient();
   const pagination = get(peoplePagination);
   const { pageSize } = pagination;
   const offset = page * pageSize;
@@ -210,6 +220,7 @@ export async function loadProcessesPage(
     search?: string;
   } = {}
 ) {
+  const supabase = getCurrentSupabaseClient();
   const pagination = get(processesPagination);
   const { pageSize } = pagination;
   const offset = page * pageSize;
@@ -345,6 +356,7 @@ export async function getPeopleStatistics(
   } = {}
 ) {
   try {
+    const supabase = getCurrentSupabaseClient();
     // Helper function to apply filters (same as in loadPeoplePage)
     const applyFilters = (baseQuery: any) => {
       let filteredQuery = baseQuery;

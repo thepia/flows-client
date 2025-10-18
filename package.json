@@ -8,13 +8,19 @@
       "@thepia/flows-auth": "TYPES ONLY - Used for SessionPersistence, SessionData, and UserData type definitions. No runtime code imported."
     }
   },
-  "main": "src/index.js",
+  "main": "dist/flows-client.js",
   "types": "src/types/index.ts",
   "exports": {
     ".": {
       "types": "./src/types/index.ts",
-      "import": "./src/index.js",
+      "svelte": "./src/svelte.ts",
+      "import": "./dist/flows-client.js",
       "default": "./src/index.js"
+    },
+    "./svelte": {
+      "types": "./src/types/index.ts",
+      "import": "./src/svelte.ts",
+      "default": "./src/svelte.ts"
     },
     "./types": {
       "types": "./src/types/index.ts",
@@ -53,6 +59,7 @@
     "db:reset": "node scripts/reset-database.js",
     "db:backup": "node scripts/backup.js",
     "db:restore": "node scripts/restore.js",
+    "db:setup-rls": "node scripts/setup-rls.js",
     "client:create": "node scripts/setup-client.js",
     "client:list": "node scripts/list-clients.js",
     "client:status": "node scripts/client-status.js",

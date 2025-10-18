@@ -234,3 +234,39 @@ export function resetFlowsDB(): void {
 
 // Export IndexedDB constants for direct database access
 export { INDEXEDDB_NAME, INDEXEDDB_VERSION } from '../constants';
+
+/**
+ * JWT Utilities
+ */
+
+export interface JWTPayload {
+	sub?: string;
+	email?: string;
+	role?: string;
+	user_metadata?: Record<string, any>;
+	[key: string]: any;
+}
+
+/**
+ * Safely decode a JWT token payload
+ * @param token - The JWT token string
+ * @returns The decoded payload or null if invalid
+ */
+export function decodeJWTPayload(token: string): JWTPayload | null {
+	if (!token || typeof token !== 'string') {
+		return null;
+	}
+
+	try {
+		const parts = token.split('.');
+		if (parts.length !== 3) {
+			return null;
+		}
+
+		const payload = parts[1];
+		const decoded = atob(payload);
+		return JSON.parse(decoded);
+	} catch {
+		return null;
+	}
+}

@@ -8,11 +8,12 @@ const config = {
   preprocess: vitePreprocess(),
 
   kit: {
-    // Configure for client-only functionality
+    // Use auto adapter for hybrid functionality (SSR + client-side)
+    // Enables server endpoints (error reporting) while supporting client-only auth
     adapter: adapter(),
     prerender: {
-      handleHttpError: 'warn',
-    },
+      entries: [], // No prerendering - pure client-side app
+    }
   },
 };
 

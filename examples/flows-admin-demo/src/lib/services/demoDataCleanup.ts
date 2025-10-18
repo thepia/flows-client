@@ -1,10 +1,23 @@
-import { supabase } from '../supabase.js';
+import { supabaseClientStore } from '../contexts/supabase-context';
+import { get } from 'svelte/store';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to access demo data cleanup');
+  }
+  return client;
+}
 
 export async function resetDemoDataForCompany(
   companyCode: string,
   progressCallback?: (progress: number, message: string) => void
 ): Promise<void> {
   progressCallback?.(0, 'Starting data cleanup...');
+
+  // Get current Supabase client from store
+  const supabase = getCurrentSupabaseClient();
 
   // Get the demo company info
   const { data: clientData, error: clientError } = await supabase

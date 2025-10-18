@@ -6,7 +6,8 @@ import '../app.pcss';
 import AppHeader from '$lib/components/layout/AppHeader.svelte';
 import { setupAuthContext } from '@thepia/flows-auth';
 import '@thepia/flows-auth/style.css';
-import { getFlowsDB } from '@thepia/flows-db/client';
+import { FlowsDBClient } from '@thepia/flows-db';
+import { initializeSupabaseStores } from '../lib/contexts/supabase-context';
 
 // Determine page context
 $: isSettingsPage = $page.url.pathname === '/settings';
@@ -14,7 +15,7 @@ $: isAuthTestPage = $page.url.pathname === '/auth-test';
 $: pageTitle = isSettingsPage ? 'Settings' : isAuthTestPage ? 'Auth Test' : 'Flows';
 
 // Get flows-db client for session persistence
-const flowsDB = getFlowsDB();
+const flowsDB = new FlowsDBClient();
 
 // Setup auth context for entire app (SSR disabled, so this is safe)
 const authConfig = {
@@ -34,6 +35,10 @@ const authConfig = {
 
 const authStore = setupAuthContext(authConfig);
 console.log('🔐 Auth store initialized in layout with database persistence');
+
+// Initialize global Supabase stores that react to auth changes
+initializeSupabaseStores(authStore);
+console.log('🔗 Global Supabase stores initialized');
 
 // Initialize error reporting and store bridge on app startup
 onMount(async () => {

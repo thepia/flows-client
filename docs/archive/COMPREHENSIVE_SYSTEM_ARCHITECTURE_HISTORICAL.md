@@ -1,4 +1,13 @@
-# Comprehensive System Architecture - Flows Admin Demo
+# Comprehensive System Architecture - Flows Admin Demo (HISTORICAL)
+
+**⚠️ CONSOLIDATED**: This document has been merged into the comprehensive database architecture guide.
+
+**📋 USE INSTEAD**: [../DATABASE_ARCHITECTURE.md](../DATABASE_ARCHITECTURE.md) - Complete database and system architecture
+
+**🗓️ ARCHIVED**: January 2025 - System architecture consolidated into unified documentation
+
+---
+
 *Updated: 2025-06-27*
 
 ## 🏗️ System Overview

@@ -1,6 +1,16 @@
 import { reportSupabaseError } from '$lib/config/errorReporting';
-import { supabase } from '$lib/supabase';
+import { supabaseClientStore } from '$lib/contexts/supabase-context';
 import type { Application } from '$lib/types';
+import { get } from 'svelte/store';
+
+// Get current Supabase client from store
+function getCurrentSupabaseClient() {
+  const client = get(supabaseClientStore);
+  if (!client) {
+    throw new Error('Authentication required - please sign in to access applications data');
+  }
+  return client;
+}
 
 export class ApplicationsService {
   /**
@@ -8,6 +18,7 @@ export class ApplicationsService {
    */
   static async loadApplications(clientId: string): Promise<Application[]> {
     try {
+      const supabase = getCurrentSupabaseClient();
       const { data: appsData, error: appsError } = await supabase
         .from('client_applications')
         .select('*')

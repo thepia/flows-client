@@ -1,4 +1,12 @@
-# Schema Architecture Decision: Dedicated API Schema
+# Schema Architecture Decision: Dedicated API Schema (ARCHIVED)
+
+**⚠️ CONSOLIDATED**: This document has been merged into the comprehensive database architecture guide.
+
+**📋 USE INSTEAD**: [../DATABASE_ARCHITECTURE.md](../DATABASE_ARCHITECTURE.md) - Complete database and system architecture
+
+**🗓️ ARCHIVED**: January 2025 - Consolidated into unified architecture documentation
+
+---
 
 ## 🎯 Decision: Use Dedicated API Schema
 

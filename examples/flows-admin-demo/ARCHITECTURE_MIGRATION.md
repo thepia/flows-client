@@ -117,14 +117,16 @@ describe('TFCStore', () => {
 ### Before (❌)
 ```svelte
 <script>
-import { supabase } from '$lib/supabase';
+const supabaseClient = createSupabaseClient(authStore, {
+  clientCode: 'hygge-hvidlog'
+});
 
 let balance = null;
 let loading = false;
 
 onMount(async () => {
   loading = true;
-  const { data } = await supabase.from('tfc_client_balances')...
+  const { data } = await supabaseClient.from('tfc_client_balances')...
   balance = data;
   loading = false;
 });
