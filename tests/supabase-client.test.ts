@@ -36,17 +36,19 @@ describe('Supabase Client Utilities', () => {
 		debug: false
 	};
 
-	const mockAuthState: AuthStore = {
+	const mockAuthState: Partial<AuthStore> = {
 		state: 'authenticated',
 		user: {
 			id: 'user-123',
 			email: 'test@example.com',
-			name: 'Test User'
+			name: 'Test User',
+			emailVerified: true,
+			createdAt: '2024-01-01T00:00:00Z'
 		},
 		access_token: 'access-token-123',
 		supabase_token: 'supabase-token-456',
 		refresh_token: 'refresh-token-789',
-		expires_at: Date.now() + 3600000
+		expiresAt: Date.now() + 3600000
 	};
 
 	beforeEach(() => {
@@ -381,13 +383,13 @@ describe('Supabase Client Utilities', () => {
 		});
 
 		it('should return null for non-authenticated state', () => {
-			const unauthenticatedState: AuthStore = {
+			const unauthenticatedState: Partial<AuthStore> = {
 				state: 'unauthenticated',
 				user: null,
 				access_token: null,
 				supabase_token: null,
 				refresh_token: null,
-				expires_at: null
+				expiresAt: null
 			};
 
 			const mockStore = {
@@ -400,7 +402,7 @@ describe('Supabase Client Utilities', () => {
 		});
 
 		it('should return null when user is missing', () => {
-			const stateWithoutUser: AuthStore = {
+			const stateWithoutUser: Partial<AuthStore> = {
 				...mockAuthState,
 				user: null
 			};
@@ -427,13 +429,13 @@ describe('Supabase Client Utilities', () => {
 		});
 
 		it('should return false for non-authenticated state', () => {
-			const unauthenticatedState: AuthStore = {
+			const unauthenticatedState: Partial<AuthStore> = {
 				state: 'unauthenticated',
 				user: null,
 				access_token: null,
 				supabase_token: null,
 				refresh_token: null,
-				expires_at: null
+				expiresAt: null
 			};
 
 			const mockStore = {
@@ -446,7 +448,7 @@ describe('Supabase Client Utilities', () => {
 		});
 
 		it('should return false when user has no email', () => {
-			const stateWithoutEmail: AuthStore = {
+			const stateWithoutEmail: Partial<AuthStore> = {
 				...mockAuthState,
 				user: mockAuthState.user ? {
 					...mockAuthState.user,

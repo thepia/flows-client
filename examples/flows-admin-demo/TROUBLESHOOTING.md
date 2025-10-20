@@ -80,8 +80,7 @@ Ensure your `.env` file contains:
 ```bash
 SUPABASE_URL=https://jstbkvkurjsopuwhlsvy.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-VITE_SUPABASE_URL=https://jstbkvkurjsopuwhlsvy.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ### Step 3: Start the Application

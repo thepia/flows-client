@@ -76,7 +76,7 @@ export interface AuthProcedures {
       expiresAt: number;
       user: User;
     };
-    output: void;
+    output: SessionData;
   };
 
   'auth.getSession': {

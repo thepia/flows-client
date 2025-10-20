@@ -332,8 +332,8 @@ export interface SyncProcedures {
  */
 export interface AuthProcedures {
   'auth.saveSession': {
-    input: SessionData;
-    output: void;
+    input: Partial<SessionData>;
+    output: SessionData;
   };
 
   'auth.getSession': {
@@ -343,11 +343,13 @@ export interface AuthProcedures {
 
   'auth.clearSession': {
     input: undefined;
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
     output: void;
   };
 
   'auth.saveUser': {
     input: UserData;
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
     output: void;
   };
 
@@ -358,6 +360,7 @@ export interface AuthProcedures {
 
   'auth.clearUser': {
     input: string | undefined; // userId (optional - clear all or current user if not provided)
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
     output: void;
   };
 }

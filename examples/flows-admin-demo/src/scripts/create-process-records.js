@@ -15,7 +15,7 @@ export async function createProcessRecords() {
   console.log('🔄 Creating process records...');
   console.log(
     '🔗 Supabase URL:',
-    import.meta.env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'using fallback'
+    import.meta.env?.SUPABASE_URL || process.env.SUPABASE_URL || 'using fallback'
   );
 
   try {

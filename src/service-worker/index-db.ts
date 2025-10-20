@@ -1,6 +1,7 @@
 import type { SessionData, UserData } from '@thepia/flows-auth';
 import { SEED_JOURNEYS, SEED_TASKS, SEED_EVIDENCE, SEED_COMMENTS } from './seed';
 import { INDEXEDDB_NAME, INDEXEDDB_VERSION } from '../constants';
+import { getRecentLogs, cleanupOldLogs, exportLogs } from './logger';
 
 // IndexedDB connection
 let db: IDBDatabase | null = null;
@@ -154,6 +155,9 @@ export async function handleRPC(procedure: string, input: any): Promise<any> {
 	}
 	if (namespace === 'auth') {
 		return handleAuth(method, input);
+	}
+	if (namespace === 'debug') {
+		return handleDebug(method, input);
 	}
 
 	throw new Error(`Unknown procedure: ${procedure}`);
@@ -494,8 +498,7 @@ export async function handleAuth(
 	switch (method) {
 		case 'saveSession':
 			if (!input) throw new Error('Session data required for saveSession');
-			await saveAuthSession(input as SessionData);
-			return undefined;
+			return await saveAuthSession(input as SessionData);
 		case 'getSession':
 			return getAuthSession();
 		case 'clearSession':
@@ -518,10 +521,30 @@ export async function handleAuth(
 }
 
 /**
+ * Handle debug operations
+ */
+export async function handleDebug(
+	method: string,
+	input: any
+): Promise<any> {
+	switch (method) {
+		case 'getRecentLogs':
+			return getRecentLogs(input?.limit || 50);
+		case 'clearDebugLogs':
+			await cleanupOldLogs(0); // Clear all logs
+			return undefined;
+		case 'exportLogs':
+			return exportLogs();
+		default:
+			throw new Error(`Unknown debug method: ${method}`);
+	}
+}
+
+/**
  * Save authentication session to IndexedDB
  * Saves both session tokens AND updates user profile
  */
-export async function saveAuthSession(session: SessionData): Promise<void> {
+export async function saveAuthSession(session: SessionData): Promise<SessionData> {
 	return new Promise((resolve, reject) => {
 		if (!db) return reject(new Error('DB not initialized'));
 
@@ -571,7 +594,7 @@ export async function saveAuthSession(session: SessionData): Promise<void> {
 
 		sessionRequest.onsuccess = () => {
 			console.log('[SW] Auth session saved:', session.userId);
-			resolve();
+			resolve(session);
 		};
 		sessionRequest.onerror = () => reject(sessionRequest.error);
 	});

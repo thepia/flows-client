@@ -95,6 +95,62 @@ SELECT * FROM remove_user_role('user@example.com');
 - **[Core Architecture Contracts](docs/CORE_ARCHITECTURE_CONTRACTS.md)** - API availability and glue points
 - **[Flows Data Types](docs/FLOWS_DATA_TYPES.md)** - Entity definitions and relationships
 
+## Service Worker Setup
+
+The flows-db service worker provides IndexedDB-backed session persistence for authentication and data synchronization.
+
+### Installation
+
+1. **Copy the service worker to your app's static folder:**
+
+```json
+{
+  "scripts": {
+    "dev": "pnpm build:sw && pnpm copy:sw && vite dev",
+    "build": "pnpm copy:sw && vite build",
+    "copy:sw": "node node_modules/@thepia/flows-db/scripts/copy-sw.js static"
+  }
+}
+```
+
+1. **Configure flows-auth with session persistence:**
+
+```typescript
+import { setupAuthContext } from '@thepia/flows-auth';
+import { FlowsDBClient } from '@thepia/flows-db';
+
+// Create flows-db client (automatically registers service worker at /flows-sw.js)
+const flowsDB = new FlowsDBClient();
+
+// Pass session persistence to auth config
+const authConfig = {
+  apiBaseUrl: 'https://api.thepia.com',
+  clientId: 'my-app',
+  domain: 'thepia.net',
+  // ... other config
+  database: flowsDB.session  // ← Session persistence via service worker
+};
+
+const authStore = setupAuthContext(authConfig);
+```
+
+### What It Does
+
+- **Automatic registration**: `FlowsDBClient` registers the service worker at `/flows-sw.js`
+- **Session persistence**: Auth tokens and user data stored in IndexedDB
+- **RPC interface**: Type-safe procedures for queries, mutations, and sync operations
+- **Offline support**: Data available even when offline
+
+### Configuration
+
+```typescript
+const flowsDB = new FlowsDBClient({
+  serviceWorkerUrl: '/flows-sw.js',  // Default
+  scope: '/',                         // Default
+  debug: false                        // Enable debug logging
+});
+```
+
 ### Type System
 
 - **[Type System Usage Guide](docs/TYPE_SYSTEM_USAGE.md)** - 📋 Complete guide to using Flows types

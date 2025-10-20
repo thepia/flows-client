@@ -8,6 +8,7 @@
 
 import type { TransportMessage } from '../types';
 import { initDB, seedDatabase, handleRPC } from './index-db';
+import { initLogger, logAuthEvent } from './logger';
 
 const SW_VERSION = '1.0.0';
 
@@ -15,7 +16,17 @@ const SW_VERSION = '1.0.0';
  * Message handler for RPC calls
  */
 self.addEventListener('message', async (event: ExtendableMessageEvent) => {
-	const { id, type, procedure, payload } = event.data as TransportMessage;
+	const messageData = event.data;
+
+	// Handle debug logging messages (different format than RPC)
+	if (messageData.type === 'LOG_AUTH_EVENT') {
+		const { event: eventName, data, url, tabId } = messageData;
+		logAuthEvent(eventName, data, url, tabId);
+		return;
+	}
+
+	// Handle RPC messages
+	const { id, type, procedure, payload } = messageData as TransportMessage;
 
 	if (type === 'INIT_CONFIG') {
 		// Handle configuration
@@ -53,16 +64,25 @@ self.addEventListener('message', async (event: ExtendableMessageEvent) => {
  */
 self.addEventListener('install', (event) => {
 	console.log(`[SW] Installing version ${SW_VERSION}`);
-	event.waitUntil(
-		initDB()
-			.then(() => seedDatabase())
-			.then(() => (self as any).skipWaiting())
+	(event as ExtendableEvent).waitUntil(
+		Promise.all([
+			initDB().then(() => seedDatabase()),
+			initLogger()
+		])
+		.then(() => {
+			logAuthEvent('SW_INSTALL', { version: SW_VERSION });
+			return (self as any).skipWaiting();
+		})
 	);
 });
 
 self.addEventListener('activate', (event) => {
 	console.log(`[SW] Activating version ${SW_VERSION}`);
-	event.waitUntil((self as any).clients.claim());
+	(event as ExtendableEvent).waitUntil(
+		(self as any).clients.claim().then(() => {
+			logAuthEvent('SW_ACTIVATE', { version: SW_VERSION });
+		})
+	);
 });
 
 console.log(`[SW] Flows Service Worker ${SW_VERSION} loaded`);

@@ -21,9 +21,8 @@ export type { SessionData, UserData };
  */
 export interface AuthProcedures {
 	'auth.saveSession': {
-		input: SessionData;
-		// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-		output: void;
+		input: Partial<SessionData>;
+		output: SessionData;
 	};
 	'auth.getSession': {
 		input: undefined;

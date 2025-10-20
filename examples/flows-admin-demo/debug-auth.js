@@ -118,7 +118,7 @@ window.viewDebugLogs = async function() {
       registration.active.postMessage({
         id: Date.now(),
         type: 'request',
-        procedure: 'getRecentLogs',
+        procedure: 'debug.getRecentLogs',
         payload: { limit: 100 }
       }, [channel.port2]);
     });
@@ -189,7 +189,7 @@ window.clearDebugLogs = async function() {
       registration.active.postMessage({
         id: Date.now(),
         type: 'request',
-        procedure: 'clearDebugLogs',
+        procedure: 'debug.clearDebugLogs',
         payload: {}
       }, [channel.port2]);
     });
@@ -230,7 +230,7 @@ window.exportDebugLogs = async function() {
       registration.active.postMessage({
         id: Date.now(),
         type: 'request',
-        procedure: 'exportLogs',
+        procedure: 'debug.exportLogs',
         payload: {}
       }, [channel.port2]);
     });

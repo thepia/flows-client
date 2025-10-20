@@ -45,7 +45,7 @@ export function createReactiveSupabaseClient(
 export function createSupabaseClient(
   config: SupabaseConfig,
   options: SupabaseClientOptions & { authState?: any } = {}
-): SupabaseClient {
+): SupabaseClient<any, 'public', any> {
   const {
     useServiceRole = false,
     skipAuth = false,
@@ -53,8 +53,8 @@ export function createSupabaseClient(
     authState
   } = options;
 
-  const key = useServiceRole && config.serviceRoleKey 
-    ? config.serviceRoleKey 
+  const key = useServiceRole && config.serviceRoleKey
+    ? config.serviceRoleKey
     : config.anonKey;
 
   let authToken: string | null = null;
@@ -63,18 +63,22 @@ export function createSupabaseClient(
     authToken = hasValidSupabaseToken ? authState.supabase_token : null;
   }
 
-  const client = createClient(config.url, key, {
+  const client = createClient<any, 'public', any>(config.url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
       storage: undefined,
     },
     db: {
-      schema: config.schema || 'api',
+      schema: (config.schema || 'api') as 'public',
     },
     global: {
       headers: {
         ...headers,
+        // Cache CORS preflight responses for 24 hours to reduce OPTIONS requests
+        // This tells the browser to cache the preflight response, dramatically reducing
+        // the number of OPTIONS requests sent to Supabase
+        'Access-Control-Max-Age': '86400',
         ...(authToken && {
           Authorization: `Bearer ${authToken}`
         })
@@ -89,13 +93,15 @@ export function createSupabaseConfigFromEnv(
   fallbacks?: Partial<SupabaseConfig>
 ): SupabaseConfig {
   const isBrowser = typeof window !== 'undefined';
-  
+
+  const metaEnv = (import.meta as any).env || {};
+
   const url = isBrowser
-    ? import.meta.env?.VITE_SUPABASE_URL
+    ? metaEnv.SUPABASE_URL
     : process.env?.SUPABASE_URL;
-    
+
   const anonKey = isBrowser
-    ? import.meta.env?.VITE_SUPABASE_ANON_KEY
+    ? metaEnv.SUPABASE_ANON_KEY
     : process.env?.SUPABASE_ANON_KEY;
 
   return {
@@ -107,8 +113,9 @@ export function createSupabaseConfigFromEnv(
   };
 }
 
-export function getUserContext(authStore: AuthStore) {
-  const state = authStore.getState?.();
+export function getUserContext(authStore: AuthStore | any) {
+  // AuthStore is a Zustand store with core.getState() method
+  const state = authStore.core?.getState?.() || authStore.getState?.();
   if (state?.state !== 'authenticated' || !state?.user) {
     return null;
   }
@@ -122,7 +129,8 @@ export function getUserContext(authStore: AuthStore) {
   };
 }
 
-export function hasAdminAccess(authStore: AuthStore): boolean {
-  const state = authStore.getState?.();
+export function hasAdminAccess(authStore: AuthStore | any): boolean {
+  // AuthStore is a Zustand store with core.getState() method
+  const state = authStore.core?.getState?.() || authStore.getState?.();
   return state?.state === 'authenticated' && !!state?.user?.email;
 }

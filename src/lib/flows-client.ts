@@ -185,8 +185,8 @@ export class FlowsDBClient {
 	 */
 	get session(): SessionPersistence {
 		return {
-			saveSession: async (session: SessionData): Promise<void> => {
-				await this.call('auth.saveSession', session);
+			saveSession: async (session: Partial<SessionData>): Promise<SessionData> => {
+				return await this.call('auth.saveSession', session);
 			},
 
 			loadSession: async (): Promise<SessionData | null> => {
