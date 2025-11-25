@@ -363,6 +363,25 @@ export interface AuthProcedures {
     // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
     output: void;
   };
+
+  'auth.updateUserMetadata': {
+    input: {
+      userId: string;
+      metadata: Record<string, unknown>;
+    };
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+    output: void;
+  };
+
+  'auth.patchMetadata': {
+    input: {
+      userId: string;
+      patch: Record<string, unknown>;
+      appCode: string;
+      token: string;
+    };
+    output: Record<string, unknown>;
+  };
 }
 
 /**

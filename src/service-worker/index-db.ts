@@ -493,8 +493,8 @@ export async function handleSync(method: string, _input: any): Promise<any> {
  */
 export async function handleAuth(
 	method: string,
-	input: SessionData | UserData | string | undefined
-): Promise<SessionData | UserData | null | undefined> {
+	input: SessionData | UserData | string | undefined | any
+): Promise<SessionData | UserData | Record<string, unknown> | null | undefined> {
 	switch (method) {
 		case 'saveSession':
 			if (!input) throw new Error('Session data required for saveSession');
@@ -515,6 +515,17 @@ export async function handleAuth(
 			if (typeof input !== 'string') throw new Error('userId required for clearUser');
 			await clearUser(input);
 			return undefined;
+		case 'updateUserMetadata':
+			if (!input?.userId) throw new Error('userId required for updateUserMetadata');
+			if (!input?.metadata) throw new Error('metadata required for updateUserMetadata');
+			await updateUserMetadata(input.userId, input.metadata);
+			return undefined;
+		case 'patchMetadata':
+			if (!input?.userId) throw new Error('userId required for patchMetadata');
+			if (!input?.patch) throw new Error('patch required for patchMetadata');
+			if (!input?.appCode) throw new Error('appCode required for patchMetadata');
+			if (!input?.token) throw new Error('token required for patchMetadata');
+			return await patchMetadata(input.userId, input.patch, input.appCode, input.token);
 		default:
 			throw new Error(`Unknown auth method: ${method}`);
 	}
@@ -746,4 +757,115 @@ export async function clearUser(userId: string): Promise<void> {
 		};
 		request.onerror = () => reject(request.error);
 	});
+}
+
+/**
+ * Update user metadata in IndexedDB (targeted update)
+ * Merges new metadata with existing metadata, preserving other fields
+ */
+export async function updateUserMetadata(userId: string, newMetadata: Record<string, unknown>): Promise<void> {
+	return new Promise((resolve, reject) => {
+		if (!db) return reject(new Error('DB not initialized'));
+
+		const transaction = db.transaction(['users'], 'readwrite');
+		const store = transaction.objectStore('users');
+		const getRequest = store.get(userId);
+
+		getRequest.onsuccess = () => {
+			const user = getRequest.result;
+			if (!user) {
+				console.warn('[SW] User not found for metadata update:', userId);
+				resolve();
+				return;
+			}
+
+			// Merge new metadata with existing metadata (targeted update)
+			const updatedUser = {
+				...user,
+				metadata: {
+					...user.metadata,
+					...newMetadata
+				},
+				lastUsed: new Date().toISOString()
+			};
+
+			const updateRequest = store.put(updatedUser);
+
+			updateRequest.onsuccess = () => {
+				console.log('[SW] User metadata updated:', userId, newMetadata);
+
+				// Broadcast metadata update to all tabs
+				broadcastMetadataUpdate(userId, updatedUser.metadata);
+
+				resolve();
+			};
+			updateRequest.onerror = () => reject(updateRequest.error);
+		};
+
+		getRequest.onerror = () => reject(getRequest.error);
+	});
+}
+
+/**
+ * Patch user metadata via API with atomic server-side merge
+ * Service Worker makes the API request, updates IndexedDB, and broadcasts to all tabs
+ */
+export async function patchMetadata(
+	userId: string,
+	patch: Record<string, unknown>,
+	appCode: string,
+	token: string
+): Promise<Record<string, unknown>> {
+	try {
+		console.log('[SW] Patching metadata for user:', userId, { patchKeys: Object.keys(patch) });
+
+		// Make API request to patch metadata
+		const response = await fetch(`/api/${appCode}/metadata`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			},
+			body: JSON.stringify({ patch })
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(`Failed to patch metadata: ${response.status} ${errorData.error || response.statusText}`);
+		}
+
+		const data = await response.json() as { success: boolean; metadata?: Record<string, unknown>; error?: string };
+
+		if (!data.success || !data.metadata) {
+			throw new Error(`Invalid response from metadata patch: ${data.error || 'unknown error'}`);
+		}
+
+		// Update IndexedDB with the new metadata
+		await updateUserMetadata(userId, data.metadata);
+
+		console.log('[SW] Metadata patched successfully for user:', userId);
+		return data.metadata;
+	} catch (error) {
+		console.error('[SW] Failed to patch metadata:', error);
+		throw error;
+	}
+}
+
+/**
+ * Broadcast metadata update to all client tabs via BroadcastChannel
+ */
+function broadcastMetadataUpdate(userId: string, metadata: Record<string, unknown>): void {
+	try {
+		const channel = new BroadcastChannel('auth-metadata-updates');
+		channel.postMessage({
+			type: 'METADATA_UPDATED',
+			userId,
+			metadata,
+			timestamp: Date.now()
+		});
+		channel.close();
+		console.log('[SW] Metadata update broadcasted to all tabs:', userId);
+	} catch (error) {
+		console.warn('[SW] Failed to broadcast metadata update:', error);
+	}
 }

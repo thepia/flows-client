@@ -1,6 +1,6 @@
 {
   "name": "@thepia/flows-db",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-client database management for Thepia Flows applications",
   "type": "module",
   "comments": {
@@ -13,9 +13,9 @@
   "exports": {
     ".": {
       "types": "./src/types/index.ts",
-      "svelte": "./src/svelte.ts",
       "import": "./dist/flows-client.js",
-      "default": "./src/index.js"
+      "require": "./dist/flows-client.js",
+      "default": "./dist/flows-client.js"
     },
     "./svelte": {
       "types": "./src/types/index.ts",

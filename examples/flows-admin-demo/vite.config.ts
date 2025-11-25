@@ -62,14 +62,14 @@ export default defineConfig(({ mode }) => {
 
     server: {
       host: 'dev.thepia.net',
-      port: 5173,
+      port: 5179,
       strictPort: true,
       https: {
         key: './certs/dev.thepia.net-key.pem',
         cert: './certs/dev.thepia.net.pem'
       },
       hmr: {
-        port: 5173,
+        port: 5179,
         host: 'dev.thepia.net'
       }
     },

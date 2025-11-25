@@ -1,8 +1,10 @@
 /**
  * Flows DB Client
  *
- * Type-safe client for communicating with the Flows Service Worker.
- * Uses MessageChannel for request/response RPC pattern.
+ * Type-safe client for communicating with the Flows Service Worker or Native App.
+ * Automatically detects environment and uses appropriate transport:
+ * - Native App (iOS/macOS): WebKit message handlers via window.webkit.messageHandlers.thepia
+ * - Browser: Service Worker with MessageChannel for request/response RPC pattern
  */
 
 // TYPES ONLY imports from flows-auth - no runtime code
@@ -17,13 +19,13 @@ import type {
 
 export interface FlowsClientConfig {
 	/**
-	 * Path to the service worker file
+	 * Path to the service worker file (browser mode only)
 	 * @default '/flows-sw.js'
 	 */
 	serviceWorkerUrl?: string;
 
 	/**
-	 * Service worker scope
+	 * Service worker scope (browser mode only)
 	 * @default '/'
 	 */
 	scope?: string;
@@ -37,6 +39,8 @@ export interface FlowsClientConfig {
 
 export class FlowsDBClient {
 	private registration: ServiceWorkerRegistration | null = null;
+	private nativeBridge: NativeAppBridge | null = null;
+	private isNativeApp: boolean = false;
 	private ready: Promise<void>;
 	private config: Required<FlowsClientConfig>;
 
@@ -63,12 +67,36 @@ export class FlowsDBClient {
 			return;
 		}
 
+		// DETECTION: Check for ThepiaApp (WebKit message handlers)
+		const hasWebKit =
+			typeof window !== 'undefined' &&
+			window.webkit?.messageHandlers?.thepia?.postMessage !== undefined;
+
+		if (hasWebKit) {
+			// Running in native ThepiaApp
+			this.isNativeApp = true;
+			this.nativeBridge = new NativeAppBridge();
+			this.log('Running in ThepiaApp - using native message handlers');
+
+			// Ping native app to verify connectivity
+			try {
+				await this.nativeBridge.sendMessage('ping', undefined);
+				this.log('Successfully connected to native app');
+			} catch (error) {
+				this.log('Warning: Failed to connect to native app:', error);
+				throw new Error('Failed to connect to native app');
+			}
+
+			return; // Done - no ServiceWorker needed
+		}
+
+		// Not in native app - use ServiceWorker
 		if (!('serviceWorker' in navigator)) {
 			throw new Error('Service Workers not supported in this browser');
 		}
 
 		// Register service worker
-		this.log('Registering service worker...');
+		this.log('Running in browser - registering ServiceWorker');
 		this.registration = await navigator.serviceWorker.register(
 			this.config.serviceWorkerUrl,
 			{
@@ -84,7 +112,7 @@ export class FlowsDBClient {
 	}
 
 	/**
-	 * Call a procedure on the service worker
+	 * Call a procedure - automatically uses native bridge or service worker
 	 */
 	private async call<P extends keyof FlowsDBProcedures>(
 		procedure: P,
@@ -92,6 +120,12 @@ export class FlowsDBClient {
 	): Promise<ProcedureOutput<P>> {
 		await this.ready;
 
+		// CONDITIONAL: Use native bridge if in ThepiaApp
+		if (this.isNativeApp && this.nativeBridge) {
+			return await this.nativeBridge.sendMessage(procedure, input);
+		}
+
+		// Otherwise use ServiceWorker
 		const worker = this.registration?.active || navigator.serviceWorker.controller;
 		if (!worker) {
 			throw new Error('No active service worker');
@@ -210,6 +244,33 @@ export class FlowsDBClient {
 			}
 		};
 	}
+
+	/**
+	 * Update user metadata in IndexedDB (targeted update)
+	 * Broadcasts update to all tabs via BroadcastChannel
+	 */
+	async updateUserMetadata(userId: string, metadata: Record<string, unknown>): Promise<void> {
+		await this.call('auth.updateUserMetadata', { userId, metadata });
+	}
+
+	/**
+	 * Patch user metadata via API with atomic server-side merge
+	 * Service Worker makes the API request, updates IndexedDB, and broadcasts to all tabs
+	 *
+	 * @param userId - The user ID
+	 * @param patch - The metadata patch to apply
+	 * @param appCode - The app code for the API endpoint
+	 * @param token - The Bearer token for authentication
+	 * @returns The updated metadata from the server
+	 */
+	async patchMetadata(
+		userId: string,
+		patch: Record<string, unknown>,
+		appCode: string,
+		token: string
+	): Promise<Record<string, unknown>> {
+		return await this.call('auth.patchMetadata', { userId, patch, appCode, token });
+	}
 }
 
 // Singleton instance
@@ -268,5 +329,113 @@ export function decodeJWTPayload(token: string): JWTPayload | null {
 		return JSON.parse(decoded);
 	} catch {
 		return null;
+	}
+}
+
+/**
+ * Bridge for native app communication via WebKit message handlers
+ * Similar pattern to flows-auth native-app-session-adapter
+ */
+class NativeAppBridge {
+	private pendingRequests = new Map<
+		string,
+		{
+			resolve: (value: any) => void;
+			reject: (error: Error) => void;
+			timeout: ReturnType<typeof setTimeout>;
+		}
+	>();
+
+	private requestTimeout = 10000; // 10 second timeout
+
+	constructor() {
+		// Set up response listener
+		if (typeof window !== 'undefined') {
+			(window as any).__thepiaFlowsDBResponseHandler = this.handleResponse.bind(this);
+		}
+	}
+
+	async sendMessage<T>(procedure: string, input: unknown): Promise<T> {
+		const requestId = `flowsdb_${procedure}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+		const message = {
+			type: 'flowsdb', // Namespace to distinguish from 'auth' messages
+			procedure,
+			payload: input,
+			requestId
+		};
+
+		return new Promise<T>((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				this.pendingRequests.delete(requestId);
+				reject(new Error(`FlowsDB request timeout: ${procedure}`));
+			}, this.requestTimeout);
+
+			this.pendingRequests.set(requestId, { resolve, reject, timeout });
+
+			try {
+				const webkit = (window as any).webkit;
+				if (!webkit?.messageHandlers?.thepia) {
+					throw new Error('WebKit message handlers not available');
+				}
+				webkit.messageHandlers.thepia.postMessage(message);
+			} catch (error) {
+				clearTimeout(timeout);
+				this.pendingRequests.delete(requestId);
+				reject(error);
+			}
+		});
+	}
+
+	private handleResponse(response: {
+		requestId: string;
+		success: boolean;
+		payload?: any;
+		error?: { message: string };
+	}): void {
+		const pending = this.pendingRequests.get(response.requestId);
+		if (!pending) {
+			return;
+		}
+
+		clearTimeout(pending.timeout);
+		this.pendingRequests.delete(response.requestId);
+
+		if (response.success) {
+			pending.resolve(response.payload);
+		} else {
+			pending.reject(new Error(response.error?.message || 'FlowsDB request failed'));
+		}
+	}
+
+	cleanup(): void {
+		for (const [, pending] of this.pendingRequests.entries()) {
+			clearTimeout(pending.timeout);
+			pending.reject(new Error('Bridge cleanup'));
+		}
+		this.pendingRequests.clear();
+
+		if (typeof window !== 'undefined') {
+			(window as any).__thepiaFlowsDBResponseHandler = undefined;
+		}
+	}
+}
+
+// Type augmentation for WebKit message handlers
+declare global {
+	interface Window {
+		webkit?: {
+			messageHandlers?: {
+				thepia?: {
+					postMessage(message: unknown): void;
+				};
+			};
+		};
+		__thepiaFlowsDBResponseHandler?: (response: {
+			requestId: string;
+			success: boolean;
+			payload?: any;
+			error?: { message: string };
+		}) => void;
 	}
 }

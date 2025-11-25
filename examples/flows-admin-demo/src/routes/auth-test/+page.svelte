@@ -33,6 +33,11 @@
 		loading: false,
 		error: null as string | null
 	});
+	let userMetadata = $state({
+		data: null as any,
+		lastUpdated: null as string | null,
+		error: null as string | null
+	});
 	let isLoadingDB = false; // Guard against concurrent loads
 
 	// Decode JWT payload using utility function
@@ -50,7 +55,7 @@
 			console.log('[Auth Test] Constants loaded:', { INDEXEDDB_NAME, INDEXEDDB_VERSION });
 
 			// Subscribe to auth state changes
-			authStore.subscribe((state: any) => {
+			const unsubscribeAuth = authStore.subscribe((state: any) => {
 				const wasAuthenticated = authState.isAuthenticated;
 				authState = {
 					isAuthenticated: state.isAuthenticated,
@@ -59,12 +64,19 @@
 					session: state.session
 				};
 
+				console.log('[Auth Test] Auth state updated:', { isAuthenticated: state.isAuthenticated, wasAuthenticated });
+
 				// Update Supabase token information
 				updateSupabaseInfo(state);
 
 				// Reload IndexedDB data when auth state changes
 				if (wasAuthenticated !== state.isAuthenticated) {
 					setTimeout(() => loadIndexedDBData(), 500);
+					// Also load metadata when auth state changes
+					if (state.isAuthenticated) {
+						console.log('[Auth Test] User authenticated, loading metadata...');
+						setTimeout(() => loadUserMetadata(), 1000);
+					}
 				}
 			});
 
@@ -81,6 +93,26 @@
 
 			// Initial load of IndexedDB data - wait longer to ensure SW has initialized DB
 			setTimeout(() => loadIndexedDBData(), 2000);
+
+			// Listen for metadata updates via BroadcastChannel
+			const metadataChannel = new BroadcastChannel('auth-metadata-updates');
+			metadataChannel.addEventListener('message', (event) => {
+				if (event.data.type === 'METADATA_UPDATED') {
+					console.log('[Auth Test] Metadata update received:', event.data);
+					userMetadata.data = event.data.metadata;
+					userMetadata.lastUpdated = new Date(event.data.timestamp).toLocaleString();
+					userMetadata.error = null;
+				}
+			});
+
+			// Load initial metadata from IndexedDB after a delay
+			setTimeout(() => loadUserMetadata(), 2500);
+
+			// Cleanup subscriptions
+			return () => {
+				metadataChannel.close();
+				unsubscribeAuth();
+			};
 		} catch (err) {
 			console.error('[Auth Test] Failed to initialize:', err);
 			authState.error = err instanceof Error ? err.message : 'Failed to initialize';
@@ -328,6 +360,62 @@
 		} finally {
 			indexedDBData.loading = false;
 			isLoadingDB = false;
+		}
+	}
+
+	async function loadUserMetadata() {
+		if (!browser) {
+			console.log('[Auth Test] Not in browser, skipping metadata load');
+			return;
+		}
+
+		console.log('[Auth Test] loadUserMetadata called, authState.isAuthenticated:', authState.isAuthenticated);
+
+		try {
+			console.log('[Auth Test] Loading user metadata from IndexedDB...');
+			const db = await new Promise<IDBDatabase>((resolve, reject) => {
+				const request = indexedDB.open(INDEXEDDB_NAME);
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+
+			// Load users table to get metadata
+			const usersTransaction = db.transaction(['users'], 'readonly');
+			const usersStore = usersTransaction.objectStore('users');
+			const usersRequest = usersStore.getAll();
+
+			const users = await new Promise<any[]>((resolve, reject) => {
+				usersRequest.onsuccess = () => resolve(usersRequest.result);
+				usersRequest.onerror = () => reject(usersRequest.error);
+			});
+
+			console.log('[Auth Test] Users found in IndexedDB:', users.length);
+
+			// Get the most recent user (by lastUsed)
+			if (users.length > 0) {
+				const currentUser = users.sort((a, b) =>
+					new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+				)[0];
+
+				console.log('[Auth Test] Current user from IndexedDB:', currentUser);
+
+				if (currentUser.metadata) {
+					userMetadata.data = currentUser.metadata;
+					userMetadata.lastUpdated = new Date().toLocaleString();
+					userMetadata.error = null;
+					console.log('[Auth Test] User metadata loaded:', userMetadata.data);
+				} else {
+					console.log('[Auth Test] No metadata found for current user');
+					userMetadata.data = {};
+					userMetadata.lastUpdated = new Date().toLocaleString();
+				}
+			} else {
+				console.log('[Auth Test] No users found in IndexedDB');
+				userMetadata.data = null;
+			}
+		} catch (err) {
+			console.error('[Auth Test] Failed to load user metadata:', err);
+			userMetadata.error = err instanceof Error ? err.message : 'Failed to load metadata';
 		}
 	}
 </script>
@@ -776,6 +864,141 @@
 					{/if}
 				</div>
 			</div>
+		</div>
+
+		<!-- User Metadata -->
+		<div class="mt-6 bg-white rounded-lg shadow p-6">
+			<h2 class="text-xl font-semibold mb-4">User Metadata</h2>
+
+			{#if !authState.isAuthenticated}
+				<div class="bg-gray-50 border border-gray-200 rounded p-4">
+					<p class="text-gray-600 text-sm">Sign in to view user metadata</p>
+				</div>
+			{:else if userMetadata.error}
+				<div class="bg-red-50 border border-red-200 rounded p-4">
+					<p class="text-red-800 font-semibold">Error loading metadata</p>
+					<p class="text-red-600 text-sm mt-1">{userMetadata.error}</p>
+				</div>
+			{:else if userMetadata.data !== null && userMetadata.data !== undefined}
+				<div class="space-y-4">
+					<div class="bg-blue-50 border border-blue-200 rounded p-4">
+						<div class="flex items-center justify-between mb-3">
+							<span class="font-semibold text-blue-800">📋 Onboarding Metadata</span>
+							<span class="text-xs text-blue-600">
+								{userMetadata.lastUpdated ? `Updated: ${userMetadata.lastUpdated}` : 'Loading...'}
+							</span>
+						</div>
+
+						{#if Object.keys(userMetadata.data).length === 0}
+							<p class="text-sm text-blue-700">No metadata set yet</p>
+						{:else}
+							<div class="space-y-3">
+								{#if userMetadata.data.consent}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">✓ Consent Records</div>
+										<div class="text-xs text-gray-600 space-y-1">
+											{#each Object.entries(userMetadata.data.consent) as [url, record]}
+												{@const r = record as any}
+												<div class="bg-gray-50 p-2 rounded">
+													<div class="font-mono text-xs text-blue-600 break-all">{url}</div>
+													<div class="text-gray-600 mt-1">
+														v: {r.v} | dh: {r.dh.substring(0, 8)}... | ts: {new Date(r.ts * 1000).toLocaleString()}
+													</div>
+												</div>
+											{/each}
+										</div>
+									</div>
+								{/if}
+
+								{#if userMetadata.data.preferences}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">⚙️ Preferences</div>
+										<div class="text-xs text-gray-600 space-y-1">
+											{#each Object.entries(userMetadata.data.preferences) as [key, value]}
+												<div class="flex justify-between">
+													<span class="font-medium">{key}:</span>
+													<span class="text-gray-700">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
+												</div>
+											{/each}
+										</div>
+									</div>
+								{/if}
+
+								{#if userMetadata.data.invitations}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">📧 Invitations</div>
+										<div class="text-xs text-gray-600">
+											{Object.keys(userMetadata.data.invitations).length} active invitation(s)
+										</div>
+									</div>
+								{/if}
+
+								{#if userMetadata.data.clients}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">🏢 Client Registrations</div>
+										<div class="text-xs text-gray-600 space-y-1">
+											{#each Object.entries(userMetadata.data.clients) as [clientId, registration]}
+												{@const reg = registration as any}
+												<div class="bg-gray-50 p-2 rounded">
+													<div class="font-mono text-blue-600">{clientId}</div>
+													<div class="text-gray-600 mt-1">
+														Status: {reg.status || 'unknown'}
+														{#if reg.registeredAt}
+															| Registered: {new Date(reg.registeredAt).toLocaleString()}
+														{/if}
+													</div>
+												</div>
+											{/each}
+										</div>
+									</div>
+								{/if}
+
+								{#if userMetadata.data.ids}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">🔑 External IDs</div>
+										<div class="text-xs text-gray-600 space-y-1">
+											{#each Object.entries(userMetadata.data.ids) as [key, value]}
+												<div class="flex justify-between">
+													<span class="font-medium">{key}:</span>
+													<span class="font-mono text-blue-600">{value}</span>
+												</div>
+											{/each}
+										</div>
+									</div>
+								{/if}
+
+								{#if userMetadata.data.lastPin}
+									<div class="bg-white rounded p-3">
+										<div class="font-medium text-gray-800 mb-2">📌 Last PIN</div>
+										<div class="text-xs text-gray-600 space-y-1">
+											<div>
+												<span class="font-medium">Sent:</span>
+												{new Date(userMetadata.data.lastPin.sentAt).toLocaleString()}
+											</div>
+											<div>
+												<span class="font-medium">Expires:</span>
+												{new Date(userMetadata.data.lastPin.expiresAt).toLocaleString()}
+											</div>
+										</div>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					<div class="border-t pt-4">
+						<h4 class="font-semibold text-gray-800 mb-2">Live Updates:</h4>
+						<p class="text-sm text-gray-600">
+							This section automatically updates when metadata changes are broadcast via BroadcastChannel. Changes made in other tabs or by the Service Worker will appear here in real-time.
+						</p>
+					</div>
+				</div>
+			{:else}
+				<div class="text-center py-8">
+					<div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+					<p class="mt-2 text-gray-600 text-sm">Loading metadata...</p>
+				</div>
+			{/if}
 		</div>
 
 		<!-- Console Logs -->
