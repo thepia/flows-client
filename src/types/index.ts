@@ -13,6 +13,7 @@ export * from './flows-entities';
 export * from './transport';
 export * from './procedures';
 export * from './auth';
+export * from './native-app';
 
 // Re-export commonly used entity types
 export type {
@@ -61,3 +62,10 @@ export type {
 
 // Re-export auth types
 export type { SessionData, UserData, AuthProcedures } from './auth';
+
+// Re-export native app types
+export type {
+  WebAppStatePayload,
+  NativeAppResponse,
+  NativeAppMessage,
+} from './native-app';

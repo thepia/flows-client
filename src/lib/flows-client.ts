@@ -14,7 +14,8 @@ import type {
 	FlowsDBProcedures,
 	ProcedureInput,
 	ProcedureOutput,
-	TransportMessage
+	TransportMessage,
+	WebAppStatePayload
 } from '../types/index';
 
 export interface FlowsClientConfig {
@@ -68,11 +69,11 @@ export class FlowsDBClient {
 		}
 
 		// DETECTION: Check for ThepiaApp (WebKit message handlers)
-		const hasWebKit =
+		const hasThepiaWebKit =
 			typeof window !== 'undefined' &&
 			window.webkit?.messageHandlers?.thepia?.postMessage !== undefined;
 
-		if (hasWebKit) {
+		if (hasThepiaWebKit) {
 			// Running in native ThepiaApp
 			this.isNativeApp = true;
 			this.nativeBridge = new NativeAppBridge();
@@ -271,6 +272,27 @@ export class FlowsDBClient {
 	): Promise<Record<string, unknown>> {
 		return await this.call('auth.patchMetadata', { userId, patch, appCode, token });
 	}
+
+	/**
+	 * Notify native app of web app state changes
+	 * Fire-and-forget notification (no response expected)
+	 * Only sends in native app context, silently ignored in browser
+	 *
+	 * @param payload - The state update payload
+	 */
+	async notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
+		if (!this.isNativeApp || !this.nativeBridge) {
+			this.log('notifyNativeAppState: Not in native app, ignoring');
+			return;
+		}
+
+		try {
+			await this.nativeBridge.sendMessage('webapp_state', payload);
+		} catch (error) {
+			// Log but don't throw - state notifications are best-effort
+			this.log('notifyNativeAppState: Failed to send state update', error);
+		}
+	}
 }
 
 // Singleton instance
@@ -291,6 +313,16 @@ export function getFlowsDB(config?: FlowsClientConfig): FlowsDBClient {
  */
 export function resetFlowsDB(): void {
 	instance = null;
+}
+
+/**
+ * Notify native app of web app state changes
+ * Convenience function that uses the singleton instance
+ *
+ * @param payload - The state update payload
+ */
+export async function notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
+	return getFlowsDB().notifyNativeAppState(payload);
 }
 
 // Export IndexedDB constants for direct database access
@@ -351,7 +383,7 @@ class NativeAppBridge {
 	constructor() {
 		// Set up response listener
 		if (typeof window !== 'undefined') {
-			(window as any).__thepiaFlowsDBResponseHandler = this.handleResponse.bind(this);
+			(window as any).__thepiaResponseHandler = this.handleResponse.bind(this);
 		}
 	}
 
@@ -416,7 +448,7 @@ class NativeAppBridge {
 		this.pendingRequests.clear();
 
 		if (typeof window !== 'undefined') {
-			(window as any).__thepiaFlowsDBResponseHandler = undefined;
+			(window as any).__thepiaResponseHandler = undefined;
 		}
 	}
 }
@@ -431,7 +463,7 @@ declare global {
 				};
 			};
 		};
-		__thepiaFlowsDBResponseHandler?: (response: {
+		__thepiaResponseHandler?: (response: {
 			requestId: string;
 			success: boolean;
 			payload?: any;
