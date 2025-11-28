@@ -44,6 +44,11 @@ export class FlowsDBClient {
 	private isNativeApp: boolean = false;
 	private ready: Promise<void>;
 	private config: Required<FlowsClientConfig>;
+	private heightObserver: ResizeObserver | null = null;
+	private heightDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+	private lastSentHeight: number | null = null;
+	private lastSentTime: number = 0;
+	private currentPageHeight: WebAppStatePayload['pageHeight'] | null = null;
 
 	constructor(config: FlowsClientConfig = {}) {
 		this.config = {
@@ -79,15 +84,20 @@ export class FlowsDBClient {
 			this.nativeBridge = new NativeAppBridge();
 			this.log('Running in ThepiaApp - using native message handlers');
 
-			// Ping native app to verify connectivity
+			// Ping native app to verify connectivity and get initial context
 			try {
-				await this.nativeBridge.sendMessage('ping', undefined);
+				const pingResult = await this.nativeBridge.sendMessage<{ pageHeight?: string }>('ping', undefined);
+				if (pingResult?.pageHeight) {
+					this.currentPageHeight = pingResult.pageHeight as WebAppStatePayload['pageHeight'];
+					this.log('Initial pageHeight from native:', this.currentPageHeight);
+				}
 				this.log('Successfully connected to native app');
 			} catch (error) {
 				this.log('Warning: Failed to connect to native app:', error);
 				throw new Error('Failed to connect to native app');
 			}
 
+			this.startHeightObserver();
 			return; // Done - no ServiceWorker needed
 		}
 
@@ -155,6 +165,43 @@ export class FlowsDBClient {
 
 			worker.postMessage(message, [messageChannel.port2]);
 		});
+	}
+
+	private startHeightObserver(): void {
+		if (typeof ResizeObserver === 'undefined' || typeof document === 'undefined') return;
+
+		this.heightObserver = new ResizeObserver(([entry]) => {
+			const height = Math.ceil(entry.contentRect.height);
+			if (height === this.lastSentHeight) return;
+
+			if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
+
+			const elapsed = Date.now() - this.lastSentTime;
+			if (elapsed >= 50) {
+				this.lastSentHeight = height;
+				this.lastSentTime = Date.now();
+				this.log('contentHeight send (immediate):', height);
+				this.notifyNativeAppState({ contentHeight: height });
+			} else {
+				// In cooldown — schedule trailing send with remaining time
+				this.heightDebounceTimer = setTimeout(() => {
+					if (height !== this.lastSentHeight) {
+						this.lastSentHeight = height;
+						this.lastSentTime = Date.now();
+						this.log('contentHeight send (trailing):', height);
+						this.notifyNativeAppState({ contentHeight: height });
+					}
+				}, 50 - elapsed);
+			}
+		});
+
+		this.heightObserver.observe(document.body);
+	}
+
+	destroy(): void {
+		if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
+		this.heightObserver?.disconnect();
+		this.nativeBridge?.cleanup();
 	}
 
 	/**
@@ -284,6 +331,10 @@ export class FlowsDBClient {
 		if (!this.isNativeApp || !this.nativeBridge) {
 			this.log('notifyNativeAppState: Not in native app, ignoring');
 			return;
+		}
+
+		if (payload.pageHeight !== undefined) {
+			this.currentPageHeight = payload.pageHeight;
 		}
 
 		try {

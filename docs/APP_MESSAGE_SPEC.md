@@ -125,7 +125,6 @@ All messages use the format above. This table lists all available procedures:
   userId: string,
   email: string,
   name?: string,
-  avatar?: string,
   emailVerified?: boolean,
   createdAt?: string,
   lastLoginAt?: string,

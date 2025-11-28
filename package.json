@@ -13,6 +13,7 @@
   "exports": {
     ".": {
       "types": "./src/types/index.ts",
+      "source": "./src/lib/flows-client.ts",
       "import": "./dist/flows-client.js",
       "require": "./dist/flows-client.js",
       "default": "./dist/flows-client.js"

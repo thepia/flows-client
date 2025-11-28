@@ -22,11 +22,18 @@ export interface WebAppStatePayload {
 
   /**
    * Sheet height - controls how much of the screen the web view occupies
-   * - 'pill': Small compact view
-   * - 'sheet': Medium sheet view (default)
-   * - 'full': Full screen
+   * - 'pill': Fixed compact height
+   * - 'sheet': Fixed medium height (default)
+   * - 'full': Fixed resizable — main window
+   * - 'popover': Content-driven — height follows contentHeight
    */
-  pageHeight?: 'pill' | 'sheet' | 'full';
+  pageHeight?: 'pill' | 'sheet' | 'full' | 'popover';
+
+  /**
+   * Intrinsic content height in pixels — for LensView / dynamic-height WebViews.
+   * Sent automatically by FlowsDBClient via ResizeObserver when in native app context.
+   */
+  contentHeight?: number;
 
   /**
    * Background material - controls the backdrop appearance

@@ -75,8 +75,11 @@ export async function initDB(): Promise<IDBDatabase> {
 			// Primary key: userId (one session per user)
 			if (!db.objectStoreNames.contains('auth_sessions')) {
 				const authStore = db.createObjectStore('auth_sessions', { keyPath: 'userId' });
-				// Only index expiresAt for cleanup queries (no email index - it's redundant with userId)
+				// Indexes for cleanup and debugging queries
 				authStore.createIndex('expiresAt', 'expiresAt', { unique: false });
+				authStore.createIndex('createdAt', 'createdAt', { unique: false });
+				authStore.createIndex('savedAt', 'savedAt', { unique: false });
+				// Note: metadata field is stored as JSON string, no index needed
 			}
 		};
 	});
@@ -593,6 +596,7 @@ export async function saveAuthSession(session: SessionData): Promise<SessionData
 		const sessionRequest = sessionsStore.put({
 			userId: session.userId,
 			email: session.email,
+			createdAt: new Date().toISOString(),  // Session creation timestamp
 			accessToken: session.accessToken,
 			refreshToken: session.refreshToken,
 			expiresAt: session.expiresAt,
@@ -600,7 +604,8 @@ export async function saveAuthSession(session: SessionData): Promise<SessionData
 			authMethod: session.authMethod,
 			supabaseToken: session.supabaseToken,
 			supabaseExpiresAt: session.supabaseExpiresAt,
-			savedAt: now
+			savedAt: now,
+			metadata: session.metadata ? JSON.stringify(session.metadata) : undefined
 		});
 
 		sessionRequest.onsuccess = () => {
@@ -638,7 +643,8 @@ export async function getAuthSession(): Promise<SessionData | null> {
 			});
 
 			const session = sessions[0];
-			const isExpired = session.expiresAt <= Date.now();
+			const expiresAtMs = new Date(session.expiresAt).getTime();
+			const isExpired = expiresAtMs <= Date.now();
 			const hasSupabaseToken = !!session.supabaseToken;
 			console.log('[SW] Auth session loaded:', {
 				userId: session.userId,
@@ -646,7 +652,14 @@ export async function getAuthSession(): Promise<SessionData | null> {
 				hasSupabaseToken,
 				supabaseTokenExpiry: session.supabaseExpiresAt ? new Date(session.supabaseExpiresAt).toISOString() : 'none'
 			});
-			resolve(session);
+
+			// Parse metadata if present
+			const sessionWithParsedMetadata = {
+				...session,
+				metadata: session.metadata ? JSON.parse(session.metadata) : undefined
+			};
+
+			resolve(sessionWithParsedMetadata);
 		};
 
 		request.onerror = () => reject(request.error);
