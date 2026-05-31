@@ -36,6 +36,14 @@ export interface FlowsClientConfig {
 	 * @default false
 	 */
 	debug?: boolean;
+
+	/**
+	 * Element (or CSS selector) to observe for content height changes.
+	 * Use this to avoid measuring body, which is polluted by min-height and navigation transitions.
+	 * @default document.body
+	 * @example '#svelte'
+	 */
+	contentElement?: string | Element;
 }
 
 export class FlowsDBClient {
@@ -44,6 +52,7 @@ export class FlowsDBClient {
 	private isNativeApp: boolean = false;
 	private ready: Promise<void>;
 	private config: Required<FlowsClientConfig>;
+	private readonly contentElementConfig: string | Element | undefined;
 	private heightObserver: ResizeObserver | null = null;
 	private heightDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 	private lastSentHeight: number | null = null;
@@ -56,6 +65,7 @@ export class FlowsDBClient {
 			scope: config.scope || '/',
 			debug: config.debug || false
 		};
+		this.contentElementConfig = config.contentElement;
 
 		this.ready = this.init();
 	}
@@ -170,6 +180,13 @@ export class FlowsDBClient {
 	private startHeightObserver(): void {
 		if (typeof ResizeObserver === 'undefined' || typeof document === 'undefined') return;
 
+		const target =
+			typeof this.contentElementConfig === 'string'
+				? document.querySelector(this.contentElementConfig) ?? document.body
+				: (this.contentElementConfig ?? document.body);
+
+		this.log('contentHeight observer target:', target);
+
 		this.heightObserver = new ResizeObserver(([entry]) => {
 			const height = Math.ceil(entry.contentRect.height);
 			if (height === this.lastSentHeight) return;
@@ -195,7 +212,7 @@ export class FlowsDBClient {
 			}
 		});
 
-		this.heightObserver.observe(document.body);
+		this.heightObserver.observe(target);
 	}
 
 	destroy(): void {
