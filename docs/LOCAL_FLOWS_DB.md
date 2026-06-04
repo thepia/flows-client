@@ -1,6 +1,6 @@
 # Local Flows Database Architecture
 
-**📋 SCOPE**: This document covers local data storage in flows-db applications:
+**📋 SCOPE**: This document covers local data storage in flows-client applications:
 - **IndexedDB** - Browser-based local storage (web apps, PWAs, WebViews)
 - **app-db.sqlite** - Native SQLite database (iOS/macOS apps via Blackbird)
 
@@ -117,7 +117,7 @@ When the API server returns additional tokens in the sign-in response:
 5. When retrieving the session with `getAuthSession()`, metadata is automatically parsed back to an object
 6. Access tokens via: `session.metadata.idToken`, `session.metadata.customToken`, etc.
 
-This pattern allows the API server to return new token types without requiring schema migrations in flows-auth, flows-db, or thepia-app.
+This pattern allows the API server to return new token types without requiring schema migrations in flows-auth, flows-client, or thepia-app.
 
 **⚠️ Note**: IndexedDB stores only the active session (single per user). Native stores multiple sessions with composite key `(userId, createdAt)`. When syncing from native to IndexedDB, only the active session should be synced.
 
@@ -212,7 +212,7 @@ When the API server returns additional tokens in the sign-in response:
 5. When retrieving the session with `getSession()`, metadata is automatically parsed back to a dictionary
 6. Access tokens via: `session["metadata"]["idToken"]`, `session["metadata"]["customToken"]`, etc.
 
-This pattern allows the API server to return new token types without requiring schema migrations in flows-auth, flows-db, or thepia-app.
+This pattern allows the API server to return new token types without requiring schema migrations in flows-auth, flows-client, or thepia-app.
 
 **Purpose**: Store auth tokens for current session + historical sessions for debugging
 - **Active Session**: Most recent session (used for API calls)
@@ -301,7 +301,7 @@ password_hash, team_id, avatar
 is_active BOOLEAN
 created_at, updated_at, last_login (Unix timestamps)
 ```
-**Purpose**: User account data (comparable to flows-db user_roles + people)
+**Purpose**: User account data (comparable to flows-client user_roles + people)
 **Note**: Single account per app instance
 
 #### 2. **things** - Primary Records
@@ -414,13 +414,13 @@ official_url, support_url
 - 📋 **Next**: Identify which tables need local caching
 
 ### Phase 2: Selective Caching (Planned)
-- Determine which flows-db tables to cache locally
+- Determine which flows-client tables to cache locally
 - Define field subsets (avoid full table replication)
 - Implement sync strategy for each table
 - Add conflict resolution logic
 
 ### Phase 3: Native Integration (Future)
-- Extend app-db.sqlite with flows-db tables
+- Extend app-db.sqlite with flows-client tables
 - Implement bidirectional sync
 - Add offline-first capabilities
 - Handle multi-tab/multi-device scenarios
@@ -625,7 +625,7 @@ When syncing between platforms:
    - Preserve all fields
    - **Note**: Only sync active session to IndexedDB
 
-3. **Native ↔ Flows-DB**: No direct sync (flows-db is stateless)
+3. **Native ↔ Flows-DB**: No direct sync (flows-client is stateless)
    - Native stores tokens locally (with history)
    - Flows-DB validates tokens via JWT
    - User metadata synced via API calls
@@ -770,7 +770,7 @@ sessionsStore.put({
 ---
 
 ## Related Documentation
-- **[DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md)** - Server-side flows-db schema
+- **[DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md)** - Server-side flows-client schema
 - **[NATIVE_APP_STATE_NOTIFICATION_PLAN.md](NATIVE_APP_STATE_NOTIFICATION_PLAN.md)** - Native app integration
 - **[SESSION_MANAGEMENT_REQUIREMENTS.md](SESSION_MANAGEMENT_REQUIREMENTS.md)** - Auth session handling
 - **FlowsAuthModels.swift** - Native Blackbird model definitions (source of truth for native storage)

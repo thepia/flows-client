@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getUserContext, hasAdminAccess } from '@thepia/flows-db';
-  import { createSvelteReactiveSupabaseClient } from '@thepia/flows-db/svelte';
-  import { createFlowsSupabaseConfig } from '@thepia/flows-db';
+  import { getUserContext, hasAdminAccess } from '@thepia/flows-client';
+  import { createSvelteReactiveSupabaseClient } from '@thepia/flows-client/svelte';
+  import { createFlowsSupabaseConfig } from '@thepia/flows-client';
   import { getAuthStoreFromContext } from '@thepia/flows-auth';
   import type { SvelteAuthStore } from '@thepia/flows-auth';
 

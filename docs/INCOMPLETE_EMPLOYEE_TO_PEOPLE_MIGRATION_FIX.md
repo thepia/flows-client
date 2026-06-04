@@ -166,7 +166,7 @@ To prevent similar issues:
 
 ## Files Reference
 
-- **Migration SQL**: `/Volumes/Projects/Thepia/flows-db/schemas/15_complete_employee_to_people_migration_fix.sql`
-- **Original Migration**: `/Volumes/Projects/Thepia/flows-db/schemas/13_employee_to_people_migration.sql`
-- **Validation Script**: `/Volumes/Projects/Thepia/flows-db/scripts/apply-complete-people-migration-fix.cjs`
-- **This Documentation**: `/Volumes/Projects/Thepia/flows-db/docs/INCOMPLETE_EMPLOYEE_TO_PEOPLE_MIGRATION_FIX.md`
+- **Migration SQL**: `/Volumes/Projects/Thepia/flows-client/schemas/15_complete_employee_to_people_migration_fix.sql`
+- **Original Migration**: `/Volumes/Projects/Thepia/flows-client/schemas/13_employee_to_people_migration.sql`
+- **Validation Script**: `/Volumes/Projects/Thepia/flows-client/scripts/apply-complete-people-migration-fix.cjs`
+- **This Documentation**: `/Volumes/Projects/Thepia/flows-client/docs/INCOMPLETE_EMPLOYEE_TO_PEOPLE_MIGRATION_FIX.md`

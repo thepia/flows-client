@@ -2,7 +2,7 @@
  * Native App Integration Types
  *
  * Types for communication between web app and native iOS/macOS container.
- * Used by FlowsDBClient to send state updates to the native UI.
+ * Used by FlowsClient to send state updates to the native UI.
  */
 
 /**
@@ -31,7 +31,7 @@ export interface WebAppStatePayload {
 
   /**
    * Intrinsic content height in pixels — for LensView / dynamic-height WebViews.
-   * Sent automatically by FlowsDBClient via ResizeObserver when in native app context.
+   * Sent automatically by FlowsClient via ResizeObserver when in native app context.
    */
   contentHeight?: number;
 

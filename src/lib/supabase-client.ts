@@ -1,9 +1,9 @@
 /**
- * Generalized Supabase Client for flows-db
+ * Generalized Supabase Client for flows-client
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { AuthStore } from '@thepia/flows-auth';
+import type { AuthStore } from '@thepia/flows-auth/types';
 
 export interface SupabaseConfig {
   url: string;

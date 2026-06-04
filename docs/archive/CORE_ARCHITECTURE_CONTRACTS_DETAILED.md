@@ -14,7 +14,7 @@
 
 ## Purpose
 
-Define the **minimal contracts** and **transport mechanisms** for flows-db architecture without prescribing implementation details. This document focuses on:
+Define the **minimal contracts** and **transport mechanisms** for flows-client architecture without prescribing implementation details. This document focuses on:
 
 1. **What APIs are available** (browser vs native webview)
 2. **Transport layer contracts** (how components communicate)

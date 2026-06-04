@@ -5,7 +5,7 @@
 
 ## Overview
 
-This document summarizes the implementation of the complete TypeScript type system for the Flows Database (`@thepia/flows-db`). The type system provides full type safety across the entire Flows ecosystem, from browser applications to service workers to native mobile implementations.
+This document summarizes the implementation of the complete TypeScript type system for the Flows Database (`@thepia/flows-client`). The type system provides full type safety across the entire Flows ecosystem, from browser applications to service workers to native mobile implementations.
 
 ## What Was Implemented
 
@@ -15,7 +15,7 @@ This document summarizes the implementation of the complete TypeScript type syst
 
 **Entities Implemented**:
 - `FlowsEntity` - Base interface for all entities
-- `FlowsClient` - Client/Organization
+- `FlowsTenant` - Client/Organization
 - `FlowsApplication` - Application within a client
 - `FlowsPerson` - User/Person
 - `FlowsJourney` - Core journey entity with lifecycle, participants, progress tracking
@@ -108,7 +108,7 @@ This document summarizes the implementation of the complete TypeScript type syst
 
 **Result**: TypeScript consumers can import types with full auto-completion:
 ```typescript
-import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
+import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 ```
 
 ### 5. Documentation
@@ -134,7 +134,7 @@ import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
 ### 1. **Full Auto-Completion**
 
 ```typescript
-import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
+import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 
 // IDE provides auto-completion for all fields
 const journey: FlowsJourney = {
@@ -188,7 +188,7 @@ const journey: FlowsJourney = {
 ```typescript
 // Svelte component
 <script lang="ts">
-  import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
+  import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 
   let journeys: FlowsJourney[] = [];
 
@@ -204,13 +204,13 @@ const journey: FlowsJourney = {
 
 ```typescript
 // service-worker.ts
-import type { FlowsDBProcedures, ProcedureContext } from '@thepia/flows-db/types';
+import type { FlowsProcedures, ProcedureContext } from '@thepia/flows-client/types';
 
 const handlers: {
-  [K in keyof FlowsDBProcedures]: (
-    input: FlowsDBProcedures[K]['input'],
+  [K in keyof FlowsProcedures]: (
+    input: FlowsProcedures[K]['input'],
     context: ProcedureContext
-  ) => Promise<FlowsDBProcedures[K]['output']>;
+  ) => Promise<FlowsProcedures[K]['output']>;
 } = {
   'query.tasks': async (input, context) => {
     // Fully typed implementation
@@ -238,7 +238,7 @@ struct FlowsJourney: Codable {
 ### TypeScript Compilation
 
 ```bash
-cd /Volumes/Projects/Thepia/flows-db
+cd /Volumes/Projects/Thepia/flows-client
 pnpm typecheck
 # ✅ No errors - all types compile successfully
 ```
@@ -256,7 +256,7 @@ pnpm typecheck
 ### flows-auth (Authentication Library)
 
 ```typescript
-import type { FlowsPerson, FlowsInvitation } from '@thepia/flows-db/types';
+import type { FlowsPerson, FlowsInvitation } from '@thepia/flows-client/types';
 
 // Use in authentication flows
 const user: FlowsPerson = {
@@ -270,7 +270,7 @@ const user: FlowsPerson = {
 ### flows.thepia.net (Public Demo)
 
 ```typescript
-import type { FlowsJourney, FlowsTask, FlowsEvidence } from '@thepia/flows-db/types';
+import type { FlowsJourney, FlowsTask, FlowsEvidence } from '@thepia/flows-client/types';
 
 // Demo data creation with full type safety
 const demoJourney: FlowsJourney = {
@@ -294,12 +294,12 @@ class FlowsDBBridge {
 While the type system is complete, the following implementations can now be built with full type safety:
 
 1. **Service Worker Implementation** ([docs/SERVICE_WORKER_ARCHITECTURE.md](./SERVICE_WORKER_ARCHITECTURE.md))
-   - Use `FlowsDBProcedures` for handler definitions
+   - Use `FlowsProcedures` for handler definitions
    - Use `Transport` for communication layer
    - Use entity types for IndexedDB schema
 
 2. **Thin Client Library** ([docs/CLIENT_STORAGE_ABSTRACTION.md](./CLIENT_STORAGE_ABSTRACTION.md))
-   - Use `FlowsDBProcedures` for API definition
+   - Use `FlowsProcedures` for API definition
    - Use `Transport` abstraction for browser/native
    - Use entity types for return values
 

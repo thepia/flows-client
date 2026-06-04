@@ -12,7 +12,7 @@ Complete setup instructions for the multi-client database management system.
 
 ### Required Accounts & Access
 - Supabase organization owner/admin access
-- GitHub repository access for thepia/flows-db
+- GitHub repository access for thepia/flows-client
 - DNS management for thepia.net domain
 - Email access for installation+*@thepia.net
 
@@ -20,8 +20,8 @@ Complete setup instructions for the multi-client database management system.
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/thepia/flows-db.git
-cd flows-db
+git clone https://github.com/thepia/flows-client.git
+cd flows-client
 npm install
 ```
 
@@ -467,7 +467,7 @@ npm run logs:client acme
 - **[Troubleshooting](TROUBLESHOOTING.md)**
 
 ### Support Channels
-- **GitHub Issues**: [flows-db/issues](https://github.com/thepia/flows-db/issues)
+- **GitHub Issues**: [flows-client/issues](https://github.com/thepia/flows-client/issues)
 - **Email Support**: support@thepia.com
 - **Security Issues**: security@thepia.com
 - **Emergency**: Use GitHub issues for urgent production issues

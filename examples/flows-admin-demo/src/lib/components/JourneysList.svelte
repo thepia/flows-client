@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FlowsJourney } from '@thepia/flows-db/types';
+	import type { FlowsJourney } from '@thepia/flows-client/types';
 
 	interface Props {
 		journeys: FlowsJourney[];

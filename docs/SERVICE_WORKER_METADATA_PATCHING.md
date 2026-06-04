@@ -107,7 +107,7 @@ The `confirmConsent` method now uses the Service Worker:
 
 ```typescript
 async confirmConsent(request: ConfirmConsentRequest): Promise<ConfirmConsentResponse> {
-  const flowsDB = getFlowsDB();
+  const flowsDB = getFlowsClient();
   
   // Get current session for user ID and token
   const session = await this.request('/auth/session', { method: 'GET' }, true);

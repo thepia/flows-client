@@ -17,12 +17,12 @@ Error: unrecognized configuration parameter "app.current_client_id"
 Could not find the function api.get_current_client_id without parameters
 ```
 
-**Solution**: Set up RLS functions using the flows-db library command:
+**Solution**: Set up RLS functions using the flows-client library command:
 
-**Option A: Using flows-db Script (Recommended)**
+**Option A: Using flows-client Script (Recommended)**
 ```bash
-# From flows-db root directory
-cd ../..  # Go to flows-db root
+# From flows-client root directory
+cd ../..  # Go to flows-client root
 pnpm db:setup-rls
 ```
 
@@ -31,7 +31,7 @@ pnpm db:setup-rls
 psql -h jstbkvkurjsopuwhlsvy.supabase.co -U postgres -d postgres -f schemas/26_fix_rls_configuration.sql
 ```
 
-**Note**: The flows-db library already has the required `SUPABASE_SERVICE_ROLE_KEY` in its `.env` file.
+**Note**: The flows-client library already has the required `SUPABASE_SERVICE_ROLE_KEY` in its `.env` file.
 
 ### 3. **Client Data Not Found**
 ```
@@ -64,7 +64,7 @@ Error when evaluating SSR module: transport was disconnected, cannot call "fetch
 
 1. **Apply the RLS configuration fix**:
 ```bash
-# From the flows-db root directory
+# From the flows-client root directory
 psql -h your-supabase-host -U postgres -d postgres -f schemas/26_fix_rls_configuration.sql
 ```
 

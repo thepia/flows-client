@@ -8,16 +8,16 @@ This demo implements the service worker architecture with IndexedDB storage and 
 ┌─────────────────────────────────────────────────────────────┐
 │  Svelte Page (/journeys)                                    │
 │  - Imports FlowsJourney, FlowsTask types                    │
-│  - Uses getFlowsDB() client                                 │
+│  - Uses getFlowsClient() client                                 │
 │  - Displays data from IndexedDB                             │
 └────────────────┬────────────────────────────────────────────┘
                  │
                  │ MessageChannel RPC
                  │
 ┌────────────────▼────────────────────────────────────────────┐
-│  FlowsDBClient (src/lib/flows-db-client.ts)                │
+│  FlowsClient (src/lib/flows-client-client.ts)                │
 │  - Type-safe procedure calls                                 │
-│  - Uses @thepia/flows-db/types                              │
+│  - Uses @thepia/flows-client/types                              │
 │  - Communicates via MessageChannel                          │
 └────────────────┬────────────────────────────────────────────┘
                  │
@@ -58,9 +58,9 @@ This demo implements the service worker architecture with IndexedDB storage and 
 
 ### Client Layer
 
-- **`src/lib/flows-db-client.ts`** - Type-safe client
-  - FlowsDBClient class
-  - Singleton `getFlowsDB()` factory
+- **`src/lib/flows-client-client.ts`** - Type-safe client
+  - FlowsClient class
+  - Singleton `getFlowsClient()` factory
   - Type-safe `query`, `mutation`, `sync` methods
 
 ### UI Layer
@@ -72,16 +72,16 @@ This demo implements the service worker architecture with IndexedDB storage and 
 
 ## Type Safety
 
-All data structures use types from `@thepia/flows-db`:
+All data structures use types from `@thepia/flows-client`:
 
 ```typescript
 import type {
   FlowsJourney,
   FlowsTask,
-  FlowsDBProcedures,
+  FlowsProcedures,
   ProcedureInput,
   ProcedureOutput
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 ```
 
 The RPC interface provides full type inference:
@@ -98,7 +98,7 @@ const journeys = await db.query.journeys({
 
 1. **Install dependencies**:
    ```bash
-   cd /Volumes/Projects/Thepia/flows-db
+   cd /Volumes/Projects/Thepia/flows-client
    pnpm install
    ```
 
@@ -117,7 +117,7 @@ const journeys = await db.query.journeys({
 
 ## What Happens on First Load
 
-1. Page loads and calls `getFlowsDB()`
+1. Page loads and calls `getFlowsClient()`
 2. Service worker registers at `/flows-sw.js`
 3. Service worker initializes IndexedDB with schema
 4. Service worker checks if database is empty
@@ -151,7 +151,7 @@ Open browser console on `/journeys` page:
 
 ```javascript
 // Get the client
-const db = window.getFlowsDB();
+const db = window.getFlowsClient();
 
 // Query journeys
 const journeys = await db.query.journeys({

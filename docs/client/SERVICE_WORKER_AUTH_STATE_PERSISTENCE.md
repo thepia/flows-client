@@ -35,7 +35,7 @@ export const authStorage = {
 4. **Browser guards** - All storage wrapped in `isBrowser()` checks
 5. **Error handling** - Try-catch on all storage operations
 
-## Can flows-db Service Worker Support Auth State Persistence?
+## Can flows-client Service Worker Support Auth State Persistence?
 
 ### Answer: Yes, with modifications
 
@@ -64,7 +64,7 @@ The service worker can provide **better** persistence than localStorage:
 
 #### Option 1: Add Auth Storage to Existing Service Worker (Recommended)
 
-Add new procedures to `flows-db` RPC contract for service worker:
+Add new procedures to `flows-client` RPC contract for service worker:
 
 ```typescript
 // Add to src/types/procedures.ts
@@ -135,7 +135,7 @@ async function handleAuth(method: string, input: any): Promise<any> {
 
 Create a dedicated auth service worker in flows-auth:
 - Handles only auth state
-- Can be used alongside flows-db service worker
+- Can be used alongside flows-client service worker
 - More focused but requires multiple service workers
 
 **Verdict**: Option 1 is better - single service worker manages all client-side state.
@@ -196,7 +196,7 @@ const authStore = createAuthStore({
 
 ## Recommendation
 
-**YES, implement auth state persistence in flows-db service worker.**
+**YES, implement auth state persistence in flows-client service worker.**
 
 ### Phase 1: Add Auth Storage to Service Worker
 - Add `auth_sessions` table to IndexedDB schema
@@ -350,6 +350,6 @@ The existing code in `src/api/auth/webauthn/register-verify.ts` and `verify.ts`:
 
 - flows-auth: `src/utils/storage.ts` - Current localStorage implementation
 - flows-auth: `src/stores/core/session.ts` - Session management
-- flows-db: `src/service-worker/index-db.ts` - IndexedDB operations
-- flows-db: `src/types/procedures.ts` - RPC procedure definitions
+- flows-client: `src/service-worker/index-db.ts` - IndexedDB operations
+- flows-client: `src/types/procedures.ts` - RPC procedure definitions
 - thepia.com: `src/api/types/responses.ts` - API response contracts

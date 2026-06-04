@@ -1,15 +1,15 @@
 /**
  * Flows DB - Main Entry Point
  * 
- * This is the main entry point for the @thepia/flows-db package.
+ * This is the main entry point for the @thepia/flows-client package.
  * It exports all the core functionality including:
- * - FlowsDBClient for service worker communication
+ * - FlowsClient for service worker communication
  * - Supabase client utilities for direct database access
  * - Type definitions and constants
  */
 
-// Export the main FlowsDB client
-export { FlowsDBClient, resetFlowsDB, INDEXEDDB_NAME, INDEXEDDB_VERSION } from './lib/flows-client.js';
+// Export the main FlowsClient
+export { FlowsClient, resetFlowsClient, INDEXEDDB_NAME, INDEXEDDB_VERSION } from './lib/flows-client.js';
 
 // Export Supabase utilities for direct database access
 export {

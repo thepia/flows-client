@@ -20,7 +20,7 @@ export interface FlowsEntity {
 /**
  * Client/Organization
  */
-export interface FlowsClient extends FlowsEntity {
+export interface FlowsTenant extends FlowsEntity {
   client_code: string; // Unique identifier (e.g., 'acme')
   legal_name: string;
   status: 'active' | 'inactive' | 'suspended';
@@ -400,7 +400,7 @@ export type FlowsEntityType =
   | 'sync_metadata';
 
 export type FlowsEntityMap = {
-  client: FlowsClient;
+  client: FlowsTenant;
   application: FlowsApplication;
   person: FlowsPerson;
   journey: FlowsJourney;

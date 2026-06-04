@@ -8,7 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
-import type { AuthStore } from '@thepia/flows-auth';
+import type { AuthStore } from '@thepia/flows-auth/types';
 import {
 	createSupabaseClient,
 	createReactiveSupabaseClient,
@@ -48,7 +48,7 @@ describe('Supabase Client Utilities', () => {
 		access_token: 'access-token-123',
 		supabase_token: 'supabase-token-456',
 		refresh_token: 'refresh-token-789',
-		expiresAt: Date.now() + 3600000
+		expiresAt: new Date(Date.now() + 3600000).toISOString()
 	};
 
 	beforeEach(() => {
@@ -79,7 +79,7 @@ describe('Supabase Client Utilities', () => {
 					},
 					db: { schema: mockConfig.schema },
 					global: {
-						headers: {}
+						headers: { 'Access-Control-Max-Age': '86400' }
 					}
 				})
 			);
@@ -110,6 +110,7 @@ describe('Supabase Client Utilities', () => {
 					db: { schema: mockConfig.schema },
 					global: {
 						headers: {
+							'Access-Control-Max-Age': '86400',
 							'Authorization': `Bearer ${mockAuthState.supabase_token}`
 						}
 					}
@@ -134,7 +135,7 @@ describe('Supabase Client Utilities', () => {
 					},
 					db: { schema: mockConfig.schema },
 					global: {
-						headers: {}
+						headers: { 'Access-Control-Max-Age': '86400' }
 					}
 				})
 			);
@@ -164,6 +165,7 @@ describe('Supabase Client Utilities', () => {
 					db: { schema: mockConfig.schema },
 					global: {
 						headers: {
+							'Access-Control-Max-Age': '86400',
 							'Authorization': `Bearer ${mockAuthState.supabase_token}`,
 							'X-Custom': 'test-value'
 						}

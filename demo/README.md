@@ -1,6 +1,6 @@
 # Demo Content Management System
 
-This directory contains the demo content management system for flows-db, providing realistic, maintainable demo data that demonstrates the invitation system with real-world employee onboarding and offboarding scenarios.
+This directory contains the demo content management system for flows-client, providing realistic, maintainable demo data that demonstrates the invitation system with real-world employee onboarding and offboarding scenarios.
 
 ## Overview
 
@@ -21,7 +21,7 @@ This directory contains the demo content management system for flows-db, providi
 - **Versioned Demo Data** - Track changes to demo content over time
 - **Environment Separation** - Dev/staging/production demo variants
 - **Automated Updates** - Scripts to refresh and evolve demo data
-- **Real Database Integration** - Connect demo UI to actual flows-db
+- **Real Database Integration** - Connect demo UI to actual flows-client
 
 ## Demo Scenarios
 
@@ -123,7 +123,7 @@ pnpm run demo:admin:build && pnpm run demo:admin:preview
 
 ### Demo UI
 - `examples/flows-admin-demo/` - Svelte admin interface
-- Real-time connection to flows-db
+- Real-time connection to flows-client
 - Encrypted PII handling in frontend
 
 ### Scripts Integration

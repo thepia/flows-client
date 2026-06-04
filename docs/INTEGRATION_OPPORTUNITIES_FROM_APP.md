@@ -1,7 +1,7 @@
 # Integration Opportunities from app.thepia.net
 
 ## Overview
-This document outlines uncommitted changes in `thepia-all/apps/app.thepia.net` that could be integrated into flows-db for improved developer experience and debugging capabilities.
+This document outlines uncommitted changes in `thepia-all/apps/app.thepia.net` that could be integrated into flows-client for improved developer experience and debugging capabilities.
 
 ## 1. Enhanced Store DevTools (`store-devtools-enhanced.ts`)
 
@@ -15,7 +15,7 @@ Advanced debugging tools for Svelte and Zustand stores with:
 - Luna JSON Editor integration
 
 ### Integration Value
-- **For flows-db**: Could be used to debug Service Worker state and IndexedDB operations
+- **For flows-client**: Could be used to debug Service Worker state and IndexedDB operations
 - **For flows-auth**: Could help developers understand auth store state changes in real-time
 - **For app developers**: Provides visual debugging without console logs
 
@@ -25,7 +25,7 @@ Advanced debugging tools for Svelte and Zustand stores with:
 - `src/lib/dev/README.md` - Documentation
 
 ### Implementation Steps
-1. Copy devtools files to `flows-db/src/dev/`
+1. Copy devtools files to `flows-client/src/dev/`
 2. Add Luna JSON Editor as optional dependency
 3. Create integration guide for flows-auth consumers
 
@@ -60,9 +60,9 @@ Zod schema for runtime validation of flows-auth store structure:
 ```
 
 ### Integration Steps
-1. Copy `auth-store-schema.ts` to `flows-db/src/schemas/`
+1. Copy `auth-store-schema.ts` to `flows-client/src/schemas/`
 2. Update to match flows-auth types exactly
-3. Export from flows-db for consumer apps
+3. Export from flows-client for consumer apps
 4. Document usage in README
 
 ---
@@ -77,7 +77,7 @@ Manages ongoing workflows and processes with:
 - Metadata support
 
 ### Integration Value
-- **For flows-db**: Could track Service Worker operations
+- **For flows-client**: Could track Service Worker operations
 - **For flows-auth**: Could show sign-in flow progress
 - **For app developers**: Provides UI-ready workflow state
 
@@ -88,7 +88,7 @@ Manages ongoing workflows and processes with:
 - Clear completed processes
 
 ### Integration Steps
-1. Copy `workflow-store.ts` to `flows-db/src/stores/`
+1. Copy `workflow-store.ts` to `flows-client/src/stores/`
 2. Adapt for Service Worker operations
 3. Create Svelte adapter for reactive updates
 4. Document usage patterns
@@ -115,7 +115,7 @@ tokens.refresh_token
 ### Recommendation
 - **Keep flows-auth camelCase**: Maintains consistency with TypeScript conventions
 - **Update app.thepia.net**: Align with flows-auth types
-- **Document in flows-db**: Clarify token field naming conventions
+- **Document in flows-client**: Clarify token field naming conventions
 
 ---
 
@@ -128,7 +128,7 @@ tokens.refresh_token
 
 ### WelcomeCard.svelte
 - Welcome/onboarding component
-- Could be adapted for flows-db demo
+- Could be adapted for flows-client demo
 
 ### Integration Value
 - Reusable UI patterns
@@ -140,7 +140,7 @@ tokens.refresh_token
 
 ### New Route: `src/routes/setup/+page.svelte`
 - Setup workflow UI
-- Could be adapted for flows-db configuration
+- Could be adapted for flows-client configuration
 
 ---
 
@@ -180,5 +180,5 @@ tokens.refresh_token
 1. Review this document with team
 2. Prioritize which integrations to implement
 3. Create separate issues for each integration
-4. Update flows-db documentation with new capabilities
+4. Update flows-client documentation with new capabilities
 

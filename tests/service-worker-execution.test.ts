@@ -38,10 +38,17 @@ describe('Service Worker Bundle Execution Tests', () => {
 		swEnv = makeServiceWorkerEnv();
 
 		// Install service worker environment globals BEFORE eval
-		Object.assign(global, swEnv);
+		// Use defineProperty to skip read-only globals (e.g. navigator in jsdom)
+		for (const [key, value] of Object.entries(swEnv)) {
+			try {
+				(globalThis as Record<string, unknown>)[key] = value;
+			} catch {
+				// skip read-only properties (e.g. navigator in jsdom)
+			}
+		}
 
 		// Ensure self is available globally (service workers use 'self' instead of 'window')
-		(global as any).self = (global as any).self || swEnv.self;
+		(globalThis as Record<string, unknown>).self = swEnv.self || swEnv;
 
 		// Add fake-indexeddb to the global scope (already imported)
 		// The service worker code will use the real IndexedDB polyfill
@@ -63,10 +70,10 @@ describe('Service Worker Bundle Execution Tests', () => {
 	});
 
 	afterEach(() => {
-		// Clean up globals
-		delete (global as any).self;
-		delete (global as any).caches;
-		delete (global as any).clients;
+		// Don't delete self: async SW callbacks (IndexedDB seeding) fire post-test; beforeEach overwrites it each run.
+		const g = globalThis as Record<string, unknown>;
+		delete g.caches;
+		delete g.clients;
 	});
 
 	describe('RPC Message Handler - Auth Operations', () => {
@@ -79,8 +86,8 @@ describe('Service Worker Bundle Execution Tests', () => {
 				metadata: {},
 				accessToken: 'test_access_token',
 				refreshToken: 'test_refresh_token',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -114,8 +121,8 @@ describe('Service Worker Bundle Execution Tests', () => {
 				email: 'retrieve@example.com',
 				accessToken: 'retrieve_token',
 				refreshToken: 'retrieve_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -162,8 +169,8 @@ describe('Service Worker Bundle Execution Tests', () => {
 				email: 'expired@example.com',
 				accessToken: 'expired_token',
 				refreshToken: 'valid_refresh_token',
-				expiresAt: Date.now() - 3600000, // Expired 1 hour ago
-				refreshedAt: Date.now() - 3600000,
+				expiresAt: new Date(Date.now() - 3600000).toISOString(), // Expired 1 hour ago
+				refreshedAt: new Date(Date.now() - 3600000).toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -194,7 +201,7 @@ describe('Service Worker Bundle Execution Tests', () => {
 							expect(response.success).toBe(true);
 							expect(response.result).not.toBeNull();
 							expect(response.result.refreshToken).toBe('valid_refresh_token');
-							expect(response.result.expiresAt).toBeLessThan(Date.now());
+							expect(new Date(response.result.expiresAt).getTime()).toBeLessThan(Date.now());
 						},
 					},
 				],
@@ -209,8 +216,8 @@ describe('Service Worker Bundle Execution Tests', () => {
 				email: 'spam@example.com',
 				accessToken: 'spam_token',
 				refreshToken: 'spam_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now() - 30000, // Refreshed 30 seconds ago
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date(Date.now() - 30000).toISOString(), // Refreshed 30 seconds ago
 				authMethod: 'email-code',
 			};
 
@@ -238,7 +245,7 @@ describe('Service Worker Bundle Execution Tests', () => {
 						postMessage: (response: any) => {
 							expect(response.success).toBe(true);
 							expect(response.result.refreshedAt).toBeDefined();
-							const timeSinceRefresh = Date.now() - response.result.refreshedAt;
+							const timeSinceRefresh = Date.now() - new Date(response.result.refreshedAt).getTime();
 							expect(timeSinceRefresh).toBeGreaterThanOrEqual(30000);
 						},
 					},
@@ -255,8 +262,8 @@ describe('Service Worker Bundle Execution Tests', () => {
 				email: 'clear@example.com',
 				accessToken: 'clear_token',
 				refreshToken: 'clear_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 

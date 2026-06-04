@@ -1,6 +1,6 @@
 /**
  * Vite config for building the service worker
- * This builds the service worker as part of the @thepia/flows-db package
+ * This builds the service worker as part of the @thepia/flows-client package
  */
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
@@ -24,7 +24,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@thepia/flows-db/types': resolve(__dirname, 'src/types/index.ts')
+			'@thepia/flows-client/types': resolve(__dirname, 'src/types/index.ts')
 		}
 	}
 });

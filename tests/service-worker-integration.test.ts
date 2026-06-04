@@ -76,8 +76,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				metadata: { provider: 'workos' },
 				accessToken: 'valid_access_token',
 				refreshToken: 'valid_refresh_token',
-				expiresAt: Date.now() + 3600000, // Expires in 1 hour
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(), // Expires in 1 hour
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -104,8 +104,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'expired@example.com',
 				accessToken: 'expired_token',
 				refreshToken: 'valid_refresh_token',
-				expiresAt: Date.now() - 3600000, // Expired 1 hour ago
-				refreshedAt: Date.now() - 3600000,
+				expiresAt: new Date(Date.now() - 3600000).toISOString(), // Expired 1 hour ago
+				refreshedAt: new Date(Date.now() - 3600000).toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -120,10 +120,10 @@ describe('Service Worker IndexedDB Real Integration', () => {
 			expect(retrieved).not.toBeNull();
 			expect(retrieved?.userId).toBe('user-456');
 			expect(retrieved?.refreshToken).toBe('valid_refresh_token');
-			expect(retrieved?.expiresAt).toBeLessThan(Date.now());
+			expect(new Date(retrieved!.expiresAt).getTime()).toBeLessThan(Date.now());
 
 			// Verify it's actually expired
-			const isExpired = retrieved!.expiresAt <= Date.now();
+			const isExpired = new Date(retrieved!.expiresAt).getTime() <= Date.now();
 			expect(isExpired).toBe(true);
 		});
 
@@ -140,8 +140,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'old@example.com',
 				accessToken: 'old_token',
 				refreshToken: 'old_refresh',
-				expiresAt: Date.now() + 1800000,
-				refreshedAt: Date.now() - 300000, // 5 minutes ago
+				expiresAt: new Date(Date.now() + 1800000).toISOString(),
+				refreshedAt: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
 				authMethod: 'email-code',
 			};
 
@@ -150,8 +150,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'recent@example.com',
 				accessToken: 'recent_token',
 				refreshToken: 'recent_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now() - 30000, // 30 seconds ago
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date(Date.now() - 30000).toISOString(), // 30 seconds ago
 				authMethod: 'email-code',
 			};
 
@@ -175,8 +175,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'refresh-test@example.com',
 				accessToken: 'access_token_abc',
 				refreshToken: 'refresh_token_xyz',
-				expiresAt: Date.now() + 3600000, // Expires in 1 hour
-				refreshedAt: Date.now() - 30000, // Refreshed 30 seconds ago
+				expiresAt: new Date(Date.now() + 3600000).toISOString(), // Expires in 1 hour
+				refreshedAt: new Date(Date.now() - 30000).toISOString(), // Refreshed 30 seconds ago
 				authMethod: 'email-code',
 			};
 
@@ -191,7 +191,7 @@ describe('Service Worker IndexedDB Real Integration', () => {
 			expect(retrieved?.refreshedAt).toBeDefined();
 
 			// Verify timing makes sense for spam protection
-			const timeSinceRefresh = Date.now() - retrieved!.refreshedAt;
+			const timeSinceRefresh = Date.now() - new Date(retrieved!.refreshedAt).getTime();
 			expect(timeSinceRefresh).toBeGreaterThanOrEqual(30000);
 			expect(timeSinceRefresh).toBeLessThan(60000); // Less than 1 minute
 		});
@@ -204,7 +204,7 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'legacy@example.com',
 				accessToken: 'legacy_token',
 				refreshToken: 'legacy_refresh',
-				expiresAt: Date.now() + 3600000,
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
 				authMethod: 'email-code',
 				// No refreshedAt field
 			} as SessionData;
@@ -230,8 +230,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'clear@example.com',
 				accessToken: 'clear_token',
 				refreshToken: 'clear_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -260,8 +260,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'henrik@thepia.com',
 				accessToken: 'eyJhbGc...', // Expired access token
 				refreshToken: 'ehD1doEiLCSWi0Nzp7m6DWD6Z', // Valid refresh token
-				expiresAt: Date.now() - 13000000, // Expired ~3.6 hours ago
-				refreshedAt: Date.now() - 13000000,
+				expiresAt: new Date(Date.now() - 13000000).toISOString(), // Expired ~3.6 hours ago
+				refreshedAt: new Date(Date.now() - 13000000).toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -275,10 +275,10 @@ describe('Service Worker IndexedDB Real Integration', () => {
 			expect(retrieved).not.toBeNull();
 			expect(retrieved?.userId).toBe('workos|user_01K4DDYMKSK82XKFYAKBG54AH9');
 			expect(retrieved?.refreshToken).toBe('ehD1doEiLCSWi0Nzp7m6DWD6Z');
-			expect(retrieved?.expiresAt).toBeLessThan(Date.now());
+			expect(new Date(retrieved!.expiresAt).getTime()).toBeLessThan(Date.now());
 
 			// Verify it's actually expired by several hours
-			const hoursExpired = (Date.now() - retrieved!.expiresAt) / (1000 * 60 * 60);
+			const hoursExpired = (Date.now() - new Date(retrieved!.expiresAt).getTime()) / (1000 * 60 * 60);
 			expect(hoursExpired).toBeGreaterThan(3);
 		});
 	});
@@ -290,8 +290,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'update@example.com',
 				accessToken: 'initial_token',
 				refreshToken: 'initial_refresh',
-				expiresAt: Date.now() + 1800000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 1800000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -309,8 +309,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'update@example.com',
 				accessToken: 'refreshed_token',
 				refreshToken: 'refreshed_refresh',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: Date.now(),
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date().toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -330,8 +330,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'refresh-tracking@example.com',
 				accessToken: 'token_v1',
 				refreshToken: 'refresh_v1',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: firstRefreshTime,
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date(firstRefreshTime).toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -346,8 +346,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 				email: 'refresh-tracking@example.com',
 				accessToken: 'token_v2',
 				refreshToken: 'refresh_v2',
-				expiresAt: Date.now() + 3600000,
-				refreshedAt: secondRefreshTime,
+				expiresAt: new Date(Date.now() + 3600000).toISOString(),
+				refreshedAt: new Date(secondRefreshTime).toISOString(),
 				authMethod: 'email-code',
 			};
 
@@ -355,8 +355,8 @@ describe('Service Worker IndexedDB Real Integration', () => {
 
 			// Verify refreshedAt was updated
 			const retrieved = await getAuthSession();
-			expect(retrieved?.refreshedAt).toBeGreaterThan(firstRefreshTime);
-			expect(retrieved?.refreshedAt).toBeGreaterThanOrEqual(secondRefreshTime);
+			expect(new Date(retrieved!.refreshedAt).getTime()).toBeGreaterThan(firstRefreshTime);
+			expect(new Date(retrieved!.refreshedAt).getTime()).toBeGreaterThanOrEqual(secondRefreshTime);
 		});
 	});
 });

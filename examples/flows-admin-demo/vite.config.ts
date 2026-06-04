@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
       // This ensures local package updates are picked up immediately
       exclude: [
         '@thepia/flows-auth',
-        '@thepia/flows-db',
+        '@thepia/flows-client',
         // Exclude Node.js-only testing frameworks from browser bundle
         'playwright-core',
         'playwright',

@@ -1,10 +1,10 @@
 # Demo Content Iteration Strategy
 
-This document outlines the systematic approach for iterating on demo content, ensuring the flows-db demonstration remains current, realistic, and valuable for stakeholders.
+This document outlines the systematic approach for iterating on demo content, ensuring the flows-client demonstration remains current, realistic, and valuable for stakeholders.
 
 ## Overview
 
-The demo content system is designed to evolve continuously, simulating real-world employee lifecycle scenarios while maintaining data integrity and demonstrating key features of the flows-db platform.
+The demo content system is designed to evolve continuously, simulating real-world employee lifecycle scenarios while maintaining data integrity and demonstrating key features of the flows-client platform.
 
 ## Iteration Philosophy
 

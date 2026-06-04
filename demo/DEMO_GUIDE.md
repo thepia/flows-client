@@ -1,6 +1,6 @@
 # Flows-DB Demo System - Complete Guide
 
-A comprehensive demo content management system for flows-db featuring **Nets A/S**, a Nordic payment processing company, demonstrating realistic employee onboarding and offboarding workflows with GDPR compliance.
+A comprehensive demo content management system for flows-client featuring **Nets A/S**, a Nordic payment processing company, demonstrating realistic employee onboarding and offboarding workflows with GDPR compliance.
 
 ## 🎯 Demo Overview
 
@@ -310,7 +310,7 @@ pnpm run demo:admin
 ```
 
 ### Getting Help
-- **Issues**: Create issue in flows-db repository
+- **Issues**: Create issue in flows-client repository
 - **Customization**: See `demo/docs/ITERATION.md`
 - **Integration**: See `demo/docs/INTEGRATION.md`
 - **Performance**: Run `pnpm run demo:analytics --detailed`
@@ -354,4 +354,4 @@ This demo system effectively demonstrates:
 - **Multi-tenant architecture** with robust data isolation
 - **Professional offboarding processes** critical for payment companies
 
-The Nets A/S demo provides a compelling, realistic demonstration of flows-db capabilities while maintaining security, compliance, and authentic business context.
+The Nets A/S demo provides a compelling, realistic demonstration of flows-client capabilities while maintaining security, compliance, and authentic business context.

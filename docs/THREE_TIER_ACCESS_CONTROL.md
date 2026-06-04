@@ -2,7 +2,7 @@
 
 ## Overview
 
-The flows-db implements a sophisticated three-tier access control system designed for multi-tenant SaaS applications. This system provides strict data isolation between client organizations while allowing Thepia staff administrative access.
+The flows-client implements a sophisticated three-tier access control system designed for multi-tenant SaaS applications. This system provides strict data isolation between client organizations while allowing Thepia staff administrative access.
 
 ## Quick Setup
 

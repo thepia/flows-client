@@ -8,17 +8,17 @@
  */
 
 // TYPES ONLY imports from flows-auth - no runtime code
-import type { SessionPersistence, SessionData, UserData } from '@thepia/flows-auth';
+import type { SessionPersistence, SessionData, UserData } from '@thepia/flows-auth/types';
 
 import type {
-	FlowsDBProcedures,
+	FlowsProcedures,
 	ProcedureInput,
 	ProcedureOutput,
 	TransportMessage,
 	WebAppStatePayload
 } from '../types/index';
 
-export interface FlowsClientConfig {
+export interface FlowsTenantConfig {
 	/**
 	 * Path to the service worker file (browser mode only)
 	 * @default '/flows-sw.js'
@@ -46,12 +46,12 @@ export interface FlowsClientConfig {
 	contentElement?: string | Element;
 }
 
-export class FlowsDBClient {
+export class FlowsClient {
 	private registration: ServiceWorkerRegistration | null = null;
 	private nativeBridge: NativeAppBridge | null = null;
 	private isNativeApp: boolean = false;
 	private ready: Promise<void>;
-	private config: Required<FlowsClientConfig>;
+	private config: Required<Omit<FlowsTenantConfig, 'contentElement'>>;
 	private readonly contentElementConfig: string | Element | undefined;
 	private heightObserver: ResizeObserver | null = null;
 	private heightDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -59,7 +59,7 @@ export class FlowsDBClient {
 	private lastSentTime: number = 0;
 	private currentPageHeight: WebAppStatePayload['pageHeight'] | null = null;
 
-	constructor(config: FlowsClientConfig = {}) {
+	constructor(config: FlowsTenantConfig = {}) {
 		this.config = {
 			serviceWorkerUrl: config.serviceWorkerUrl || '/flows-sw.js',
 			scope: config.scope || '/',
@@ -72,7 +72,7 @@ export class FlowsDBClient {
 
 	private log(...args: unknown[]): void {
 		if (this.config.debug) {
-			console.log('[FlowsDB]', ...args);
+			console.log('[FlowsClient]', ...args);
 		}
 	}
 
@@ -135,7 +135,7 @@ export class FlowsDBClient {
 	/**
 	 * Call a procedure - automatically uses native bridge or service worker
 	 */
-	private async call<P extends keyof FlowsDBProcedures>(
+	private async call<P extends keyof FlowsProcedures>(
 		procedure: P,
 		input: ProcedureInput<P>
 	): Promise<ProcedureOutput<P>> {
@@ -220,6 +220,45 @@ export class FlowsDBClient {
 		this.heightObserver?.disconnect();
 		this.nativeBridge?.cleanup();
 	}
+
+	get camera() {
+		if (!this.isNativeApp || !this.nativeBridge) {
+			console.debug('[FlowsClient] camera: not in native app — returning null (media path expected)');
+			return null;
+		}
+		console.debug('[FlowsClient] camera: native path available');
+		return {
+			mountPreview: (input: ProcedureInput<'camera.mountPreview'>) => {
+				console.debug('[FlowsClient] camera.mountPreview (native)', input);
+				return this.call('camera.mountPreview', input);
+			},
+			unmountPreview: () => {
+				console.debug('[FlowsClient] camera.unmountPreview (native)');
+				return this.call('camera.unmountPreview', undefined);
+			},
+			startRecording: (input?: ProcedureInput<'camera.startRecording'>) => {
+				console.debug('[FlowsClient] camera.startRecording (native)', input);
+				return this.call('camera.startRecording', input);
+			},
+			stopRecording: () => {
+				console.debug('[FlowsClient] camera.stopRecording (native)');
+				return this.call('camera.stopRecording', undefined);
+			},
+			capture: () => {
+				console.debug('[FlowsClient] camera.capture (native)');
+				return this.call('camera.capture', undefined);
+			},
+			listDevices: () => {
+				console.debug('[FlowsClient] camera.listDevices (native)');
+				return this.call('camera.listDevices', undefined);
+			},
+			selectDevice: (id: string) => {
+				console.debug('[FlowsClient] camera.selectDevice (native)', id);
+				return this.call('camera.selectDevice', id);
+			},
+		};
+	}
+
 
 	/**
 	 * Query procedures
@@ -364,14 +403,14 @@ export class FlowsDBClient {
 }
 
 // Singleton instance
-let instance: FlowsDBClient | null = null;
+let instance: FlowsClient | null = null;
 
 /**
- * Get or create the singleton FlowsDB client instance
+ * Get or create the singleton FlowsClient instance
  */
-export function getFlowsDB(config?: FlowsClientConfig): FlowsDBClient {
+export function getFlowsClient(config?: FlowsTenantConfig): FlowsClient {
 	if (!instance) {
-		instance = new FlowsDBClient(config);
+		instance = new FlowsClient(config);
 	}
 	return instance;
 }
@@ -379,7 +418,7 @@ export function getFlowsDB(config?: FlowsClientConfig): FlowsDBClient {
 /**
  * Reset the singleton instance (useful for testing)
  */
-export function resetFlowsDB(): void {
+export function resetFlowsClient(): void {
 	instance = null;
 }
 
@@ -390,7 +429,7 @@ export function resetFlowsDB(): void {
  * @param payload - The state update payload
  */
 export async function notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
-	return getFlowsDB().notifyNativeAppState(payload);
+	return getFlowsClient().notifyNativeAppState(payload);
 }
 
 // Export IndexedDB constants for direct database access
@@ -468,7 +507,7 @@ class NativeAppBridge {
 		return new Promise<T>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				this.pendingRequests.delete(requestId);
-				reject(new Error(`FlowsDB request timeout: ${procedure}`));
+				reject(new Error(`FlowsClient request timeout: ${procedure}`));
 			}, this.requestTimeout);
 
 			this.pendingRequests.set(requestId, { resolve, reject, timeout });
@@ -504,9 +543,23 @@ class NativeAppBridge {
 		if (response.success) {
 			pending.resolve(response.payload);
 		} else {
-			pending.reject(new Error(response.error?.message || 'FlowsDB request failed'));
+			pending.reject(new Error(response.error?.message || 'FlowsClient request failed'));
 		}
 	}
+
+	// subscribe() — not yet implemented.
+// Native push events (e.g. camera.detection from EvidentNet) require
+// agreeing the wire format with the Swift side before this can be built.
+// See docs/ml/IMAGE_CLASSIFICATION.md for the intended use case.
+
+// 	subscribe(channel: string, handler: (msg: unknown) => void): () => void {
+//   		if (this.isNativeApp && this.nativeBridge)
+//     		return this.nativeBridge.subscribe(channel, handler)
+//   		const bc = new BroadcastChannel(channel)
+//   		bc.onmessage = (e) => handler(e.data)
+//   		return () => bc.close()
+// }	
+
 
 	cleanup(): void {
 		for (const [, pending] of this.pendingRequests.entries()) {

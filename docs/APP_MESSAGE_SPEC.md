@@ -214,12 +214,12 @@ private func sendResponse(requestId: String, type: String, success: Bool, payloa
 }
 ```
 
-**Web App (flows-db)**:
+**Web App (flows-client)**:
 ```typescript
-import { getFlowsDB, notifyNativeAppState } from '@thepia/flows-db';
+import { getFlowsClient, notifyNativeAppState } from '@thepia/flows-client';
 
 // Use the client
-const client = getFlowsDB();
+const client = getFlowsClient();
 
 // Save session
 await client.session.saveSession({
@@ -251,6 +251,6 @@ await notifyNativeAppState({ readiness: 'ready', pageHeight: 'full' });
 - **Auth State Persistence**: `docs/client/SERVICE_WORKER_AUTH_STATE_PERSISTENCE.md` - IndexedDB storage patterns
 
 ### Implementation
-- **Client**: `src/lib/flows-client.ts` - FlowsDBClient and NativeAppBridge
+- **Client**: `src/lib/flows-client.ts` - FlowsClient and NativeAppBridge
 - **Service Worker**: `src/service-worker/flows-sw.ts` - Service worker entry point
 

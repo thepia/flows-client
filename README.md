@@ -6,8 +6,8 @@ Multi-tenant database management system for Thepia's client workflow application
 
 ```bash
 # Clone and setup
-git clone https://github.com/thepia/flows-db.git
-cd flows-db
+git clone https://github.com/thepia/flows-client.git
+cd flows-client
 pnpm install
 
 # Configure environment
@@ -97,7 +97,7 @@ SELECT * FROM remove_user_role('user@example.com');
 
 ## Service Worker Setup
 
-The flows-db service worker provides IndexedDB-backed session persistence for authentication and data synchronization.
+The flows-client service worker provides IndexedDB-backed session persistence for authentication and data synchronization.
 
 ### Installation
 
@@ -108,7 +108,7 @@ The flows-db service worker provides IndexedDB-backed session persistence for au
   "scripts": {
     "dev": "pnpm build:sw && pnpm copy:sw && vite dev",
     "build": "pnpm copy:sw && vite build",
-    "copy:sw": "node node_modules/@thepia/flows-db/scripts/copy-sw.js static"
+    "copy:sw": "node node_modules/@thepia/flows-client/scripts/copy-sw.js static"
   }
 }
 ```
@@ -117,10 +117,10 @@ The flows-db service worker provides IndexedDB-backed session persistence for au
 
 ```typescript
 import { setupAuthContext } from '@thepia/flows-auth';
-import { FlowsDBClient } from '@thepia/flows-db';
+import { FlowsClient } from '@thepia/flows-client';
 
-// Create flows-db client (automatically registers service worker at /flows-sw.js)
-const flowsDB = new FlowsDBClient();
+// Create flows-client client (automatically registers service worker at /flows-sw.js)
+const flowsDB = new FlowsClient();
 
 // Pass session persistence to auth config
 const authConfig = {
@@ -136,7 +136,7 @@ const authStore = setupAuthContext(authConfig);
 
 ### What It Does
 
-- **Automatic registration**: `FlowsDBClient` registers the service worker at `/flows-sw.js`
+- **Automatic registration**: `FlowsClient` registers the service worker at `/flows-sw.js`
 - **Session persistence**: Auth tokens and user data stored in IndexedDB
 - **RPC interface**: Type-safe procedures for queries, mutations, and sync operations
 - **Offline support**: Data available even when offline
@@ -144,7 +144,7 @@ const authStore = setupAuthContext(authConfig);
 ### Configuration
 
 ```typescript
-const flowsDB = new FlowsDBClient({
+const flowsDB = new FlowsClient({
   serviceWorkerUrl: '/flows-sw.js',  // Default
   scope: '/',                         // Default
   debug: false                        // Enable debug logging
@@ -162,9 +162,9 @@ import type {
   FlowsJourney,
   FlowsTask,
   FlowsAttachment,
-  FlowsDBProcedures,
+  FlowsProcedures,
   Transport,
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 // Create a journey
 const journey: FlowsJourney = {
@@ -242,7 +242,7 @@ JWT_SECRET=your-jwt-secret
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/thepia/flows-db/issues)
+- **Issues**: [GitHub Issues](https://github.com/thepia/flows-client/issues)
 - **Documentation**: `/docs` directory
 - **Email**: <tech@thepia.com>
 

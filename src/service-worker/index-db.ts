@@ -1,4 +1,4 @@
-import type { SessionData, UserData } from '@thepia/flows-auth';
+import type { SessionData, UserData } from '@thepia/flows-auth/types';
 import { SEED_JOURNEYS, SEED_TASKS, SEED_EVIDENCE, SEED_COMMENTS } from './seed';
 import { INDEXEDDB_NAME, INDEXEDDB_VERSION } from '../constants';
 import { getRecentLogs, cleanupOldLogs, exportLogs } from './logger';
@@ -702,7 +702,6 @@ export async function saveUser(user: UserData): Promise<void> {
 			userId: user.userId,
 			email: user.email,
 			name: user.name,
-			avatar: user.avatar,
 			emailVerified: user.emailVerified,
 			createdAt: user.createdAt,
 			lastLoginAt: user.lastLoginAt,
@@ -741,7 +740,6 @@ export async function getUser(userId: string): Promise<UserData | null> {
 				userId: user.userId,
 				email: user.email,
 				name: user.name,
-				avatar: user.avatar,
 				emailVerified: user.emailVerified,
 				createdAt: user.createdAt,
 				lastLoginAt: user.lastLoginAt,

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Copy service worker from @thepia/flows-db to app's static folder
+ * Copy service worker from @thepia/flows-client to app's static folder
  *
  * Usage:
- *   node node_modules/@thepia/flows-db/scripts/copy-sw.js [destination]
+ *   node node_modules/@thepia/flows-client/scripts/copy-sw.js [destination]
  *
  * Or add to package.json:
  *   "scripts": {
- *     "copy:sw": "node node_modules/@thepia/flows-db/scripts/copy-sw.js static"
+ *     "copy:sw": "node node_modules/@thepia/flows-client/scripts/copy-sw.js static"
  *   }
  */
 

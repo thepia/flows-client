@@ -2,20 +2,20 @@
 
 ## Overview
 
-This document specifies the JWT claims structure required to support the three-tier access control system in flows-db.
+This document specifies the JWT claims structure required to support the three-tier access control system in flows-client.
 
 ## Architecture Context
 
 ### **Client-Server Contract**
-- **Client (Database)**: `flows-db` - Consumes JWTs via database functions (`api.get_current_thepia_user_id()`, etc.)
+- **Client (Database)**: `flows-client` - Consumes JWTs via database functions (`api.get_current_thepia_user_id()`, etc.)
 - **Server (API)**: `thepia.com/src/api` - Generates JWTs during authentication
-- **Deployment**: flows-db may be used as a library by the API server to deploy server-side components
+- **Deployment**: flows-client may be used as a library by the API server to deploy server-side components
 
 ### **Purpose**
 This specification defines the **contract between API server and database** for authentication:
 1. **API Server** (thepia.com) generates JWTs with this exact structure during Auth0/WorkOS authentication
-2. **Database** (flows-db) expects JWTs in this format for RLS policies and access control functions
-3. **Single Source of Truth**: This flows-db specification defines what the API server must implement
+2. **Database** (flows-client) expects JWTs in this format for RLS policies and access control functions
+3. **Single Source of Truth**: This flows-client specification defines what the API server must implement
 
 ## Required JWT Claims Structure
 

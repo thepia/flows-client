@@ -850,7 +850,7 @@ To maintain a stable service worker API:
 ## Recommended Architecture
 
 ```
-flows-db/
+flows-client/
 ├── src/
 │   ├── service-worker/
 │   │   ├── flows-sw.ts              # Main SW entry point

@@ -29,7 +29,7 @@ interface FlowsEntity {
 }
 
 // Core entities
-interface FlowsClient extends FlowsEntity {
+interface FlowsTenant extends FlowsEntity {
   name: string;
   slug: string;
   industry?: string;

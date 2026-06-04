@@ -3,7 +3,7 @@
 /**
  * Demo Setup Script
  *
- * Creates comprehensive demo content for flows-db using Nets A/S as the example client.
+ * Creates comprehensive demo content for flows-client using Nets A/S as the example client.
  * Sets up realistic Nordic employee data with onboarding/offboarding workflows.
  */
 
@@ -378,7 +378,7 @@ async function setupDemo(options = {}) {
 // CLI configuration
 program
   .name('setup-demo')
-  .description('Set up comprehensive demo content for flows-db')
+  .description('Set up comprehensive demo content for flows-client')
   .version('1.0.0');
 
 program

@@ -1,7 +1,7 @@
 import { getCurrentClientId } from '$lib/utils/client-persistence';
 import { writable, get } from 'svelte/store';
 import { reportSupabaseError } from '../config/errorReporting.js';
-import { supabaseClientStore } from '../contexts/supabase-context';
+import { supabaseClientStore } from '../contexts/supabase-context.js';
 import type {
   Application,
   Client,

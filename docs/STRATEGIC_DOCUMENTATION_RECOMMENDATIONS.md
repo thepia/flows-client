@@ -267,4 +267,4 @@ The strategic documentation gap in thepia.com represents a significant opportuni
 
 **Recommendation**: Prioritize the executive summary and ROI framework as immediate quick wins, then systematically build out the strategic documentation ecosystem to support scalable business growth.
 
-The technical excellence in flows-db combined with strategic business documentation in thepia.com creates a powerful foundation for market leadership in the HR technology space.
+The technical excellence in flows-client combined with strategic business documentation in thepia.com creates a powerful foundation for market leadership in the HR technology space.

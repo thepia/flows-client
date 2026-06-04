@@ -23,7 +23,7 @@ The Thepia Flows product consists of interconnected repositories:
 
 - **`thepia.com`**`: Main website and API server with authentication backend
 - **`flows-auth`**: Frontend sign-in UI library (Svelte) with WebAuthn support. Examples `flows-app-demo` and `tasks-app-demo` in `examples/` directory.
-- **`flows-db`**: Database schema and functionality with admin demo application(flows-admin-demo)  
+- **`flows-client`**: Database schema and functionality with admin demo application(flows-admin-demo)  
 - **`flows.thepia.net`**: Public demo website for Thepia Flows with live database integration and passkey authentication
 
 #### Critical Development Standards

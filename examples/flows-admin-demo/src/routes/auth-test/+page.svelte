@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getAuthStoreFromContext, SignInForm } from '@thepia/flows-auth';
-	import { createFlowsSupabaseClient, decodeJWTPayload } from '@thepia/flows-db';
+	import { createFlowsSupabaseClient, decodeJWTPayload } from '@thepia/flows-client';
 
 	// Get auth store from context (set up in +layout.svelte)
 	const authStore = getAuthStoreFromContext();
@@ -48,7 +48,7 @@
 
 		try {
 			// Import IndexedDB constants dynamically
-			const clientModule = await import('@thepia/flows-db/client');
+			const clientModule = await import('@thepia/flows-client/client');
 			console.log('[Auth Test] Loaded client module:', clientModule);
 			INDEXEDDB_NAME = clientModule.INDEXEDDB_NAME;
 			INDEXEDDB_VERSION = clientModule.INDEXEDDB_VERSION;
@@ -80,9 +80,9 @@
 				}
 			});
 
-			// Get flows-db client
-			const { FlowsDBClient } = await import('@thepia/flows-db/client');
-			flowsDB = new FlowsDBClient();
+			// Get flows-client client
+			const { FlowsClient } = await import('@thepia/flows-client/client');
+			flowsDB = new FlowsClient();
 
 			// Wait for service worker to be ready before accessing IndexedDB
 			if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {

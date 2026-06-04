@@ -5,7 +5,7 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: resolve(__dirname, 'src/index.ts'),
-			name: 'FlowsDB',
+			name: 'FlowsClient',
 			fileName: () => 'flows-client.js',
 			formats: ['es']
 		},
@@ -21,7 +21,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@thepia/flows-db/types': resolve(__dirname, 'src/types/index.ts')
+			'@thepia/flows-client/types': resolve(__dirname, 'src/types/index.ts')
 		}
 	}
 });

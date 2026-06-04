@@ -1,16 +1,16 @@
 /**
- * FlowsDB Client Unit Tests
+ * FlowsClient Client Unit Tests
  *
- * Tests the FlowsDBClient class and its SessionPersistence implementation
+ * Tests the FlowsClient class and its SessionPersistence implementation
  * Focus on the auth procedures with optional userId parameters
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FlowsDBClient } from '../src/lib/flows-client';
+import { FlowsClient } from '../src/lib/flows-client';
 import type { SessionData, UserData } from '../src/types/auth';
 
-describe('FlowsDBClient', () => {
-	let client: FlowsDBClient;
+describe('FlowsClient', () => {
+	let client: FlowsClient;
 	let mockServiceWorker: any;
 	let mockRegistration: any;
 	let messageHandlers: Map<string, (payload: any) => any>;
@@ -76,7 +76,7 @@ describe('FlowsDBClient', () => {
 			}
 		} as any;
 
-		client = new FlowsDBClient({
+		client = new FlowsClient({
 			serviceWorkerUrl: '/test-sw.js',
 			scope: '/',
 			debug: false
@@ -98,8 +98,8 @@ describe('FlowsDBClient', () => {
 					name: 'Test User',
 					accessToken: 'access-token',
 					refreshToken: 'refresh-token',
-					expiresAt: Date.now() + 3600000,
-					refreshedAt: Date.now(),
+					expiresAt: new Date(Date.now() + 3600000).toISOString(),
+					refreshedAt: new Date().toISOString(),
 					authMethod: 'passkey'
 				};
 
@@ -124,8 +124,8 @@ describe('FlowsDBClient', () => {
 					email: 'loaded@example.com',
 					accessToken: 'loaded-token',
 					refreshToken: 'loaded-refresh',
-					expiresAt: Date.now() + 3600000,
-					refreshedAt: Date.now(),
+					expiresAt: new Date(Date.now() + 3600000).toISOString(),
+					refreshedAt: new Date().toISOString(),
 					authMethod: 'email-code'
 				};
 
@@ -290,7 +290,7 @@ describe('FlowsDBClient', () => {
 				}
 			});
 
-			const brokenClient = new FlowsDBClient();
+			const brokenClient = new FlowsClient();
 
 			// Wait for initialization
 			await new Promise(resolve => setTimeout(resolve, 10));

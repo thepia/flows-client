@@ -10,7 +10,7 @@
  */
 
 // Import types from flows-auth - TYPES ONLY, no runtime code
-import type { SessionData, UserData } from '@thepia/flows-auth';
+import type { SessionData, UserData } from '@thepia/flows-auth/types';
 
 // Re-export for convenience
 export type { SessionData, UserData };

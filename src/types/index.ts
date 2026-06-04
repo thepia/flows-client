@@ -18,7 +18,7 @@ export * from './native-app';
 // Re-export commonly used entity types
 export type {
   FlowsEntity,
-  FlowsClient,
+  FlowsTenant,
   FlowsApplication,
   FlowsPerson,
   FlowsJourney,
@@ -54,7 +54,7 @@ export type {
   QueryProcedures,
   MutationProcedures,
   SyncProcedures,
-  FlowsDBProcedures,
+  FlowsProcedures,
   ProcedureInput,
   ProcedureOutput,
   ProcedureContext,

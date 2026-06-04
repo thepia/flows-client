@@ -435,6 +435,6 @@ response = supabase.table('people').insert({
 For API questions or integration support:
 - **Documentation**: Check this reference and thepia.com flows docs
 - **Examples**: See working examples in flows-admin-demo
-- **Issues**: Create issues in the flows-db repository
+- **Issues**: Create issues in the flows-client repository
 
 **Note**: This API reference covers the core endpoints. Additional endpoints may be available - check the PostgREST auto-generated documentation at `{SUPABASE_URL}/rest/v1/` for complete endpoint discovery.

@@ -7,7 +7,7 @@ This guide demonstrates how to use the Flows Database type system across differe
 
 ## Overview
 
-The `@thepia/flows-db` package provides comprehensive TypeScript types that ensure type safety across:
+The `@thepia/flows-client` package provides comprehensive TypeScript types that ensure type safety across:
 
 - **Browser applications** (Svelte, React, vanilla JS)
 - **Service Worker implementations**
@@ -18,10 +18,10 @@ The `@thepia/flows-db` package provides comprehensive TypeScript types that ensu
 
 ```bash
 # In your Flows application
-pnpm add @thepia/flows-db
+pnpm add @thepia/flows-client
 
 # If using as types-only dependency
-pnpm add -D @thepia/flows-db
+pnpm add -D @thepia/flows-client
 ```
 
 ## Core Type Categories
@@ -39,7 +39,7 @@ import type {
   FlowsComment,
   FlowsEvidence,
   FlowsInvitation,
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 // Example: Creating a journey
 const journey: FlowsJourney = {
@@ -122,12 +122,12 @@ Procedure types define the type-safe RPC interface between client and storage la
 
 ```typescript
 import type {
-  FlowsDBProcedures,
+  FlowsProcedures,
   ProcedureInput,
   ProcedureOutput,
   QueryOptions,
   Filter,
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 // Example: Type-safe query input
 const queryInput: ProcedureInput<'query.tasks'> = {
@@ -177,8 +177,8 @@ import type {
   TransportMessage,
   BrowserTransport,
   NativeTransport,
-} from '@thepia/flows-db/types';
-import { detectEnvironment } from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
+import { detectEnvironment } from '@thepia/flows-client/types';
 
 // Detect current environment
 const env: Environment = detectEnvironment();
@@ -216,7 +216,7 @@ import type {
   FlowsEntityCreate,
   FlowsEntityUpdate,
   GetFlowsEntity,
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 // Create input (excludes id, created_at, updated_at)
 const createTaskInput: FlowsEntityCreate<FlowsTask> = {
@@ -250,9 +250,9 @@ type JourneyEntity = GetFlowsEntity<'journey'>; // Resolves to FlowsJourney
   import type {
     FlowsJourney,
     FlowsTask,
-    FlowsDBProcedures,
+    FlowsProcedures,
     Transport,
-  } from '@thepia/flows-db/types';
+  } from '@thepia/flows-client/types';
 
   let journeys: FlowsJourney[] = [];
   let selectedJourney: FlowsJourney | null = null;
@@ -260,7 +260,7 @@ type JourneyEntity = GetFlowsEntity<'journey'>; // Resolves to FlowsJourney
 
   onMount(async () => {
     // Load database client
-    const { createFlowsDB } = await import('./lib/flows-db-client');
+    const { createFlowsDB } = await import('./lib/flows-client-client');
     const db = createFlowsDB();
 
     // Fetch journeys (fully typed)
@@ -321,17 +321,17 @@ type JourneyEntity = GetFlowsEntity<'journey'>; // Resolves to FlowsJourney
 ```typescript
 // service-worker.ts
 import type {
-  FlowsDBProcedures,
+  FlowsProcedures,
   ProcedureContext,
   TransportMessage,
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 // Define procedure handlers
 const handlers: {
-  [K in keyof FlowsDBProcedures]: (
-    input: FlowsDBProcedures[K]['input'],
+  [K in keyof FlowsProcedures]: (
+    input: FlowsProcedures[K]['input'],
     context: ProcedureContext
-  ) => Promise<FlowsDBProcedures[K]['output']>;
+  ) => Promise<FlowsProcedures[K]['output']>;
 } = {
   'query.tasks': async (input, context) => {
     // Implementation with type safety
@@ -367,7 +367,7 @@ self.addEventListener('message', async (event) => {
 
   if (message.type === 'request' && message.procedure) {
     try {
-      const handler = handlers[message.procedure as keyof FlowsDBProcedures];
+      const handler = handlers[message.procedure as keyof FlowsProcedures];
       const context: ProcedureContext = {
         clientId: 'acme',
         appId: 'flows',
@@ -489,7 +489,7 @@ class FlowsDBBridge: NSObject, WKScriptMessageHandler {
                 result = try handler.updateTask(id: input.id, data: input.data)
 
             default:
-                throw NSError(domain: "FlowsDB", code: 404, userInfo: [
+                throw NSError(domain: "FlowsClient", code: 404, userInfo: [
                     NSLocalizedDescriptionKey: "Unknown procedure: \(procedure)"
                 ])
             }
@@ -528,10 +528,10 @@ class FlowsDBBridge: NSObject, WKScriptMessageHandler {
 
 ```typescript
 // ❌ Don't import everything
-import * as FlowsTypes from '@thepia/flows-db/types';
+import * as FlowsTypes from '@thepia/flows-client/types';
 
 // ✅ Import specific types
-import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
+import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 ```
 
 ### 2. Use Utility Types for Mutations
@@ -556,7 +556,7 @@ const updateInput: FlowsEntityUpdate<FlowsTask> = {
 ### 3. Type Guard Functions
 
 ```typescript
-import type { FlowsJourney, FlowsTask } from '@thepia/flows-db/types';
+import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 
 function isJourney(entity: unknown): entity is FlowsJourney {
   return (
@@ -585,7 +585,7 @@ function isTask(entity: unknown): entity is FlowsTask {
 ### 4. Extend Metadata Types
 
 ```typescript
-import type { FlowsJourney } from '@thepia/flows-db/types';
+import type { FlowsJourney } from '@thepia/flows-client/types';
 
 // Extend for app-specific metadata
 interface OnboardingJourney extends FlowsJourney {

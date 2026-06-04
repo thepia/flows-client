@@ -6,7 +6,7 @@ import '../app.pcss';
 import AppHeader from '$lib/components/layout/AppHeader.svelte';
 import { setupAuthContext } from '@thepia/flows-auth';
 import '@thepia/flows-auth/style.css';
-import { FlowsDBClient } from '@thepia/flows-db';
+import { FlowsClient } from '@thepia/flows-client';
 import { initializeSupabaseStores } from '../lib/contexts/supabase-context';
 
 // Determine page context
@@ -14,8 +14,8 @@ $: isSettingsPage = $page.url.pathname === '/settings';
 $: isAuthTestPage = $page.url.pathname === '/auth-test';
 $: pageTitle = isSettingsPage ? 'Settings' : isAuthTestPage ? 'Auth Test' : 'Flows';
 
-// Get flows-db client for session persistence
-const flowsDB = new FlowsDBClient();
+// Get flows-client client for session persistence
+const flowsDB = new FlowsClient();
 
 // Setup auth context for entire app (SSR disabled, so this is safe)
 const authConfig = {
@@ -29,7 +29,7 @@ const authConfig = {
     companyName: 'Thepia Flows',
     // primaryColor: '#3b82f6'
   },
-  // Automatic session persistence via flows-db service worker
+  // Automatic session persistence via flows-client service worker
   database: flowsDB.session
 };
 

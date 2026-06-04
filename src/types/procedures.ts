@@ -387,21 +387,22 @@ export interface AuthProcedures {
 /**
  * All procedures combined
  */
-export interface FlowsDBProcedures
+export interface FlowsProcedures
   extends QueryProcedures,
     MutationProcedures,
     SyncProcedures,
-    AuthProcedures {}
+    AuthProcedures,
+    CameraProcedures {}
 
 /**
  * Extract input type from procedure
  */
-export type ProcedureInput<T extends keyof FlowsDBProcedures> = FlowsDBProcedures[T]['input'];
+export type ProcedureInput<T extends keyof FlowsProcedures> = FlowsProcedures[T]['input'];
 
 /**
  * Extract output type from procedure
  */
-export type ProcedureOutput<T extends keyof FlowsDBProcedures> = FlowsDBProcedures[T]['output'];
+export type ProcedureOutput<T extends keyof FlowsProcedures> = FlowsProcedures[T]['output'];
 
 /**
  * Procedure context (available in handlers)
@@ -411,4 +412,25 @@ export interface ProcedureContext {
   appId?: string;
   userId?: string;
   sessionId?: string;
+}
+
+export interface CameraProcedures {
+  'camera.listDevices':    { input: undefined;                              output: CameraDevice[] }
+  'camera.selectDevice':   { input: string;                                 output: void }
+  'camera.mountPreview':   { input: { rect: DOMRectInit; pixelRatio: number }; output: void }
+  'camera.unmountPreview': { input: undefined;                              output: void }
+  'camera.startRecording': { input: { subjectId?: string } | undefined;    output: void }
+  'camera.stopRecording':  { input: undefined;                              output: CaptureResult }
+  'camera.capture':        { input: undefined;                              output: CaptureResult }
+}
+
+export interface CameraDevice {
+  id: string; name: string; position: 'front' | 'back' | 'unspecified'; 
+  deviceType: string
+}
+
+export interface CaptureResult {
+  assetId: string       // native asset identifier
+  timestamp: number
+  contentLabels?: string[]  // EvidentNet labels when available
 }

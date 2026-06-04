@@ -1,5 +1,5 @@
 /**
- * Example showing how to use @thepia/flows-db types in the admin demo
+ * Example showing how to use @thepia/flows-client types in the admin demo
  *
  * This file demonstrates importing and using the type-safe Flows data types
  * from the workspace package.
@@ -12,10 +12,10 @@ import type {
 	FlowsEvidence,
 	FlowsEntityCreate,
 	FlowsEntityUpdate,
-	FlowsDBProcedures,
+	FlowsProcedures,
 	ProcedureInput,
 	ProcedureOutput
-} from '@thepia/flows-db/types';
+} from '@thepia/flows-client/types';
 
 /**
  * Example: Create a new journey with full type safety
@@ -76,7 +76,7 @@ export interface JourneyWithTasks {
 /**
  * Example: Mock database client using procedure types
  */
-export class MockFlowsDBClient {
+export class MockFlowsClient {
 	async queryTasks(
 		input: ProcedureInput<'query.tasks'>
 	): Promise<ProcedureOutput<'query.tasks'>> {

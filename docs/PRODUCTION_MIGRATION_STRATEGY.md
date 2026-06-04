@@ -1,4 +1,4 @@
-# Production Migration Strategy for flows-db
+# Production Migration Strategy for flows-client
 
 ## Overview
 

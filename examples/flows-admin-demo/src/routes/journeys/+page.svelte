@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FlowsJourney, FlowsTask, FlowsDBClient } from '@thepia/flows-db/types';
+	import type { FlowsJourney, FlowsTask, FlowsClient } from '@thepia/flows-client/types';
 	import { onMount } from 'svelte';
 	import JourneysList from '$lib/components/JourneysList.svelte';
 	import JourneyDetails from '$lib/components/JourneyDetails.svelte';
@@ -10,13 +10,13 @@
 	let loading = true;
 	let error: string | null = null;
 
-	let db: FlowsDBClient | null = null;
+	let db: FlowsClient | null = null;
 
 	onMount(async () => {
 		try {
 			// Dynamically import client in browser only
-			const { FlowsDBClient } = await import('@thepia/flows-db/client');
-			db = new FlowsDBClient();
+			const { FlowsClient } = await import('@thepia/flows-client/client');
+			db = new FlowsClient();
 
 			// Query all journeys from IndexedDB via Service Worker
 			journeys = await db.query.journeys({
@@ -49,7 +49,7 @@
 		<h1 class="text-3xl font-bold mb-2">Journeys</h1>
 		<p class="text-gray-600">
 			Data loaded from IndexedDB via Service Worker using
-			<code class="bg-gray-100 px-2 py-1 rounded text-sm">@thepia/flows-db</code> types
+			<code class="bg-gray-100 px-2 py-1 rounded text-sm">@thepia/flows-client</code> types
 		</p>
 	</div>
 
@@ -95,7 +95,7 @@
 			<div class="bg-white p-4 rounded border">
 				<h3 class="font-semibold mb-2">1. Svelte Page</h3>
 				<p class="text-gray-600 text-xs">
-					Uses <code class="bg-gray-100 px-1">getFlowsDB()</code> client to query data
+					Uses <code class="bg-gray-100 px-1">getFlowsClient()</code> client to query data
 				</p>
 			</div>
 
@@ -117,7 +117,7 @@
 		<div class="mt-4 p-4 bg-white rounded border">
 			<p class="text-xs text-gray-600 mb-2">Import from workspace:</p>
 			<code class="text-xs text-blue-600">
-				import type {'{'} FlowsJourney, FlowsTask {'}'} from '@thepia/flows-db/types';
+				import type {'{'} FlowsJourney, FlowsTask {'}'} from '@thepia/flows-client/types';
 			</code>
 		</div>
 	</div>

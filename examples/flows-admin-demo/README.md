@@ -80,19 +80,19 @@ The demo uses a service worker for offline data management and IndexedDB:
 
 **Development**: `pnpm dev` builds the service worker locally from `src/service-worker/` for fast iteration.
 
-**Production**: `pnpm build` copies the pre-built service worker from `@thepia/flows-db/dist/flows-sw.js` to ensure consistency with the published package.
+**Production**: `pnpm build` copies the pre-built service worker from `@thepia/flows-client/dist/flows-sw.js` to ensure consistency with the published package.
 
 To use the service worker in your own app:
 ```bash
 # Copy service worker to your static folder
-node node_modules/@thepia/flows-db/scripts/copy-sw.js static
+node node_modules/@thepia/flows-client/scripts/copy-sw.js static
 ```
 
 Add to your build script:
 ```json
 {
   "scripts": {
-    "build": "node node_modules/@thepia/flows-db/scripts/copy-sw.js static && vite build"
+    "build": "node node_modules/@thepia/flows-client/scripts/copy-sw.js static && vite build"
   }
 }
 ```
@@ -209,7 +209,7 @@ This project uses **Biome** instead of ESLint/Prettier:
 
 Potential features for a production version:
 
-- Real API integration with flows-db
+- Real API integration with flows-client
 - User authentication
 - File upload functionality
 - Email integration
@@ -220,9 +220,9 @@ Potential features for a production version:
 ## Related Projects
 
 - `@thepia/flows-auth` - Authentication library
-- `@thepia/flows-db` - Database management system
+- `@thepia/flows-client` - Database management system
 - `@thepia/branding` - Brand assets and guidelines
 
 ## License
 
-MIT - See the main flows-db project for details.
+MIT - See the main flows-client project for details.

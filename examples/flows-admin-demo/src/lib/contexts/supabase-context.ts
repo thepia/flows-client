@@ -1,7 +1,7 @@
 import { writable, get, type Writable } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SvelteAuthStore } from '@thepia/flows-auth';
-import { createFlowsSupabaseClient } from '@thepia/flows-db';
+import { createFlowsSupabaseClient } from '@thepia/flows-client';
 
 // Global stores - the single source of truth for Supabase client access
 // Used by both pages and services

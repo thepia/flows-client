@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for flows-db promotional screenshot capture
+ * Playwright configuration for flows-client promotional screenshot capture
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
