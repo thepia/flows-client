@@ -1,0 +1,72 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '11.11.0'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: pnpm/action-setup@v6
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+        registry-url: https://npm.pkg.github.com
+        scope: '@thepia'
+
+    # Workspace root install: examples/flows-admin-demo has no lockfile of its
+    # own, it's resolved through the root pnpm-lock.yaml.
+    # @thepia/flows-auth is a devDependency resolved from GitHub Packages
+    # (types only, see package.json `comments`). GITHUB_TOKEN is scoped to
+    # this repo — if install fails with 404/403 pulling flows-auth, the org
+    # doesn't allow cross-repo package reads via GITHUB_TOKEN; swap this for
+    # a PAT in the NODE_AUTH_TOKEN repo secret (read:packages scope), same
+    # as thepia.com/.github/workflows/deploy-auth-api.yml.
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ephemeral, auto-expires
+
+    # examples/flows-admin-demo's own build runs `copy:sw`, which copies
+    # dist/flows-sw.js out of the root package — it must exist first.
+    - name: Build flows-client
+      run: pnpm build
+
+    - name: Install Playwright Browsers
+      working-directory: examples/flows-admin-demo
+      run: pnpm exec playwright install --with-deps
+
+    - name: Run Playwright tests
+      working-directory: examples/flows-admin-demo
+      run: pnpm run test
+      env:
+        # Playwright's webServer builds+previews the demo locally in CI
+        # (no live dev.thepia.net server reachable from a GH-hosted runner).
+        DEMO_BASE_URL: http://localhost:4173
+
+    - name: Upload Playwright Report
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: playwright-report
+        path: examples/flows-admin-demo/playwright-report/
+        retention-days: 30

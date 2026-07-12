@@ -1,21 +1,7 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import LoadingAnimation from '$lib/components/shared/LoadingAnimation.svelte';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { client, error, invitations, loadDemoData, loading } from '$lib/stores/data';
-import type { Invitation } from '$lib/types';
-import {
-  ArrowLeft,
-  Eye,
-  Filter,
-  MoreVertical,
-  RefreshCw,
-  Share,
-  UserPlus,
-  XCircle,
-} from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { client, invitations, loadDemoData } from '$lib/stores/data';
+import type { Invitation } from '$lib/types';
 
 // Filtering and sorting state
 let statusFilter = 'all'; // 'all' | 'pending' | 'used' | 'expired' | 'revoked'
@@ -81,30 +67,30 @@ $: filteredInvitations = $invitations
   });
 
 // Invitation management functions
-function toggleInvitationDropdown(invitationId: string) {
+function _toggleInvitationDropdown(invitationId: string) {
   activeInvitationDropdown = activeInvitationDropdown === invitationId ? null : invitationId;
 }
 
-function shareInvitationCode(invitationCode: string) {
+function _shareInvitationCode(invitationCode: string) {
   navigator.clipboard.writeText(invitationCode);
   console.log(`Shared invitation code: ${invitationCode}`);
   // TODO: Show toast notification
   activeInvitationDropdown = null;
 }
 
-function viewInvitationDetails(invitation: Invitation) {
+function _viewInvitationDetails(invitation: Invitation) {
   console.log('Viewing invitation details:', invitation);
   // TODO: Open modal with full invitation details
   activeInvitationDropdown = null;
 }
 
-function resendInvitation(invitation: Invitation) {
+function _resendInvitation(invitation: Invitation) {
   console.log('Resending invitation:', invitation);
   // TODO: Implement resend functionality
   activeInvitationDropdown = null;
 }
 
-function revokeInvitation(invitation: Invitation) {
+function _revokeInvitation(invitation: Invitation) {
   if (
     confirm(
       `Are you sure you want to revoke the invitation for ${invitation.firstName} ${invitation.lastName}?`
@@ -116,7 +102,7 @@ function revokeInvitation(invitation: Invitation) {
   }
 }
 
-function getStatusColor(status: string) {
+function _getStatusColor(status: string) {
   switch (status) {
     case 'pending':
       return 'text-yellow-600 bg-yellow-50';
@@ -131,7 +117,7 @@ function getStatusColor(status: string) {
   }
 }
 
-function resetFilters() {
+function _resetFilters() {
   statusFilter = 'all';
   typeFilter = 'all';
   searchQuery = '';

@@ -1,12 +1,10 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { AlertCircle, CheckCircle2, RefreshCw, XCircle } from 'lucide-svelte';
+import { AlertCircle, CheckCircle2, XCircle } from 'lucide-svelte';
 import { onMount } from 'svelte';
 
 let config: any = null;
-let queueSize = 0;
-let lastRefresh = '';
+let _queueSize = 0;
+let _lastRefresh = '';
 
 async function loadErrorReportingStatus() {
   try {
@@ -14,14 +12,14 @@ async function loadErrorReportingStatus() {
     const { getAdminErrorReportQueueSize } = await import('../utils/errorReporter');
 
     config = await getAdminErrorReportingConfig();
-    queueSize = getAdminErrorReportQueueSize();
-    lastRefresh = new Date().toLocaleTimeString();
+    _queueSize = getAdminErrorReportQueueSize();
+    _lastRefresh = new Date().toLocaleTimeString();
   } catch (error) {
     console.error('Failed to load error reporting status:', error);
   }
 }
 
-async function flushReports() {
+async function _flushReports() {
   try {
     const { flushAdminErrorReports } = await import('../config/errorReporting.js');
     await flushAdminErrorReports();
@@ -31,7 +29,7 @@ async function flushReports() {
   }
 }
 
-async function testErrorReporting() {
+async function _testErrorReporting() {
   try {
     const { reportAdminFlowError } = await import('../config/errorReporting.js');
     await reportAdminFlowError('ui-interaction', new Error('Test error from status component'), {

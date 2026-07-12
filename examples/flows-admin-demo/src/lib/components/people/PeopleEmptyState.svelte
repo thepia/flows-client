@@ -1,8 +1,4 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent } from '$lib/components/ui/card';
-import { UserPlus, Users } from 'lucide-svelte';
-
 export let hasActiveFilters: boolean;
 </script>
 

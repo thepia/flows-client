@@ -1,23 +1,4 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-import { Progress } from '$lib/components/ui/progress';
-import {
-  AlertTriangle,
-  Building2,
-  Calendar,
-  CheckCircle,
-  ChevronRight,
-  Clock,
-  Filter,
-  Search,
-  User,
-  X,
-} from 'lucide-svelte';
-
 // Props
 export let processes = [];
 export let filters = {
@@ -29,15 +10,15 @@ export let filters = {
   template: null,
 };
 export let onClearFilters = () => {};
-export let onProcessSelect = (process) => {};
+export let onProcessSelect = (_process) => {};
 export let loading = false;
 
 // Local state
 let searchInput = filters.search || '';
-let showFilters = false;
+let _showFilters = false;
 
 // Apply search filter
-function handleSearch() {
+function _handleSearch() {
   filters.search = searchInput;
 }
 
@@ -91,7 +72,7 @@ $: filteredProcesses = processes.filter((process) => {
           process.actual_completion_date &&
           new Date(process.actual_completion_date) >= thirtyDaysAgo;
         break;
-      case 'this_month':
+      case 'this_month': {
         const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         matches =
           matches &&
@@ -99,6 +80,7 @@ $: filteredProcesses = processes.filter((process) => {
             (process.actual_completion_date &&
               new Date(process.actual_completion_date) >= thisMonthStart));
         break;
+      }
     }
   }
 
@@ -121,7 +103,7 @@ $: filteredProcesses = processes.filter((process) => {
 });
 
 // Get status display info
-function getStatusInfo(process) {
+function _getStatusInfo(process) {
   switch (process.status) {
     case 'active':
       return { label: 'Active', color: 'bg-blue-100 text-blue-800' };
@@ -137,7 +119,7 @@ function getStatusInfo(process) {
 }
 
 // Get priority color
-function getPriorityColor(priority) {
+function _getPriorityColor(priority) {
   switch (priority) {
     case 'urgent':
       return 'bg-red-100 text-red-800 border-red-200';
@@ -153,7 +135,7 @@ function getPriorityColor(priority) {
 }
 
 // Format date
-function formatDate(dateString) {
+function _formatDate(dateString) {
   if (!dateString) return 'Not set';
   return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
@@ -163,7 +145,7 @@ function formatDate(dateString) {
 }
 
 // Get active filter description
-function getFilterDescription() {
+function _getFilterDescription() {
   const activeFilters = [];
 
   if (filters.status) {

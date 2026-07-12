@@ -8,8 +8,8 @@
  * fixes all related functions, views, and policies.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 

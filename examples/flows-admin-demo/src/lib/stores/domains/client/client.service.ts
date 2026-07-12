@@ -1,6 +1,6 @@
+import { get } from 'svelte/store';
 import { reportSupabaseError } from '$lib/config/errorReporting';
 import { supabaseClientStore } from '$lib/contexts/supabase-context';
-import { get } from 'svelte/store';
 import type { Client } from './client.types';
 
 // Get current Supabase client from store
@@ -183,8 +183,8 @@ export class ClientService {
 
     try {
       // First, test if localStorage is working at all
-      const testKey = 'localStorage_test_' + Date.now();
-      const testValue = 'test_value_' + Math.random();
+      const testKey = `localStorage_test_${Date.now()}`;
+      const testValue = `test_value_${Math.random()}`;
 
       console.log('[ClientService] Testing localStorage functionality...');
       localStorage.setItem(testKey, testValue);

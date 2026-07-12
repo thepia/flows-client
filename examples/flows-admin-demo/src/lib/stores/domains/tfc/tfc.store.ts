@@ -1,6 +1,6 @@
 import { derived, writable } from 'svelte/store';
 import { TFCService } from './tfc.service';
-import type { TFCBalance, TFCState, TimeSavingsCalculation } from './tfc.types';
+import type { TFCState, TimeSavingsCalculation } from './tfc.types';
 
 // Service instance
 const tfcService = new TFCService();

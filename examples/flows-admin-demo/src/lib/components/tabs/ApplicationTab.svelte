@@ -1,14 +1,10 @@
 <script lang="ts">
-import OffboardingDashboard from '$lib/components/offboarding/OffboardingDashboard.svelte';
-import { Button } from '$lib/components/ui/button';
-import { employees, invitations } from '$lib/stores/data';
-import type { Application } from '$lib/types';
-import { UserPlus } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
+import type { Application } from '$lib/types';
 
 export let app: Application;
 
-const dispatch = createEventDispatcher();
+const _dispatch = createEventDispatcher();
 
 // Clear application type determination
 $: isOffboardingApp = app.type === 'offboarding';

@@ -12,7 +12,7 @@
  */
 
 import { copyFile, mkdir } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -43,7 +43,7 @@ async function copyServiceWorker() {
     console.log(`✓ Copied source map: ${mapDest}`);
 
     console.log('\n✅ Service worker ready! Register it with:');
-    console.log('   navigator.serviceWorker.register(\'/flows-sw.js\')');
+    console.log("   navigator.serviceWorker.register('/flows-sw.js')");
   } catch (error) {
     console.error('❌ Failed to copy service worker:', error.message);
     process.exit(1);

@@ -41,9 +41,9 @@ test.describe('Debug Application Type', () => {
     await page.waitForTimeout(1000);
 
     console.log('\n--- Console Messages ---');
-    consoleMessages.forEach((msg) => {
+    for (const msg of consoleMessages) {
       console.log(msg);
-    });
+    }
 
     // Check what activeTab value is actually set
     const currentActiveTab = await page.evaluate(() => {

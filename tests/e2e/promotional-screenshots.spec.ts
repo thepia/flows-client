@@ -1,6 +1,6 @@
+import { expect, type Page, test } from '@playwright/test';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { type Page, expect, test } from '@playwright/test';
 
 // Screenshot configuration
 const SCREENSHOT_CONFIG = {

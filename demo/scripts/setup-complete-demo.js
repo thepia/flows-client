@@ -10,10 +10,9 @@
  * - Handles cleanup and reset automatically
  */
 
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import { Command } from 'commander';
@@ -62,7 +61,7 @@ async function apiCall(endpoint, method = 'GET', data = null) {
   if (data && (method === 'POST' || method === 'PATCH')) {
     options.body = JSON.stringify(data);
     if (method === 'POST') {
-      options.headers['Prefer'] = 'return=representation';
+      options.headers.Prefer = 'return=representation';
     }
   }
 
@@ -95,7 +94,7 @@ async function cleanupExistingData(spinner) {
       if (clients && clients.length > 0) {
         demoClient = clients[0];
       }
-    } catch (error) {
+    } catch (_error) {
       // Client doesn't exist, nothing to clean
     }
 
@@ -106,7 +105,7 @@ async function cleanupExistingData(spinner) {
           '../../scripts/create-offboarding-demo-data.js'
         );
         await cleanupOffboardingData(demoClient.id);
-      } catch (e) {
+      } catch (_e) {
         /* ignore if tables don't exist */
       }
 
@@ -116,7 +115,7 @@ async function cleanupExistingData(spinner) {
           `people_enrollments?person_id=in.(select id from people where client_id=${demoClient.id})`,
           'DELETE'
         );
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
@@ -125,7 +124,7 @@ async function cleanupExistingData(spinner) {
           `documents?person_id=in.(select id from people where client_id=${demoClient.id})`,
           'DELETE'
         );
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
@@ -134,31 +133,31 @@ async function cleanupExistingData(spinner) {
           `tasks?person_id=in.(select id from people where client_id=${demoClient.id})`,
           'DELETE'
         );
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
       try {
         await apiCall(`people?client_id=eq.${demoClient.id}`, 'DELETE');
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
       try {
         await apiCall(`invitations?client_id=eq.${demoClient.id}`, 'DELETE');
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
       try {
         await apiCall(`client_applications?client_id=eq.${demoClient.id}`, 'DELETE');
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
       try {
         await apiCall(`clients?id=eq.${demoClient.id}`, 'DELETE');
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
 
@@ -166,7 +165,7 @@ async function cleanupExistingData(spinner) {
     } else {
       spinner.succeed('No existing demo data found to clean up');
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignore cleanup errors - data might not exist
     spinner.succeed('Cleanup completed (some data may not have existed)');
   }
@@ -190,7 +189,7 @@ async function createDemoClient(spinner) {
       spinner.succeed(`Using existing demo client: ${existingClient.legal_name}`);
       return existingClient;
     }
-  } catch (error) {
+  } catch (_error) {
     // Client doesn't exist, will create it
   }
 
@@ -234,7 +233,7 @@ async function createClientApplications(clientId, spinner) {
       spinner.succeed(`Using existing ${existingApps.length} client applications`);
       return existingApps;
     }
-  } catch (error) {
+  } catch (_error) {
     // Applications don't exist, will create them
   }
 
@@ -1204,9 +1203,9 @@ async function createTasks(employees) {
 
 async function createInvitations(clientId, applications, employees) {
   const appMap = {};
-  applications.forEach((app) => {
+  for (const app of applications) {
     appMap[app.app_code] = app.id;
-  });
+  }
 
   const invitationsData = [
     { person_code: 'emp-005', app_code: 'onboarding', employment_status: 'future' },
@@ -1300,7 +1299,7 @@ async function setupCompleteDemo(options = {}) {
       const { createDemoData } = await import('../../scripts/create-offboarding-demo-data.js');
       offboardingData = await createDemoData(client.id, true); // Pass clientId and skipLogs=true
       spinner.text = 'Offboarding demo data created';
-    } catch (error) {
+    } catch (_error) {
       spinner.warn('Offboarding tables not found - skipping offboarding demo data');
       console.log(chalk.yellow('   💡 To enable offboarding features:'));
       console.log(chalk.white('      1. Run the SQL files manually via Supabase Dashboard'));
@@ -1331,11 +1330,11 @@ async function setupCompleteDemo(options = {}) {
     // Display status breakdown for verification
     console.log(chalk.cyan('\n📊 Employment Status Distribution:'));
     const statusCounts = { active: 0, former: 0, future: 0, associates: associates.length };
-    employees.forEach((emp) => {
+    for (const emp of employees) {
       if (emp.employment_status === 'active') statusCounts.active++;
       else if (emp.employment_status === 'former') statusCounts.former++;
       else if (emp.employment_status === 'future') statusCounts.future++;
-    });
+    }
 
     console.log(
       `   • Active: ${chalk.green(statusCounts.active)} (~${Math.round((statusCounts.active / employees.length) * 100)}%)`

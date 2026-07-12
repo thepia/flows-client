@@ -2,7 +2,7 @@
 
 /**
  * Setup Demo Data Script for flows-admin-demo
- * 
+ *
  * Ensures the required demo client and data exists in the database
  * for the flows-admin-demo to function properly.
  */
@@ -17,28 +17,24 @@ dotenv.config();
 
 // Validate required environment variables
 const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 if (missingVars.length > 0) {
   console.error(chalk.red('❌ Missing required environment variables:'));
-  missingVars.forEach(varName => {
+  for (const varName of missingVars) {
     console.error(chalk.red(`   - ${varName}`));
-  });
+  }
   console.error(chalk.yellow('\n💡 Please check your .env file'));
   process.exit(1);
 }
 
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 /**
  * Check database connection
@@ -47,10 +43,7 @@ async function checkConnection() {
   const spinner = ora('Checking database connection').start();
 
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('id')
-      .limit(1);
+    const { data, error } = await supabase.from('clients').select('id').limit(1);
 
     if (error) {
       throw new Error(`Database error: ${error.message}`);
@@ -139,10 +132,10 @@ async function ensureDemoApplications(clientId) {
       configuration: {
         theme: 'hygge',
         locale: 'da-DK',
-        features: ['document-upload', 'task-tracking', 'notifications']
+        features: ['document-upload', 'task-tracking', 'notifications'],
       },
       features: ['document-management', 'task-tracking', 'notifications'],
-      max_concurrent_users: 100
+      max_concurrent_users: 100,
     },
     {
       client_id: clientId,
@@ -154,11 +147,11 @@ async function ensureDemoApplications(clientId) {
       configuration: {
         theme: 'hygge',
         locale: 'da-DK',
-        features: ['asset-return', 'access-revocation', 'knowledge-transfer']
+        features: ['asset-return', 'access-revocation', 'knowledge-transfer'],
       },
       features: ['asset-management', 'access-control', 'documentation'],
-      max_concurrent_users: 50
-    }
+      max_concurrent_users: 50,
+    },
   ];
 
   try {
@@ -182,9 +175,7 @@ async function ensureDemoApplications(clientId) {
       }
 
       // Create application
-      const { error: createError } = await supabase
-        .from('client_applications')
-        .insert(app);
+      const { error: createError } = await supabase.from('client_applications').insert(app);
 
       if (createError) {
         console.warn(`Warning creating app ${app.app_code}: ${createError.message}`);
@@ -214,7 +205,7 @@ async function ensureSampleNotifications(clientId) {
       title: 'Welcome to Hygge & Hvidløg!',
       message: 'Your onboarding process has been initiated. Please complete your profile.',
       type: 'info',
-      read: false
+      read: false,
     },
     {
       client_id: clientId,
@@ -222,7 +213,7 @@ async function ensureSampleNotifications(clientId) {
       title: 'Document Upload Required',
       message: 'Please upload your identification documents to complete verification.',
       type: 'warning',
-      read: false
+      read: false,
     },
     {
       client_id: clientId,
@@ -230,8 +221,8 @@ async function ensureSampleNotifications(clientId) {
       title: 'Onboarding Complete',
       message: 'Congratulations! Your onboarding process has been completed successfully.',
       type: 'success',
-      read: true
-    }
+      read: true,
+    },
   ];
 
   try {
@@ -243,9 +234,7 @@ async function ensureSampleNotifications(clientId) {
       .like('user_id', 'demo-user-%');
 
     // Insert new notifications
-    const { error } = await supabase
-      .from('notifications')
-      .insert(notifications);
+    const { error } = await supabase.from('notifications').insert(notifications);
 
     if (error) {
       console.warn(`Warning creating notifications: ${error.message}`);
@@ -284,7 +273,6 @@ async function setupDemoData() {
     console.log(chalk.cyan(`   - Legal Name: ${client.legal_name}`));
     console.log(chalk.cyan(`   - Client ID: ${client.id}`));
     console.log(chalk.cyan(`\n🌐 You can now run the flows-admin-demo application.`));
-
   } catch (error) {
     console.error(chalk.red.bold('\n❌ Setup failed:'));
     console.error(chalk.red(error.message));

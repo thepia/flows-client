@@ -1,7 +1,7 @@
+import { get } from 'svelte/store';
 import { loadingProgress } from '$lib/stores/data';
 import { clientStore } from '$lib/stores/domains/client/client.store';
 import { tfcStore } from '$lib/stores/domains/tfc/tfc.store';
-import { get } from 'svelte/store';
 
 /**
  * Orchestrator pattern: Coordinates multiple domains for complex operations
@@ -54,7 +54,7 @@ export class DemoDataOrchestrator {
     }
   }
 
-  private async setupTFCData(clientCode: string) {
+  private async setupTFCData(_clientCode: string) {
     const currentClient = get(clientStore.currentClient);
     if (!currentClient) throw new Error('No client selected');
 

@@ -9,63 +9,58 @@
  * - Backend services (Supabase, Firebase, etc.)
  */
 
-export * from './flows-entities';
-export * from './transport';
-export * from './procedures';
+// Re-export auth types
+export type { AuthProcedures, SessionData, UserData } from './auth';
 export * from './auth';
-export * from './native-app';
-
 // Re-export commonly used entity types
 export type {
-  FlowsEntity,
-  FlowsTenant,
   FlowsApplication,
-  FlowsPerson,
-  FlowsJourney,
-  FlowsTask,
   FlowsAttachment,
-  FlowsNote,
+  FlowsAuditLog,
   FlowsComment,
+  FlowsEntity,
+  FlowsEntityCreate,
+  FlowsEntityMap,
+  FlowsEntityType,
+  FlowsEntityUpdate,
   FlowsEvidence,
   FlowsInvitation,
-  FlowsAuditLog,
+  FlowsJourney,
+  FlowsNote,
+  FlowsPerson,
   FlowsSyncMetadata,
-  FlowsEntityType,
-  FlowsEntityMap,
+  FlowsTask,
+  FlowsTenant,
   GetFlowsEntity,
-  FlowsEntityUpdate,
-  FlowsEntityCreate,
 } from './flows-entities';
-
-// Re-export transport types
+export * from './flows-entities';
+// Re-export native app types
 export type {
-  Transport,
-  Environment,
-  TransportMessage,
-  BrowserTransport,
-  NativeTransport,
-  CreateTransport,
-} from './transport';
-
+  NativeAppMessage,
+  NativeAppResponse,
+  WebAppStatePayload,
+} from './native-app';
+export * from './native-app';
 // Re-export procedure types
 export type {
   Filter,
-  QueryOptions,
-  QueryProcedures,
-  MutationProcedures,
-  SyncProcedures,
   FlowsProcedures,
+  MutationProcedures,
+  ProcedureContext,
   ProcedureInput,
   ProcedureOutput,
-  ProcedureContext,
+  QueryOptions,
+  QueryProcedures,
+  SyncProcedures,
 } from './procedures';
-
-// Re-export auth types
-export type { SessionData, UserData, AuthProcedures } from './auth';
-
-// Re-export native app types
+export * from './procedures';
+// Re-export transport types
 export type {
-  WebAppStatePayload,
-  NativeAppResponse,
-  NativeAppMessage,
-} from './native-app';
+  BrowserTransport,
+  CreateTransport,
+  Environment,
+  NativeTransport,
+  Transport,
+  TransportMessage,
+} from './transport';
+export * from './transport';

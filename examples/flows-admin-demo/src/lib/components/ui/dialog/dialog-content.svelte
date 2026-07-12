@@ -1,9 +1,6 @@
 <script lang="ts">
-import { cn } from '$lib/utils.js';
 import type { Dialog as DialogPrimitive, WithoutChildrenOrChild } from 'bits-ui';
-import { X } from 'lucide-svelte';
 import type { Snippet } from 'svelte';
-import * as Dialog from './index.js';
 
 let {
   ref = $bindable(null),

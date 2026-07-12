@@ -7,9 +7,9 @@
  * to the thepia.com src/assets directory for promotional use.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 // Paths
 const FLOWS_DB_ROOT = path.resolve(__dirname, '..');
 const THEPIA_COM_ROOT = '/Volumes/Projects/Thepia/thepia.com';
-const SOURCE_DIR = path.join(FLOWS_DB_ROOT, 'test-results');
+const _SOURCE_DIR = path.join(FLOWS_DB_ROOT, 'test-results');
 const TARGET_DIR = path.join(THEPIA_COM_ROOT, 'src/assets/flows-demo');
 
 async function ensureDirectoryExists(dirPath) {
@@ -31,7 +31,7 @@ async function ensureDirectoryExists(dirPath) {
   }
 }
 
-async function copyFile(source, target) {
+async function _copyFile(source, target) {
   try {
     await fs.copyFile(source, target);
     console.log(`📋 Copied: ${path.basename(source)} → ${target}`);
@@ -40,7 +40,7 @@ async function copyFile(source, target) {
   }
 }
 
-async function findScreenshots(dir) {
+async function _findScreenshots(dir) {
   const screenshots = [];
 
   try {
@@ -51,7 +51,7 @@ async function findScreenshots(dir) {
 
       if (entry.isDirectory()) {
         // Recursively search subdirectories
-        const subScreenshots = await findScreenshots(fullPath);
+        const subScreenshots = await _findScreenshots(fullPath);
         screenshots.push(...subScreenshots);
       } else if (entry.isFile() && entry.name.endsWith('.png')) {
         screenshots.push(fullPath);

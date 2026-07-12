@@ -1,26 +1,12 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
-import { Progress } from '$lib/components/ui/progress';
-import type { OffboardingWorkflow } from '$lib/types/offboarding';
-import {
-  AlertCircle,
-  ArrowRight,
-  Building,
-  Calendar,
-  CheckCircle,
-  Clock,
-  MoreHorizontal,
-  User,
-} from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
+import type { OffboardingWorkflow } from '$lib/types/offboarding';
 
 export let workflow: OffboardingWorkflow;
 
 const dispatch = createEventDispatcher();
 
-function getStatusColor(status: string): string {
+function _getStatusColor(status: string): string {
   switch (status) {
     case 'initiated':
       return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -39,7 +25,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-function getPriorityColor(priority: string): string {
+function _getPriorityColor(priority: string): string {
   switch (priority) {
     case 'urgent':
       return 'bg-red-100 text-red-800 border-red-200';
@@ -54,7 +40,7 @@ function getPriorityColor(priority: string): string {
   }
 }
 
-function formatDate(dateString: string | undefined): string {
+function _formatDate(dateString: string | undefined): string {
   if (!dateString) return 'Not set';
   return new Date(dateString).toLocaleDateString();
 }
@@ -88,7 +74,7 @@ function getDaysRemaining(): number | null {
   return diffDays;
 }
 
-function getStatusMessage(): string {
+function _getStatusMessage(): string {
   switch (workflow.status) {
     case 'initiated':
       return 'Workflow started, awaiting knowledge transfer';
@@ -107,11 +93,11 @@ function getStatusMessage(): string {
   }
 }
 
-function handleViewDetails() {
+function _handleViewDetails() {
   dispatch('view-details', { workflowId: workflow.id });
 }
 
-function handleRefresh() {
+function _handleRefresh() {
   dispatch('refresh');
 }
 

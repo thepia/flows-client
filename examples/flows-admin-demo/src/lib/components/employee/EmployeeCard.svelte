@@ -1,8 +1,5 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
 import { onMount } from 'svelte';
-import EmployeeStatusBadge from './EmployeeStatusBadge.svelte';
 
 export let employee;
 export let compact = false;
@@ -20,7 +17,7 @@ onMount(() => {
   );
 });
 
-function getCompletionColor(percentage) {
+function _getCompletionColor(percentage) {
   if (percentage >= 80) return 'text-green-600';
   if (percentage >= 50) return 'text-yellow-600';
   return 'text-red-600';
@@ -31,7 +28,7 @@ function handleClick() {
   onSelect?.(employee);
 }
 
-function handleKeydown(e) {
+function _handleKeydown(e) {
   if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
     handleClick();

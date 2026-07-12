@@ -1,10 +1,7 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { client, createEmployee, loadDemoData } from '$lib/stores/data';
-import { ArrowLeft, Save, UserPlus } from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { goto } from '$app/navigation';
+import { client, createEmployee, loadDemoData } from '$lib/stores/data';
 
 // Person type selection
 let personType: 'employee' | 'associate' = 'employee';
@@ -39,10 +36,10 @@ let formData = {
 let hasEndDate = false;
 
 // Form state
-let isSubmitting = false;
-let showSuccess = false;
+let _isSubmitting = false;
+let _showSuccess = false;
 let createdPerson: any = null;
-let error: string | null = null;
+let _error: string | null = null;
 
 // Load data on mount
 onMount(() => {
@@ -52,7 +49,7 @@ onMount(() => {
 });
 
 // Department options
-const departments = [
+const _departments = [
   'Engineering',
   'Product',
   'Design',
@@ -66,7 +63,7 @@ const departments = [
 ];
 
 // Location options
-const locations = [
+const _locations = [
   'Copenhagen, Denmark',
   'Stockholm, Sweden',
   'Oslo, Norway',
@@ -77,7 +74,7 @@ const locations = [
 ];
 
 // Associate status options
-const associateStatuses = [
+const _associateStatuses = [
   { value: 'board_member', label: 'Board Member' },
   { value: 'consultant', label: 'Consultant' },
   { value: 'advisor', label: 'Advisor' },
@@ -96,7 +93,7 @@ $: if (personType === 'employee') {
   formData.associateStatus = 'consultant';
 }
 
-async function handleSubmit() {
+async function _handleSubmit() {
   if (
     !formData.firstName ||
     !formData.lastName ||
@@ -108,8 +105,8 @@ async function handleSubmit() {
     return;
   }
 
-  isSubmitting = true;
-  error = null;
+  _isSubmitting = true;
+  _error = null;
 
   try {
     // Create person using the real Supabase function
@@ -131,16 +128,16 @@ async function handleSubmit() {
       securityClearance: formData.securityClearance,
     });
 
-    showSuccess = true;
+    _showSuccess = true;
   } catch (err) {
     console.error('Failed to create person:', err);
-    error = err instanceof Error ? err.message : 'Failed to create person';
+    _error = err instanceof Error ? err.message : 'Failed to create person';
   } finally {
-    isSubmitting = false;
+    _isSubmitting = false;
   }
 }
 
-function resetForm() {
+function _resetForm() {
   formData = {
     firstName: '',
     lastName: '',
@@ -158,9 +155,9 @@ function resetForm() {
     securityClearance: 'low',
   };
   hasEndDate = false;
-  showSuccess = false;
+  _showSuccess = false;
   createdPerson = null;
-  error = null;
+  _error = null;
 }
 
 // Clear end date when checkbox is unchecked
@@ -168,7 +165,7 @@ $: if (!hasEndDate) {
   formData.endDate = '';
 }
 
-function navigateToPerson() {
+function _navigateToPerson() {
   if (createdPerson) {
     goto(`/people/${createdPerson.id}`);
   }

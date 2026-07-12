@@ -1,7 +1,4 @@
 <script lang="ts">
-import ProcessList from '$lib/components/offboarding/ProcessList.svelte';
-import { Button } from '$lib/components/ui/button';
-import { Plus } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
 
 const dispatch = createEventDispatcher();
@@ -11,7 +8,7 @@ export let allProcesses = [];
 export let selectedProcess = null;
 export let generateProcessData: () => void;
 
-function handleProcessSelect(process) {
+function _handleProcessSelect(process) {
   selectedProcess = process;
   dispatch('processSelect', { process });
 }

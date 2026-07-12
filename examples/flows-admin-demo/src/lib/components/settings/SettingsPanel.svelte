@@ -1,39 +1,18 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+import { onMount } from 'svelte';
 import { applyBrandingToDocument, getBrandingForClient } from '$lib/services/brandingRegistry';
 import { clients, loadAllClients, loadClientData } from '$lib/stores/data';
-import {
-  getAvailableClients,
-  isSettingsLoading,
-  selectedBranding,
-  settings,
-  settingsError,
-  settingsStore,
-} from '$lib/stores/settings';
+import { getAvailableClients, settings, settingsStore } from '$lib/stores/settings';
 import type { BrandingConfig } from '$lib/types';
-import {
-  AlertTriangle,
-  Building2,
-  Database,
-  Palette,
-  Plus,
-  RotateCcw,
-  Save,
-  Settings,
-  Trash2,
-} from 'lucide-svelte';
-import { onMount } from 'svelte';
-import DemoManagementPanel from '../demo/DemoManagementPanel.svelte';
 
 // Component state
 let newBrandingName = '';
 let newBrandingPath = '';
 let newBrandingType: 'package' | 'local' = 'package';
-let showAddBranding = false;
+let _showAddBranding = false;
 let initialized = false;
-let loadingClientData = false;
-let activeTab = 'settings'; // 'settings' or 'demo'
+let _loadingClientData = false;
+let _activeTab = 'settings'; // 'settings' or 'demo'
 
 // Initialize settings on mount
 onMount(async () => {
@@ -71,12 +50,12 @@ $: if (
 $: availableClients = $clients && $settings ? getAvailableClients($clients, $settings) : [];
 
 // Handle branding selection
-function handleBrandingChange(brandingId: string) {
+function _handleBrandingChange(brandingId: string) {
   settingsStore.selectBranding(brandingId);
 }
 
 // Handle client selection
-async function handleClientChange(clientCode: string) {
+async function _handleClientChange(clientCode: string) {
   // Find the client by code to get the database ID
   const selectedClient = $clients.find((c) => c.code === clientCode);
   if (!selectedClient) {
@@ -88,7 +67,7 @@ async function handleClientChange(clientCode: string) {
   settingsStore.selectClient(clientCode);
 
   // Also load the data for this client using database ID
-  loadingClientData = true;
+  _loadingClientData = true;
   try {
     await loadClientData(selectedClient.id);
 
@@ -106,31 +85,31 @@ async function handleClientChange(clientCode: string) {
   } catch (error) {
     console.error('Failed to load client data:', error);
   } finally {
-    loadingClientData = false;
+    _loadingClientData = false;
   }
 }
 
 // Manual data loading function
-async function loadSelectedClientData() {
+async function _loadSelectedClientData() {
   if (!$settings?.selectedClient) return;
 
-  loadingClientData = true;
+  _loadingClientData = true;
   try {
     await loadClientData($settings.selectedClient);
   } catch (error) {
     console.error('Failed to load client data:', error);
   } finally {
-    loadingClientData = false;
+    _loadingClientData = false;
   }
 }
 
 // Handle real clients toggle
-function handleRealClientsToggle(checked: boolean) {
+function _handleRealClientsToggle(checked: boolean) {
   settingsStore.toggleRealClients(checked);
 }
 
 // Add new branding
-function addNewBranding() {
+function _addNewBranding() {
   if (!newBrandingName.trim() || !newBrandingPath.trim()) return;
 
   const branding: BrandingConfig = {
@@ -147,25 +126,25 @@ function addNewBranding() {
   newBrandingName = '';
   newBrandingPath = '';
   newBrandingType = 'package';
-  showAddBranding = false;
+  _showAddBranding = false;
 }
 
 // Remove branding
-function removeBranding(brandingId: string) {
+function _removeBranding(brandingId: string) {
   if (confirm('Are you sure you want to remove this branding configuration?')) {
     settingsStore.removeBranding(brandingId);
   }
 }
 
 // Reset settings
-function resetSettings() {
+function _resetSettings() {
   if (confirm('Are you sure you want to reset all settings to defaults? This cannot be undone.')) {
     settingsStore.reset();
   }
 }
 
 // Format last updated date
-function formatLastUpdated(dateString: string) {
+function _formatLastUpdated(dateString: string) {
   return new Date(dateString).toLocaleString();
 }
 </script>

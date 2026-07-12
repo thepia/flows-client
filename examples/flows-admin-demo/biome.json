@@ -1,5 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -39,7 +40,13 @@
   },
   "overrides": [
     {
-      "include": ["build", ".svelte-kit", "dist", "coverage", "node_modules"],
+      "includes": [
+        "**/build/**",
+        "**/.svelte-kit/**",
+        "**/dist/**",
+        "**/coverage/**",
+        "**/node_modules/**"
+      ],
       "linter": {
         "enabled": false
       },
@@ -48,7 +55,5 @@
       }
     }
   ],
-  "organizeImports": {
-    "enabled": true
-  }
+  "assist": { "actions": { "source": { "organizeImports": "on" } } }
 }

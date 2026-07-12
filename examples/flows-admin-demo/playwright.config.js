@@ -1,10 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests',
+  // Playwright's default file discovery matches any *.test.js/*.spec.js under
+  // testDir. tests/unit/** is vitest's domain (see vitest.config.ts) — scoping
+  // to tests/e2e keeps Playwright from also trying to load and execute those
+  // vitest-only files (which import `vitest` directly and fail outside its runner).
+  testDir: './tests/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -22,7 +28,11 @@ export default defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://dev.thepia.net:5173',
+    // Locally this hits the persistent dev.thepia.net:5173 server you keep
+    // running yourself. CI has nothing running there, so it builds+previews
+    // the demo instead (see webServer below) and points here at localhost.
+    baseURL:
+      process.env.DEMO_BASE_URL || (isCI ? 'http://localhost:4173' : 'https://dev.thepia.net:5173'),
 
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
@@ -78,13 +88,18 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'pnpm run dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: true,
-  //   timeout: 120000,
-  // },
+  // CI has no reachable dev.thepia.net server, so build+preview the demo
+  // locally and let Playwright manage its lifecycle. Locally, this is left
+  // undefined — you keep your own dev server running (see CLAUDE.md) and
+  // baseURL above points at it directly.
+  webServer: isCI
+    ? {
+        command: 'pnpm run build && pnpm run preview',
+        url: 'http://localhost:4173',
+        reuseExistingServer: false,
+        timeout: 120000,
+      }
+    : undefined,
 
   /* Global setup and teardown */
   globalSetup: './tests/global-setup.js',

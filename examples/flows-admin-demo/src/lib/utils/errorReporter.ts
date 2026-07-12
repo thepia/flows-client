@@ -138,7 +138,7 @@ class AdminErrorReporter {
 
       try {
         await this.sendEvent(event);
-      } catch (error) {
+      } catch (_error) {
         failedRetries.push({ event, attempts: attempts + 1 });
       }
     }
@@ -159,7 +159,9 @@ class AdminErrorReporter {
     const queuedEvents = [...this.queue];
     this.queue = [];
 
-    queuedEvents.forEach((event) => this.report(event));
+    for (const event of queuedEvents) {
+      this.report(event);
+    }
   }
 
   getQueueSize() {

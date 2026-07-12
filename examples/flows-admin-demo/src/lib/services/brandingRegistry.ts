@@ -183,12 +183,12 @@ export async function applyBrandingToDocument(brandingConfig: BrandingConfig): P
     const root = document.documentElement;
 
     // Apply color tokens as CSS custom properties
-    Object.entries(tokens).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(tokens)) {
       if (key.startsWith('color.') || key.startsWith('brand.colors.')) {
         const cssVar = `--${key.replace(/\./g, '-')}`;
         root.style.setProperty(cssVar, value as string);
       }
-    });
+    }
 
     // Set primary brand color for general use
     if (tokens['brand.colors.primary']) {

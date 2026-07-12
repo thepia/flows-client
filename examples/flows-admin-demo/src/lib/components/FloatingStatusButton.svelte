@@ -1,36 +1,18 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { demoClientSwitcher } from '$lib/orchestrators/demo-client-switcher';
-import { clientStore } from '$lib/stores/domains/client/client.store';
-import { setCurrentClientId } from '$lib/utils/client-persistence';
-import {
-  Activity,
-  AlertCircle,
-  Building2,
-  CheckCircle2,
-  Database,
-  RefreshCw,
-  Shield,
-  User,
-  Wifi,
-  WifiOff,
-  XCircle,
-  Zap,
-} from 'lucide-svelte';
+import { Activity, AlertCircle, CheckCircle2, XCircle } from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { clientStore } from '$lib/stores/domains/client/client.store';
 
 // Status states
 let isOpen = false;
 let errorReportingConfig: any = null;
 let queueSize = 0;
-let lastRefresh = '';
-let isSwitchingClient = false;
+let _lastRefresh = '';
+let _isSwitchingClient = false;
 
 // Service status (future)
 const authStatus = 'connected'; // 'connected' | 'disconnected' | 'error'
-const serviceWorkerStatus = 'not-supported'; // 'active' | 'installing' | 'waiting' | 'not-supported'
+const _serviceWorkerStatus = 'not-supported'; // 'active' | 'installing' | 'waiting' | 'not-supported'
 const databaseStatus = 'connected'; // 'connected' | 'disconnected' | 'error'
 
 async function loadSystemStatus() {
@@ -41,7 +23,7 @@ async function loadSystemStatus() {
 
     errorReportingConfig = await getAdminErrorReportingConfig();
     queueSize = getAdminErrorReportQueueSize();
-    lastRefresh = new Date().toLocaleTimeString();
+    _lastRefresh = new Date().toLocaleTimeString();
 
     // TODO: Add other status checks
     // - Auth status (check if Supabase is connected)
@@ -59,7 +41,7 @@ async function loadSystemStatus() {
   }
 }
 
-async function flushErrorReports() {
+async function _flushErrorReports() {
   try {
     const { flushAdminErrorReports } = await import('../config/errorReporting.js');
     await flushAdminErrorReports();
@@ -69,7 +51,7 @@ async function flushErrorReports() {
   }
 }
 
-async function testErrorReporting() {
+async function _testErrorReporting() {
   try {
     const { reportAdminFlowError } = await import('../config/errorReporting.js');
     await reportAdminFlowError('ui-interaction', new Error('Test error from floating status'), {
@@ -82,7 +64,7 @@ async function testErrorReporting() {
   }
 }
 
-function toggleStatus() {
+function _toggleStatus() {
   console.log('[FloatingStatusButton] Toggle clicked, current isOpen:', isOpen);
   isOpen = !isOpen;
   console.log('[FloatingStatusButton] New isOpen state:', isOpen);

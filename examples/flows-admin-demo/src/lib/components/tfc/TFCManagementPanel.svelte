@@ -1,26 +1,18 @@
 <script lang="ts">
-import LoadingAnimation from '$lib/components/shared/LoadingAnimation.svelte';
-import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
-import {
-  Activity,
-  ArrowDownRight,
-  ArrowUpRight,
-  CreditCard,
-  Plus,
-  TrendingUp,
-} from 'lucide-svelte';
+import { ArrowDownRight, ArrowUpRight } from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { isSupabaseAuthenticatedStore, supabaseClientStore } from '$lib/contexts/supabase-context';
 
 export let clientId: string;
 
 // Use global stores directly
 
 // State
-let loading = false;
-let tfcBalance = null;
+let _loading = false;
+let _tfcBalance = null;
 let recentTransactions = [];
-let usageAnalytics = [];
-let monthlyTrend = [];
+let _usageAnalytics = [];
+let _monthlyTrend = [];
 
 // Load TFC data
 async function loadTFCData() {
@@ -31,7 +23,7 @@ async function loadTFCData() {
     return;
   }
 
-  loading = true;
+  _loading = true;
   try {
     // Load TFC balance
     const { data: balanceData } = await $supabaseClientStore
@@ -40,7 +32,7 @@ async function loadTFCData() {
       .eq('client_id', clientId)
       .single();
 
-    tfcBalance = balanceData;
+    _tfcBalance = balanceData;
 
     // Load recent transactions (last 10)
     const { data: transactionsData } = await $supabaseClientStore
@@ -62,8 +54,8 @@ async function loadTFCData() {
 
     // Process usage analytics
     if (usageData) {
-      const analytics = {};
-      usageData.forEach((usage) => {
+      const analytics: Record<string, unknown> = {};
+      for (const usage of usageData) {
         const key = `${usage.workflow_type}-${usage.department_category}`;
         if (!analytics[key]) {
           analytics[key] = {
@@ -75,13 +67,13 @@ async function loadTFCData() {
         }
         analytics[key].count += 1;
         analytics[key].credits += usage.credits_consumed;
-      });
-      usageAnalytics = Object.values(analytics).slice(0, 6);
+      }
+      _usageAnalytics = Object.values(analytics).slice(0, 6);
     }
 
     // Calculate monthly trend (last 6 months)
-    const monthlyData = {};
-    recentTransactions.forEach((transaction) => {
+    const monthlyData: Record<string, unknown> = {};
+    for (const transaction of recentTransactions) {
       const date = new Date(transaction.created_at);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -94,35 +86,35 @@ async function loadTFCData() {
       } else if (transaction.transaction_type === 'usage') {
         monthlyData[monthKey].usage += Math.abs(transaction.credit_amount);
       }
-    });
+    }
 
-    monthlyTrend = Object.values(monthlyData).slice(0, 6).reverse();
+    _monthlyTrend = Object.values(monthlyData).slice(0, 6).reverse();
   } catch (error) {
     console.error('Error loading TFC data:', error);
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
 // Helper functions
-function formatCurrency(amount, currency = 'EUR') {
+function _formatCurrency(amount, currency = 'EUR') {
   return `${currency} ${Number.parseFloat(amount).toLocaleString()}`;
 }
 
-function getTransactionIcon(type) {
+function _getTransactionIcon(type) {
   return type === 'purchase' ? ArrowUpRight : ArrowDownRight;
 }
 
-function getTransactionColor(type) {
+function _getTransactionColor(type) {
   return type === 'purchase' ? 'text-green-600' : 'text-blue-600';
 }
 
-function formatDate(dateString) {
+function _formatDate(dateString) {
   return new Date(dateString).toLocaleDateString();
 }
 
 // Calculate time saved based on completed processes
-function calculateTimeSaved(totalUsed) {
+function _calculateTimeSaved(totalUsed) {
   if (!totalUsed) return '0 hours';
 
   // Time savings per process type (based on industry research):
@@ -142,7 +134,7 @@ function calculateTimeSaved(totalUsed) {
 }
 
 // Calculate detailed time savings with workflow breakdown
-function calculateDetailedTimeSavings(usageData) {
+function _calculateDetailedTimeSavings(usageData) {
   if (!usageData || usageData.length === 0) return null;
 
   const timeSavings = {

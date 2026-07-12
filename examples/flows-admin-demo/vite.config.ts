@@ -1,8 +1,8 @@
+import path from 'node:path';
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, loadEnv } from 'vite';
 import restart from 'vite-plugin-restart';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'node:path';
 
 export default defineConfig(({ mode }) => {
   // Load env file from current directory
@@ -59,19 +59,18 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-
     server: {
       host: 'dev.thepia.net',
       port: 5179,
       strictPort: true,
       https: {
         key: './certs/dev.thepia.net-key.pem',
-        cert: './certs/dev.thepia.net.pem'
+        cert: './certs/dev.thepia.net.pem',
       },
       hmr: {
         port: 5179,
-        host: 'dev.thepia.net'
-      }
+        host: 'dev.thepia.net',
+      },
     },
     define: {
       // Make environment variables available in the build

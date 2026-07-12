@@ -335,11 +335,11 @@ async function addHyggeAssociates() {
 
       Object.entries(groupedAssociates).forEach(([status, people]) => {
         console.log(chalk.cyan(`\n   ${status.replace('_', ' ').toUpperCase()}:`));
-        people.forEach((person) => {
+        for (const person of people) {
           console.log(
             chalk.gray(`     • ${person.first_name} ${person.last_name} - ${person.position}`)
           );
-        });
+        }
       });
     }
 

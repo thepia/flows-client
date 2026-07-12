@@ -1,5 +1,5 @@
-import { supabaseClientStore } from '../contexts/supabase-context';
 import { get } from 'svelte/store';
+import { supabaseClientStore } from '../contexts/supabase-context';
 
 // Get current Supabase client from store
 function getCurrentSupabaseClient() {
@@ -9,6 +9,7 @@ function getCurrentSupabaseClient() {
   }
   return client;
 }
+
 import type { DemoGenerationConfig, Employee, Invitation } from '../types.js';
 
 // Demo data templates based on our comprehensive demo company profiles

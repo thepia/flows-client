@@ -6,8 +6,8 @@
  * This script applies the SQL migration using the database initialization pattern
  */
 
-const { execSync } = require('child_process');
-const path = require('path');
+const { execSync } = require('node:child_process');
+const path = require('node:path');
 require('dotenv').config();
 
 async function deployMigration() {

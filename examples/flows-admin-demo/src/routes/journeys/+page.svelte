@@ -1,47 +1,45 @@
 <script lang="ts">
-	import type { FlowsJourney, FlowsTask, FlowsClient } from '@thepia/flows-client/types';
-	import { onMount } from 'svelte';
-	import JourneysList from '$lib/components/JourneysList.svelte';
-	import JourneyDetails from '$lib/components/JourneyDetails.svelte';
+import type { FlowsClient, FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
+import { onMount } from 'svelte';
 
-	let journeys: FlowsJourney[] = [];
-	let selectedJourney: FlowsJourney | null = null;
-	let tasks: FlowsTask[] = [];
-	let loading = true;
-	let error: string | null = null;
+let _journeys: FlowsJourney[] = [];
+let _selectedJourney: FlowsJourney | null = null;
+let _tasks: FlowsTask[] = [];
+let _loading = true;
+let _error: string | null = null;
 
-	let db: FlowsClient | null = null;
+let db: FlowsClient | null = null;
 
-	onMount(async () => {
-		try {
-			// Dynamically import client in browser only
-			const { FlowsClient } = await import('@thepia/flows-client/client');
-			db = new FlowsClient();
+onMount(async () => {
+  try {
+    // Dynamically import client in browser only
+    const { FlowsClient } = await import('@thepia/flows-client/client');
+    db = new FlowsClient();
 
-			// Query all journeys from IndexedDB via Service Worker
-			journeys = await db.query.journeys({
-				orderBy: [{ column: 'created_at', ascending: false }]
-			});
-			loading = false;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load journeys';
-			loading = false;
-		}
-	});
+    // Query all journeys from IndexedDB via Service Worker
+    _journeys = await db.query.journeys({
+      orderBy: [{ column: 'created_at', ascending: false }],
+    });
+    _loading = false;
+  } catch (err) {
+    _error = err instanceof Error ? err.message : 'Failed to load journeys';
+    _loading = false;
+  }
+});
 
-	async function selectJourney(journey: FlowsJourney) {
-		if (!db) return;
+async function _selectJourney(journey: FlowsJourney) {
+  if (!db) return;
 
-		selectedJourney = journey;
-		try {
-			tasks = await db.query.tasksByJourney({
-				journeyId: journey.id,
-				orderBy: [{ column: 'order', ascending: true }]
-			});
-		} catch (err) {
-			console.error('Failed to load tasks:', err);
-		}
-	}
+  _selectedJourney = journey;
+  try {
+    _tasks = await db.query.tasksByJourney({
+      journeyId: journey.id,
+      orderBy: [{ column: 'order', ascending: true }],
+    });
+  } catch (err) {
+    console.error('Failed to load tasks:', err);
+  }
+}
 </script>
 
 <div class="container mx-auto p-6">

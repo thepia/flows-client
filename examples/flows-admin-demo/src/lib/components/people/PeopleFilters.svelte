@@ -1,20 +1,16 @@
 <script lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Input } from '$lib/components/ui/input';
-import { Search } from 'lucide-svelte';
-
 export let searchTerm: string;
 export let selectedStatus: string;
 export let selectedType: string;
 
-const statusOptions = [
+const _statusOptions = [
   { value: 'all', label: 'All Status' },
   { value: 'active', label: 'Active' },
   { value: 'former', label: 'Former' },
   { value: 'future', label: 'Future' },
 ];
 
-const typeOptions = [
+const _typeOptions = [
   { value: 'all', label: 'All Types' },
   { value: 'employee', label: 'Employees' },
   { value: 'associate', label: 'Associates' },

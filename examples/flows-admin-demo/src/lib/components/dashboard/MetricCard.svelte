@@ -1,6 +1,4 @@
 <script lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Loader2 } from 'lucide-svelte';
 import type { ComponentType } from 'svelte';
 
 // Props

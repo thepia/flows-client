@@ -7,7 +7,6 @@
  * Creates client record, applications, storage buckets, and RLS policies.
  */
 
-import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import { Command } from 'commander';
@@ -451,10 +450,10 @@ async function setupClient(options) {
 
     if (options.apps && options.apps.length > 0) {
       console.log(chalk.cyan('\n📱 Applications:'));
-      options.apps.forEach((app) => {
+      for (const app of options.apps) {
         console.log(`   • ${app} - ${DEFAULT_APPS[app].name}`);
         console.log(`     URL: ${chalk.blue(`https://${client.domain}/${app}`)}`);
-      });
+      }
     }
 
     console.log(chalk.yellow('\n🔗 Next Steps:'));

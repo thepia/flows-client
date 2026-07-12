@@ -49,10 +49,7 @@ async function cleanupOffboardingData(clientId) {
   for (const table of tables) {
     try {
       await supabase.from(table).delete().eq('client_id', clientId);
-    } catch (error) {
-      // Ignore errors for tables that might not exist yet
-      continue;
-    }
+    } catch (_error) {}
   }
 }
 
@@ -113,7 +110,7 @@ async function createDemoData(clientId = null, skipLogs = false) {
       if (!skipLogs) {
         console.log(chalk.green('✅ Credit balance created'));
       }
-    } catch (error) {
+    } catch (_error) {
       if (!skipLogs) {
         console.log(chalk.yellow('⚠️ Credit balance table not found - skipping'));
       }
@@ -401,7 +398,7 @@ async function createDemoData(clientId = null, skipLogs = false) {
         );
         console.log(chalk.white('   4. Test creating new workflows and updating statuses\n'));
       }
-    } catch (error) {
+    } catch (_error) {
       if (!skipLogs) {
         console.log(
           chalk.yellow('⚠️ Legacy offboarding tables not found - skipping workflow creation')
@@ -426,7 +423,7 @@ async function createDemoData(clientId = null, skipLogs = false) {
       if (!skipLogs && taskTemplatesCount > 0) {
         console.log(chalk.green(`✅ Created ${taskTemplatesCount} task-oriented templates`));
       }
-    } catch (error) {
+    } catch (_error) {
       if (!skipLogs) {
         console.log(
           chalk.yellow('⚠️ Task-oriented templates not created (tables may not exist yet)')
@@ -468,4 +465,4 @@ async function runDemoData() {
 }
 
 // Also export for use in demo:complete script
-export { createDemoData, cleanupOffboardingData };
+export { cleanupOffboardingData, createDemoData };

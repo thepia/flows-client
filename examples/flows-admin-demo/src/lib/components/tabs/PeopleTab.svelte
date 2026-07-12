@@ -1,12 +1,5 @@
 <script lang="ts">
-import {
-  PeopleActiveFilters,
-  PeopleFilters,
-  PeopleGrid,
-  PeopleHeader,
-  PeopleLoadMore,
-  PeopleStatsCards,
-} from '$lib/components/people';
+import { createEventDispatcher, onMount } from 'svelte';
 import { client } from '$lib/stores/data';
 import {
   currentPeoplePage,
@@ -17,15 +10,14 @@ import {
   resetPeoplePagination,
   searchPeople,
 } from '$lib/stores/pagination';
-import { createEventDispatcher, onMount } from 'svelte';
 
-const dispatch = createEventDispatcher();
+const _dispatch = createEventDispatcher();
 
 // People tab search and filter state
 let searchTerm = '';
 let selectedStatus = 'all';
 let selectedType = 'all';
-let isSearching = false;
+let _isSearching = false;
 let searchTimeout: number;
 
 // Use paginated data instead of the old people store
@@ -59,7 +51,7 @@ async function performSearch() {
   if (!$client?.id) return;
 
   try {
-    isSearching = true;
+    _isSearching = true;
     const filters = getActiveFilters();
 
     if (searchTerm.trim()) {
@@ -75,7 +67,7 @@ async function performSearch() {
   } catch (error) {
     console.error('Search error:', error);
   } finally {
-    isSearching = false;
+    _isSearching = false;
   }
 }
 
@@ -167,7 +159,7 @@ onMount(async () => {
 });
 
 // Handle load more
-async function handleLoadMore() {
+async function _handleLoadMore() {
   if ($client?.id && pagination.hasNextPage) {
     await nextPeoplePage($client.id);
   }

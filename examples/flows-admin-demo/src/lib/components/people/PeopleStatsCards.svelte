@@ -1,7 +1,4 @@
 <script lang="ts">
-import { Card, CardContent } from '$lib/components/ui/card';
-import { Briefcase, Users } from 'lucide-svelte';
-
 export let totalPeople: number;
 export let activeEmployees: number;
 export let associates: number;

@@ -1,6 +1,6 @@
+import { derived, writable } from 'svelte/store';
 import { ApplicationsService } from '$lib/services/ApplicationsService';
 import type { Application } from '$lib/types';
-import { derived, writable } from 'svelte/store';
 
 // Core application state
 export const applications = writable<Application[]>([]);

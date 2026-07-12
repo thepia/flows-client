@@ -1,7 +1,7 @@
+import { chromium, type FullConfig } from '@playwright/test';
 import { type ChildProcess, spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { type FullConfig, chromium } from '@playwright/test';
 
 let demoServer: ChildProcess | null = null;
 

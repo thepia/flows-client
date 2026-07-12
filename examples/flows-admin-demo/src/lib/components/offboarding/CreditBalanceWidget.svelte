@@ -1,10 +1,5 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Progress } from '$lib/components/ui/progress';
 import type { ClientCreditBalance } from '$lib/types/offboarding';
-import { AlertTriangle, CreditCard, Info, Plus, TrendingUp } from 'lucide-svelte';
 
 export let balance: ClientCreditBalance;
 
@@ -34,14 +29,14 @@ function getBalanceStatus(): {
   }
 }
 
-function formatCurrency(amount: number): string {
+function _formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'EUR',
   }).format(amount);
 }
 
-function formatDate(dateString: string | undefined): string {
+function _formatDate(dateString: string | undefined): string {
   if (!dateString) return 'Never';
   return new Date(dateString).toLocaleDateString();
 }
@@ -51,6 +46,7 @@ function getUsageProgress(): number {
   return (balance.total_used / balance.total_purchased) * 100;
 }
 
+// biome-ignore lint/suspicious/noGlobalAssign: Svelte reactive declaration, not a window.status assignment
 $: status = getBalanceStatus();
 $: usageProgress = getUsageProgress();
 </script>

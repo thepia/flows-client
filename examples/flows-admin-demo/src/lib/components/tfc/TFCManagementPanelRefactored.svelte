@@ -1,15 +1,6 @@
 <script lang="ts">
-import LoadingAnimation from '$lib/components/shared/LoadingAnimation.svelte';
+import { ArrowDownRight, ArrowUpRight } from 'lucide-svelte';
 import { tfcStore } from '$lib/stores/domains/tfc/tfc.store';
-import {
-  Activity,
-  ArrowDownRight,
-  ArrowUpRight,
-  CreditCard,
-  Plus,
-  RefreshCw,
-  TrendingUp,
-} from 'lucide-svelte';
 
 export let clientId: string;
 
@@ -33,44 +24,45 @@ $: if (clientId) {
 }
 
 // Helper functions (pure, no side effects)
-function formatCurrency(amount: number, currency = 'EUR'): string {
+function _formatCurrency(amount: number, currency = 'EUR'): string {
   return `${currency} ${Number.parseFloat(amount.toString()).toLocaleString()}`;
 }
 
-function getTransactionIcon(type: string) {
+function _getTransactionIcon(type: string) {
   return type === 'purchase' ? ArrowUpRight : ArrowDownRight;
 }
 
-function getTransactionColor(type: string): string {
+function _getTransactionColor(type: string): string {
   return type === 'purchase' ? 'text-green-600' : 'text-blue-600';
 }
 
-function formatDate(dateString: string): string {
+function _formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString();
 }
 
 // Event handlers
-async function handleRefresh() {
+async function _handleRefresh() {
   if (clientId) {
     await tfcStore.actions.loadTFCData(clientId);
   }
 }
 
-function handlePurchaseTFC() {
+function _handlePurchaseTFC() {
   // Emit event for parent to handle
   dispatchEvent(new CustomEvent('purchase-tfc'));
 }
 
-function handleViewReport() {
+function _handleViewReport() {
   // Emit event for parent to handle
   dispatchEvent(new CustomEvent('view-report'));
 }
 
 // Dispatch events for parent component
 import { createEventDispatcher } from 'svelte';
+
 const dispatch = createEventDispatcher<{
-  'purchase-tfc': void;
-  'view-report': void;
+  'purchase-tfc': undefined;
+  'view-report': undefined;
 }>();
 
 function dispatchEvent(event: CustomEvent) {

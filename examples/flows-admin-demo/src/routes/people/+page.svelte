@@ -1,14 +1,6 @@
 <script lang="ts">
-import {
-  PeopleActiveFilters,
-  PeopleFilters,
-  PeopleGrid,
-  PeopleHeader,
-  PeopleLoadMore,
-  PeopleStatsCards,
-} from '$lib/components/people';
-import { loadDemoData, loading, people, totalPeopleCount } from '$lib/stores/data';
 import { onMount } from 'svelte';
+import { loadDemoData, people, totalPeopleCount } from '$lib/stores/data';
 
 // Search and filter state
 let searchTerm = '';

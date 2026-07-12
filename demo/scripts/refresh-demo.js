@@ -7,10 +7,10 @@
  * and generates fresh invitations to keep the demo realistic and current.
  */
 
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import { Command } from 'commander';
@@ -36,7 +36,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+const _supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -192,14 +192,14 @@ function evolveEmployeeScenarios(employees) {
 
   const updates = [];
 
-  employees.employees.forEach((employee) => {
-    scenarios.forEach((scenario) => {
+  for (const employee of employees) {
+    for (const scenario of scenarios) {
       if (scenario.condition(employee)) {
         const update = scenario.update(employee);
         updates.push(update);
       }
-    });
-  });
+    }
+  }
 
   return updates;
 }
@@ -207,11 +207,11 @@ function evolveEmployeeScenarios(employees) {
 /**
  * Generate demo invitations for new scenarios
  */
-async function generateNewInvitations(clientId, applications, employees, updates) {
+async function generateNewInvitations(clientId, applications, _employees, updates) {
   const appMap = {};
-  applications.forEach((app) => {
+  for (const app in applications) {
     appMap[app.app_code] = app.id;
-  });
+  }
 
   const newInvitations = [];
 
@@ -322,7 +322,7 @@ function saveUpdatedEmployees(employees, updates) {
 /**
  * Main refresh function
  */
-async function refreshDemo(options = {}) {
+async function refreshDemo(_options = {}) {
   const spinner = ora('Refreshing demo content...').start();
 
   try {
@@ -373,10 +373,10 @@ async function refreshDemo(options = {}) {
 
     if (updates.length > 0) {
       console.log(chalk.cyan('\\n🔄 Employee Updates:'));
-      updates.forEach((update) => {
+      for (const update of updates) {
         const emp = update.employee;
         console.log(`   • ${emp.firstName} ${emp.lastName}: ${update.action}`);
-      });
+      }
     }
 
     if (newInvitations.length > 0) {

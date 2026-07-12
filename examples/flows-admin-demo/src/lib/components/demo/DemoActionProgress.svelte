@@ -1,11 +1,9 @@
 <script lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { recentActions, runningActions } from '$lib/stores/demoManagement';
+import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-svelte';
 import type { DemoAction } from '$lib/types';
-import { Activity, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-svelte';
 
 // Get status icon and color for actions
-function getActionStatusDisplay(action: DemoAction) {
+function _getActionStatusDisplay(action: DemoAction) {
   switch (action.status) {
     case 'completed':
       return { icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' };
@@ -18,7 +16,7 @@ function getActionStatusDisplay(action: DemoAction) {
   }
 }
 
-function getActionTypeLabel(type: string) {
+function _getActionTypeLabel(type: string) {
   switch (type) {
     case 'generate':
       return 'Data Generation';
@@ -33,11 +31,11 @@ function getActionTypeLabel(type: string) {
   }
 }
 
-function formatTime(dateString: string) {
+function _formatTime(dateString: string) {
   return new Date(dateString).toLocaleTimeString();
 }
 
-function formatDuration(startedAt: string, completedAt?: string) {
+function _formatDuration(startedAt: string, completedAt?: string) {
   const start = new Date(startedAt);
   const end = completedAt ? new Date(completedAt) : new Date();
   const durationMs = end.getTime() - start.getTime();

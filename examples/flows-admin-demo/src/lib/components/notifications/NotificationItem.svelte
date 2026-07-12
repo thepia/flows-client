@@ -1,36 +1,22 @@
 <script lang="ts">
-import type { Notification } from '$lib/types/notifications';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  AlertCircle,
-  Archive,
-  Check,
-  CheckCircle,
-  Clock,
-  Eye,
-  EyeOff,
-  FileText,
-  MoreHorizontal,
-  Settings,
-  User,
-  Users,
-  X,
-} from 'lucide-svelte';
+import { AlertCircle, CheckCircle, Clock, FileText, Settings, User, Users } from 'lucide-svelte';
+import type { Notification } from '$lib/types/notifications';
 
 export let notification: Notification;
 export let onAction: ((action: string) => void) | undefined = undefined;
 
-let showActions = false;
+let _showActions = false;
 
 // Priority colors
-const priorityColors = {
+const _priorityColors = {
   urgent: 'border-red-500 bg-red-50',
   high: 'border-orange-500 bg-orange-50',
   medium: 'border-blue-500 bg-blue-50',
   low: 'border-gray-300 bg-gray-50',
 };
 
-const priorityTextColors = {
+const _priorityTextColors = {
   urgent: 'text-red-700',
   high: 'text-orange-700',
   medium: 'text-blue-700',
@@ -59,10 +45,10 @@ function handleAction(action: string) {
   if (onAction) {
     onAction(action);
   }
-  showActions = false;
+  _showActions = false;
 }
 
-function handlePrimaryAction() {
+function _handlePrimaryAction() {
   if (notification.actions && notification.actions.length > 0) {
     const primaryAction = notification.actions.find((a) => a.type === 'primary');
     if (primaryAction?.href) {

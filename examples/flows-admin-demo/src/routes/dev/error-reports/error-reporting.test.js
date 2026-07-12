@@ -5,12 +5,11 @@
  * and catches any regressions in the import paths or functionality.
  */
 
-import { browser } from '$app/environment';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Error Reporting System', () => {
-  let errorReportingConfig;
-  let errorReporter;
+  let _errorReportingConfig;
+  let _errorReporter;
 
   beforeAll(async () => {
     // Mock browser environment

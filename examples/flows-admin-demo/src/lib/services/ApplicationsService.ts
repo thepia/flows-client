@@ -1,7 +1,7 @@
+import { get } from 'svelte/store';
 import { reportSupabaseError } from '$lib/config/errorReporting';
 import { supabaseClientStore } from '$lib/contexts/supabase-context';
 import type { Application } from '$lib/types';
-import { get } from 'svelte/store';
 
 // Get current Supabase client from store
 function getCurrentSupabaseClient() {
@@ -32,11 +32,11 @@ export class ApplicationsService {
       }
 
       if (appsData && appsData.length > 0) {
-        return this.transformApplications(appsData, clientId);
+        return ApplicationsService.transformApplications(appsData, clientId);
       }
 
       // Return mock applications if none found
-      return this.createMockApplications(clientId);
+      return ApplicationsService.createMockApplications(clientId);
     } catch (error) {
       console.error('Error loading applications:', error);
       await reportSupabaseError('client_applications', 'select', error, {
@@ -50,7 +50,7 @@ export class ApplicationsService {
   /**
    * Transform database applications to UI format
    */
-  private static transformApplications(appsData: any[], clientId: string): Application[] {
+  private static transformApplications(appsData: any[], _clientId: string): Application[] {
     return appsData.map((app: any) => ({
       id: app.id,
       clientId: app.client_id,
@@ -116,7 +116,7 @@ export class ApplicationsService {
     clientId: string,
     type: 'onboarding' | 'offboarding'
   ): Promise<Application | null> {
-    const applications = await this.loadApplications(clientId);
+    const applications = await ApplicationsService.loadApplications(clientId);
     return applications.find((app) => app.type === type) || null;
   }
 }

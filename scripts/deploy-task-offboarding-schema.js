@@ -8,9 +8,9 @@
  * this script displays the SQL content for copy/paste into the Supabase SQL Editor.
  */
 
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
@@ -29,9 +29,9 @@ const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
 const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
   console.error(chalk.red('Missing required environment variables:'));
-  missingVars.forEach((varName) => {
+  for (const varName of missingVars) {
     console.error(chalk.red(`  - ${varName}`));
-  });
+  }
   console.error(
     chalk.yellow('\nPlease copy config/supabase.example.env to .env and fill in the values.')
   );

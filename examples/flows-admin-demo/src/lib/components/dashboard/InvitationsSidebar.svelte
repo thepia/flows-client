@@ -1,8 +1,5 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 import type { Invitation } from '$lib/types';
-import InvitationCard from '../invitation/InvitationCard.svelte';
 
 // Props
 export let invitations: Invitation[];

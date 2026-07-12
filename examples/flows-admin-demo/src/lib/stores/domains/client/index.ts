@@ -1,4 +1,5 @@
 // Public exports for client domain
-export { clientStore, loadAllClients, selectClient, refreshCurrentClient } from './client.store';
+
 export { ClientService } from './client.service';
-export type { Client, ClientState, ClientActions, ClientStore } from './client.types';
+export { clientStore, loadAllClients, refreshCurrentClient, selectClient } from './client.store';
+export type { Client, ClientActions, ClientState, ClientStore } from './client.types';

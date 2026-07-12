@@ -1,8 +1,7 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
+import { Eye, RefreshCw, Share, XCircle } from 'lucide-svelte';
 import { useInvitationActions } from '$lib/composables/useInvitationActions';
 import type { Invitation } from '$lib/types';
-import { Eye, MoreVertical, RefreshCw, Share, XCircle } from 'lucide-svelte';
 
 export let invitation: Invitation;
 export let isOpen: boolean;
@@ -17,7 +16,7 @@ const { getAvailableActions, executeAction } = useInvitationActions();
 $: availableActions = getAvailableActions(invitation);
 
 // Icon mapping for actions
-const iconMap = {
+const _iconMap = {
   Eye,
   Share,
   RefreshCw,
@@ -25,7 +24,7 @@ const iconMap = {
 };
 
 // Handle action execution
-async function handleAction(actionId: string) {
+async function _handleAction(actionId: string) {
   const success = await executeAction(actionId, invitation);
 
   if (success) {

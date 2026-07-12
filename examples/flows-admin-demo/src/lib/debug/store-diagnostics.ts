@@ -2,8 +2,8 @@
  * Store Diagnostics - Debug helper to understand store behavior
  */
 
-import { applications } from '$lib/stores/data';
 import { get, writable } from 'svelte/store';
+import { applications } from '$lib/stores/data';
 
 // Diagnostic state
 export const diagnostics = writable({

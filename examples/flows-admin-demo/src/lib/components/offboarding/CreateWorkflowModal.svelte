@@ -1,26 +1,20 @@
 <script lang="ts">
-import { page } from '$app/stores';
-import { Alert, AlertDescription } from '$lib/components/ui/alert';
-import { Button } from '$lib/components/ui/button';
-import { Checkbox } from '$lib/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-import { Select } from '$lib/components/ui/select';
-import { Textarea } from '$lib/components/ui/textarea';
-import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context.ts';
-import type { CreateOffboardingWorkflowRequest } from '$lib/types/offboarding';
-import { AlertTriangle, Building, Calendar, User, X } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
+import { page } from '$app/stores';
+import {
+  isSupabaseAuthenticatedStore,
+  supabaseClientStore,
+} from '$lib/contexts/supabase-context.ts';
+import type { CreateOffboardingWorkflowRequest } from '$lib/types/offboarding';
 
 const dispatch = createEventDispatcher();
 
 // Get Supabase client from context
 // Use global stores directly
 
-let open = true;
-let loading = false;
-let error: string | null = null;
+let _open = true;
+let _loading = false;
+let _error: string | null = null;
 
 // Form data
 let formData: Partial<CreateOffboardingWorkflowRequest> = {
@@ -56,7 +50,7 @@ $: {
 }
 
 function handleClose() {
-  open = false;
+  _open = false;
   dispatch('close');
 }
 
@@ -136,10 +130,10 @@ $: {
   estimatedHours = calculateEstimatedHours();
 }
 
-async function handleSubmit() {
+async function _handleSubmit() {
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     // Check authentication
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
@@ -195,10 +189,13 @@ async function handleSubmit() {
     if (workflowError) throw workflowError;
 
     // Create default compliance checks using the database function
-    const { error: complianceError } = await $supabaseClientStore.rpc('create_default_compliance_checks', {
-      p_workflow_id: workflow.id,
-      p_complexity: formData.workflow_complexity,
-    });
+    const { error: complianceError } = await $supabaseClientStore.rpc(
+      'create_default_compliance_checks',
+      {
+        p_workflow_id: workflow.id,
+        p_complexity: formData.workflow_complexity,
+      }
+    );
 
     if (complianceError) {
       console.warn('Failed to create default compliance checks:', complianceError);
@@ -209,13 +206,13 @@ async function handleSubmit() {
     handleClose();
   } catch (err) {
     console.error('Error creating workflow:', err);
-    error = err instanceof Error ? err.message : 'Failed to create workflow';
+    _error = err instanceof Error ? err.message : 'Failed to create workflow';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
-function fillDemoData() {
+function _fillDemoData() {
   formData = {
     ...formData,
     employee_uid: generateEmployeeUID(),

@@ -1,184 +1,194 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getUserContext, hasAdminAccess } from '@thepia/flows-client';
-  import { createSvelteReactiveSupabaseClient } from '@thepia/flows-client/svelte';
-  import { createFlowsSupabaseConfig } from '@thepia/flows-client';
-  import { getAuthStoreFromContext } from '@thepia/flows-auth';
-  import type { SvelteAuthStore } from '@thepia/flows-auth';
+import type { SvelteAuthStore } from '@thepia/flows-auth';
+import { getAuthStoreFromContext } from '@thepia/flows-auth';
+import { createFlowsSupabaseConfig, getUserContext, hasAdminAccess } from '@thepia/flows-client';
+import { createSvelteReactiveSupabaseClient } from '@thepia/flows-client/svelte';
+import { onMount } from 'svelte';
 
-  let authStore: SvelteAuthStore;
-  let supabaseClient: any;
-  let authState: any = {};
-  let testResults: any[] = [];
-  let loading = false;
-  let indexedDBResult = '';
+let authStore: SvelteAuthStore;
+let supabaseClient: any;
+let authState: any = {};
+let testResults: any[] = [];
+let _loading = false;
+let _indexedDBResult = '';
 
-  onMount(() => {
-    // Get auth store from context using proper flows-auth pattern
-    authStore = getAuthStoreFromContext();
+onMount(() => {
+  // Get auth store from context using proper flows-auth pattern
+  authStore = getAuthStoreFromContext();
 
-    // Get reactive Supabase client
-    if (authStore) {
-      const config = createFlowsSupabaseConfig();
-      supabaseClient = createSvelteReactiveSupabaseClient(config, authStore, {
-        clientCode: 'hygge-hvidlog'
-      });
-    }
+  // Get reactive Supabase client
+  if (authStore) {
+    const config = createFlowsSupabaseConfig();
+    supabaseClient = createSvelteReactiveSupabaseClient(config, authStore, {
+      clientCode: 'hygge-hvidlog',
+    });
+  }
 
-    // Get initial auth state and set up reactive updates
-    if (authStore) {
-      authState = authStore.getState();
+  // Get initial auth state and set up reactive updates
+  if (authStore) {
+    authState = authStore.getState();
 
-      // Set up periodic state updates (since subscribe might not be available)
-      const interval = setInterval(() => {
-        if (authStore) {
-          authState = authStore.getState();
-        }
-      }, 1000);
+    // Set up periodic state updates (since subscribe might not be available)
+    const interval = setInterval(() => {
+      if (authStore) {
+        authState = authStore.getState();
+      }
+    }, 1000);
 
-      // Cleanup interval on component destroy
-      return () => clearInterval(interval);
-    }
-  });
+    // Cleanup interval on component destroy
+    return () => clearInterval(interval);
+  }
+});
 
-  async function testDatabaseAccess() {
-    if (!supabaseClient) return;
-    
-    loading = true;
-    testResults = [];
-    
+async function _testDatabaseAccess() {
+  if (!supabaseClient) return;
+
+  _loading = true;
+  testResults = [];
+
+  try {
+    // Get current Supabase client
+    const client = $supabaseClient;
+
+    // Test 1: Check authentication status
+    testResults.push({
+      test: 'Authentication Status',
+      result: authState.state === 'authenticated' ? 'Authenticated' : 'Not Authenticated',
+      success: authState.state === 'authenticated',
+      details: {
+        user: authState.user?.email,
+        hasAccessToken: !!authState.access_token,
+        hasSupabaseToken: !!authState.supabase_token,
+        accessTokenPreview: authState.access_token
+          ? `${authState.access_token.substring(0, 20)}...`
+          : 'none',
+        supabaseTokenPreview: authState.supabase_token
+          ? `${authState.supabase_token.substring(0, 20)}...`
+          : 'none',
+        supabaseTokenExpiry: authState.supabase_expires_at
+          ? new Date(authState.supabase_expires_at).toISOString()
+          : 'none',
+      },
+    });
+
+    // Test 2: Check admin access
+    const adminAccess = hasAdminAccess(authStore);
+    testResults.push({
+      test: 'Admin Access Check',
+      result: adminAccess ? 'Has Admin Access' : 'No Admin Access',
+      success: adminAccess,
+      details: getUserContext(authStore),
+    });
+
+    // Test 3: Try to access clients table
     try {
-      // Get current Supabase client
-      const client = $supabaseClient;
-      
-      // Test 1: Check authentication status
+      const { data: clients, error: clientsError } = await client
+        .from('clients')
+        .select('id, client_code, legal_name')
+        .limit(3);
+
       testResults.push({
-        test: 'Authentication Status',
-        result: authState.state === 'authenticated' ? 'Authenticated' : 'Not Authenticated',
-        success: authState.state === 'authenticated',
-        details: {
-          user: authState.user?.email,
-          hasAccessToken: !!authState.access_token,
-          hasSupabaseToken: !!authState.supabase_token,
-          accessTokenPreview: authState.access_token ? `${authState.access_token.substring(0, 20)}...` : 'none',
-          supabaseTokenPreview: authState.supabase_token ? `${authState.supabase_token.substring(0, 20)}...` : 'none',
-          supabaseTokenExpiry: authState.supabase_expires_at ? new Date(authState.supabase_expires_at).toISOString() : 'none'
-        }
+        test: 'Clients Table Access',
+        result: clientsError
+          ? `Error: ${clientsError.message}`
+          : `Found ${clients?.length || 0} clients`,
+        success: !clientsError,
+        details: clientsError || clients,
       });
-
-      // Test 2: Check admin access
-      const adminAccess = hasAdminAccess(authStore);
-      testResults.push({
-        test: 'Admin Access Check',
-        result: adminAccess ? 'Has Admin Access' : 'No Admin Access',
-        success: adminAccess,
-        details: getUserContext(authStore)
-      });
-
-      // Test 3: Try to access clients table
-      try {
-        const { data: clients, error: clientsError } = await client
-          .from('clients')
-          .select('id, client_code, legal_name')
-          .limit(3);
-
-        testResults.push({
-          test: 'Clients Table Access',
-          result: clientsError ? `Error: ${clientsError.message}` : `Found ${clients?.length || 0} clients`,
-          success: !clientsError,
-          details: clientsError || clients
-        });
-      } catch (error) {
-        testResults.push({
-          test: 'Clients Table Access',
-          result: `Exception: ${error.message}`,
-          success: false,
-          details: error
-        });
-      }
-
-      // Test 4: Try to access people table
-      try {
-        const { data: people, error: peopleError } = await client
-          .from('people')
-          .select('id, email, first_name, last_name')
-          .limit(3);
-
-        testResults.push({
-          test: 'People Table Access',
-          result: peopleError ? `Error: ${peopleError.message}` : `Found ${people?.length || 0} people`,
-          success: !peopleError,
-          details: peopleError || people
-        });
-      } catch (error) {
-        testResults.push({
-          test: 'People Table Access',
-          result: `Exception: ${error.message}`,
-          success: false,
-          details: error
-        });
-      }
-
     } catch (error) {
       testResults.push({
-        test: 'General Error',
-        result: `Failed: ${error.message}`,
+        test: 'Clients Table Access',
+        result: `Exception: ${error.message}`,
         success: false,
-        details: error
+        details: error,
       });
-    } finally {
-      loading = false;
     }
-  }
 
-  // Test IndexedDB persistence
-  async function testIndexedDBPersistence() {
+    // Test 4: Try to access people table
     try {
-      // Open IndexedDB directly to check what's stored
-      const request = indexedDB.open('flows_db', 1);
+      const { data: people, error: peopleError } = await client
+        .from('people')
+        .select('id, email, first_name, last_name')
+        .limit(3);
 
-      request.onsuccess = (event) => {
-        const db = (event.target as any).result;
-        const transaction = db.transaction(['auth_sessions'], 'readonly');
-        const store = transaction.objectStore('auth_sessions');
-        const getAllRequest = store.getAll();
-
-        getAllRequest.onsuccess = () => {
-          const sessions = getAllRequest.result;
-          console.log('🗄️ IndexedDB auth_sessions:', sessions);
-
-          if (sessions.length > 0) {
-            const session = sessions[0];
-            console.log('📋 Session details:', {
-              userId: session.userId,
-              email: session.email,
-              hasAccessToken: !!session.accessToken,
-              hasSupabaseToken: !!session.supabaseToken,
-              supabaseTokenPreview: session.supabaseToken?.substring(0, 20) + '...',
-              supabaseExpiresAt: session.supabaseExpiresAt ? new Date(session.supabaseExpiresAt).toISOString() : 'none',
-              savedAt: session.savedAt
-            });
-            indexedDBResult = `✅ Found session in IndexedDB. Has Supabase token: ${!!session.supabaseToken}`;
-          } else {
-            indexedDBResult = '❌ No sessions found in IndexedDB';
-          }
-        };
-
-        getAllRequest.onerror = () => {
-          console.error('❌ Failed to read from IndexedDB:', getAllRequest.error);
-          indexedDBResult = `❌ Failed to read: ${getAllRequest.error?.message}`;
-        };
-      };
-
-      request.onerror = () => {
-        console.error('❌ Failed to open IndexedDB:', request.error);
-        indexedDBResult = `❌ Failed to open: ${request.error?.message}`;
-      };
-    } catch (err: any) {
-      console.error('❌ IndexedDB test exception:', err);
-      indexedDBResult = `❌ Exception: ${err.message}`;
+      testResults.push({
+        test: 'People Table Access',
+        result: peopleError
+          ? `Error: ${peopleError.message}`
+          : `Found ${people?.length || 0} people`,
+        success: !peopleError,
+        details: peopleError || people,
+      });
+    } catch (error) {
+      testResults.push({
+        test: 'People Table Access',
+        result: `Exception: ${error.message}`,
+        success: false,
+        details: error,
+      });
     }
+  } catch (error) {
+    testResults.push({
+      test: 'General Error',
+      result: `Failed: ${error.message}`,
+      success: false,
+      details: error,
+    });
+  } finally {
+    _loading = false;
   }
+}
+
+// Test IndexedDB persistence
+async function _testIndexedDBPersistence() {
+  try {
+    // Open IndexedDB directly to check what's stored
+    const request = indexedDB.open('flows_db', 1);
+
+    request.onsuccess = (event) => {
+      const db = (event.target as any).result;
+      const transaction = db.transaction(['auth_sessions'], 'readonly');
+      const store = transaction.objectStore('auth_sessions');
+      const getAllRequest = store.getAll();
+
+      getAllRequest.onsuccess = () => {
+        const sessions = getAllRequest.result;
+        console.log('🗄️ IndexedDB auth_sessions:', sessions);
+
+        if (sessions.length > 0) {
+          const session = sessions[0];
+          console.log('📋 Session details:', {
+            userId: session.userId,
+            email: session.email,
+            hasAccessToken: !!session.accessToken,
+            hasSupabaseToken: !!session.supabaseToken,
+            supabaseTokenPreview: `${session.supabaseToken?.substring(0, 20)}...`,
+            supabaseExpiresAt: session.supabaseExpiresAt
+              ? new Date(session.supabaseExpiresAt).toISOString()
+              : 'none',
+            savedAt: session.savedAt,
+          });
+          _indexedDBResult = `✅ Found session in IndexedDB. Has Supabase token: ${!!session.supabaseToken}`;
+        } else {
+          _indexedDBResult = '❌ No sessions found in IndexedDB';
+        }
+      };
+
+      getAllRequest.onerror = () => {
+        console.error('❌ Failed to read from IndexedDB:', getAllRequest.error);
+        _indexedDBResult = `❌ Failed to read: ${getAllRequest.error?.message}`;
+      };
+    };
+
+    request.onerror = () => {
+      console.error('❌ Failed to open IndexedDB:', request.error);
+      _indexedDBResult = `❌ Failed to open: ${request.error?.message}`;
+    };
+  } catch (err: any) {
+    console.error('❌ IndexedDB test exception:', err);
+    _indexedDBResult = `❌ Exception: ${err.message}`;
+  }
+}
 </script>
 
 <div class="container mx-auto p-6">

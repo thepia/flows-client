@@ -1,22 +1,21 @@
 <script lang="ts">
 import { clientStore } from '$lib/stores/domains/client/client.store';
-import { AlertCircle, Building2, RefreshCw } from 'lucide-svelte';
 
 // Extract what we need from the store
 const { clients, currentClient, loading, error, availableClients, actions } = clientStore;
 
 // Local component state
-let isChanging = false;
+let _isChanging = false;
 
 // Handle client selection
-async function handleClientChange(event: Event) {
+async function _handleClientChange(event: Event) {
   const target = event.target as HTMLSelectElement;
   const clientId = target.value;
 
   if (!clientId || clientId === $currentClient?.client_id) return;
 
   try {
-    isChanging = true;
+    _isChanging = true;
     await actions.selectClient(clientId);
     // Emit custom event for parent components to react
     dispatchEvent(
@@ -29,12 +28,13 @@ async function handleClientChange(event: Event) {
     // Reset select to previous value
     target.value = $currentClient?.client_id || '';
   } finally {
-    isChanging = false;
+    _isChanging = false;
   }
 }
 
 // Dispatch events
 import { createEventDispatcher } from 'svelte';
+
 const dispatch = createEventDispatcher<{
   clientChanged: { clientId: string };
 }>();

@@ -1,61 +1,61 @@
 <script lang="ts">
-	import type { FlowsJourney } from '@thepia/flows-client/types';
+import type { FlowsJourney } from '@thepia/flows-client/types';
 
-	interface Props {
-		journeys: FlowsJourney[];
-		selectedJourney: FlowsJourney | null;
-		onSelectJourney: (journey: FlowsJourney) => void;
-	}
+interface Props {
+  journeys: FlowsJourney[];
+  selectedJourney: FlowsJourney | null;
+  onSelectJourney: (journey: FlowsJourney) => void;
+}
 
-	let { journeys, selectedJourney, onSelectJourney }: Props = $props();
+let { journeys, selectedJourney, onSelectJourney }: Props = $props();
 
-	type ViewMode = 'ongoing' | 'completed';
-	let viewMode = $state<ViewMode>('ongoing');
+type ViewMode = 'ongoing' | 'completed';
+let viewMode = $state<ViewMode>('ongoing');
 
-	// Filter journeys based on view mode
-	const filteredJourneys = $derived(
-		viewMode === 'ongoing'
-			? journeys.filter(j => j.status !== 'completed')
-			: journeys.filter(j => j.status === 'completed')
-	);
+// Filter journeys based on view mode
+const filteredJourneys = $derived(
+  viewMode === 'ongoing'
+    ? journeys.filter((j) => j.status !== 'completed')
+    : journeys.filter((j) => j.status === 'completed')
+);
 
-	// Group journeys by client_id
-	function groupJourneysByClient(journeys: FlowsJourney[]) {
-		const groups = new Map<string, FlowsJourney[]>();
+// Group journeys by client_id
+function groupJourneysByClient(journeys: FlowsJourney[]) {
+  const groups = new Map<string, FlowsJourney[]>();
 
-		for (const journey of journeys) {
-			const clientId = journey.client_id;
-			if (!groups.has(clientId)) {
-				groups.set(clientId, []);
-			}
-			groups.get(clientId)!.push(journey);
-		}
+  for (const journey of journeys) {
+    const clientId = journey.client_id;
+    if (!groups.has(clientId)) {
+      groups.set(clientId, []);
+    }
+    groups.get(clientId)?.push(journey);
+  }
 
-		return groups;
-	}
+  return groups;
+}
 
-	const groupedJourneys = $derived(groupJourneysByClient(filteredJourneys));
+const _groupedJourneys = $derived(groupJourneysByClient(filteredJourneys));
 
-	// Count journeys for each view
-	const ongoingCount = $derived(journeys.filter(j => j.status !== 'completed').length);
-	const completedCount = $derived(journeys.filter(j => j.status === 'completed').length);
+// Count journeys for each view
+const _ongoingCount = $derived(journeys.filter((j) => j.status !== 'completed').length);
+const _completedCount = $derived(journeys.filter((j) => j.status === 'completed').length);
 
-	function getStatusColor(status: FlowsJourney['status']): string {
-		const colors: Record<FlowsJourney['status'], string> = {
-			invited: 'bg-gray-100 text-gray-800',
-			active: 'bg-blue-100 text-blue-800',
-			completed: 'bg-green-100 text-green-800',
-			cancelled: 'bg-red-100 text-red-800',
-			archived: 'bg-gray-100 text-gray-600'
-		};
-		return colors[status];
-	}
+function _getStatusColor(status: FlowsJourney['status']): string {
+  const colors: Record<FlowsJourney['status'], string> = {
+    invited: 'bg-gray-100 text-gray-800',
+    active: 'bg-blue-100 text-blue-800',
+    completed: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+    archived: 'bg-gray-100 text-gray-600',
+  };
+  return colors[status];
+}
 
-	// Get client name from metadata
-	function getClientName(clientId: string, journeys: FlowsJourney[]): string {
-		const journey = journeys.find(j => j.client_id === clientId);
-		return journey?.metadata?.client_name as string || `Client ${clientId}`;
-	}
+// Get client name from metadata
+function _getClientName(clientId: string, journeys: FlowsJourney[]): string {
+  const journey = journeys.find((j) => j.client_id === clientId);
+  return (journey?.metadata?.client_name as string) || `Client ${clientId}`;
+}
 </script>
 
 <div class="bg-white rounded-lg shadow p-6">

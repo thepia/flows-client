@@ -1,10 +1,7 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+import { onMount } from 'svelte';
 import { applications, client, createInvitation, employees, loadDemoData } from '$lib/stores/data';
 import type { Employee, Invitation } from '$lib/types';
-import { ArrowLeft, Save, Search, Send, UserPlus, X } from 'lucide-svelte';
-import { onMount } from 'svelte';
 
 // Form data
 let formData = {
@@ -21,15 +18,15 @@ let formData = {
 };
 
 // Form state
-let isSubmitting = false;
-let showSuccess = false;
+let _isSubmitting = false;
+let _showSuccess = false;
 let generatedInvitation: Partial<Invitation> | null = null;
-let error: string | null = null;
+let _error: string | null = null;
 
 // Employee selection state
 let selectedEmployee: Employee | null = null;
 let employeeSearchQuery = '';
-let showEmployeeDropdown = false;
+let _showEmployeeDropdown = false;
 let employeeSearchContainer: HTMLDivElement;
 
 // Load data on mount
@@ -48,7 +45,7 @@ onMount(() => {
 });
 
 // Department options
-const departments = [
+const _departments = [
   'Engineering',
   'Product',
   'Design',
@@ -65,7 +62,7 @@ const departments = [
 $: filteredEmployees = $employees
   .filter(
     (employee) =>
-      (employee.firstName + ' ' + employee.lastName)
+      `${employee.firstName} ${employee.lastName}`
         .toLowerCase()
         .includes(employeeSearchQuery.toLowerCase()) ||
       employee.email.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
@@ -73,10 +70,10 @@ $: filteredEmployees = $employees
   )
   .slice(0, 10); // Limit to 10 results
 
-function selectEmployee(employee: Employee) {
+function _selectEmployee(employee: Employee) {
   selectedEmployee = employee;
   employeeSearchQuery = `${employee.firstName} ${employee.lastName}`;
-  showEmployeeDropdown = false;
+  _showEmployeeDropdown = false;
 
   // Auto-populate form fields from selected employee
   formData.firstName = employee.firstName;
@@ -110,10 +107,10 @@ function selectEmployee(employee: Employee) {
   }
 }
 
-function clearEmployeeSelection() {
+function _clearEmployeeSelection() {
   selectedEmployee = null;
   employeeSearchQuery = '';
-  showEmployeeDropdown = false;
+  _showEmployeeDropdown = false;
 
   // Clear form fields
   formData.firstName = '';
@@ -125,24 +122,24 @@ function clearEmployeeSelection() {
   formData.invitationType = 'onboarding';
 }
 
-function handleEmployeeSearch() {
-  showEmployeeDropdown = employeeSearchQuery.length > 0 && !selectedEmployee;
+function _handleEmployeeSearch() {
+  _showEmployeeDropdown = employeeSearchQuery.length > 0 && !selectedEmployee;
 }
 
 // Close dropdown when clicking outside
 function handleClickOutside(event: MouseEvent) {
   if (employeeSearchContainer && !employeeSearchContainer.contains(event.target as Node)) {
-    showEmployeeDropdown = false;
+    _showEmployeeDropdown = false;
   }
 }
 
-function generateInvitationCode(clientCode: string, type: string): string {
+function _generateInvitationCode(clientCode: string, type: string): string {
   const typePrefix = type === 'onboarding' ? 'ONBOARD' : 'OFFBOARD';
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `${clientCode.toUpperCase()}-${typePrefix}-${random}`;
 }
 
-async function handleSubmit() {
+async function _handleSubmit() {
   if (
     !formData.firstName ||
     !formData.lastName ||
@@ -154,8 +151,8 @@ async function handleSubmit() {
     return;
   }
 
-  isSubmitting = true;
-  error = null;
+  _isSubmitting = true;
+  _error = null;
 
   try {
     // Create invitation using the real Supabase function
@@ -173,16 +170,16 @@ async function handleSubmit() {
       ...(formData.associationEndDate ? { associationEndDate: formData.associationEndDate } : {}),
     });
 
-    showSuccess = true;
+    _showSuccess = true;
   } catch (err) {
     console.error('Failed to create invitation:', err);
-    error = err instanceof Error ? err.message : 'Failed to create invitation';
+    _error = err instanceof Error ? err.message : 'Failed to create invitation';
   } finally {
-    isSubmitting = false;
+    _isSubmitting = false;
   }
 }
 
-function resetForm() {
+function _resetForm() {
   formData = {
     firstName: '',
     lastName: '',
@@ -199,14 +196,14 @@ function resetForm() {
   // Clear employee selection
   selectedEmployee = null;
   employeeSearchQuery = '';
-  showEmployeeDropdown = false;
+  _showEmployeeDropdown = false;
 
-  showSuccess = false;
+  _showSuccess = false;
   generatedInvitation = null;
-  error = null;
+  _error = null;
 }
 
-function copyInvitationLink() {
+function _copyInvitationLink() {
   if (generatedInvitation && $client) {
     const link = `https://${$client.domain}/invitation/${generatedInvitation.invitationCode}`;
     navigator.clipboard.writeText(link);

@@ -8,7 +8,7 @@
  * 3. Store synchronization issues between legacy and new systems
  */
 
-import { fireEvent, render, waitFor } from '@testing-library/svelte';
+import { waitFor } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -246,7 +246,7 @@ describe('Client Switching Regression Tests', () => {
 
       try {
         await demoClientSwitcher.switchDemoClient(testClientId);
-      } catch (e) {
+      } catch (_e) {
         // Expected to fail
       }
 

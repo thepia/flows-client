@@ -6,7 +6,7 @@ const config = {
   content: [
     './src/**/*.{html,js,svelte,ts}',
     // CRITICAL: Include flows-auth package files to ensure all component classes are built
-    './node_modules/@thepia/flows-auth/**/*.{js,svelte,ts}'
+    './node_modules/@thepia/flows-auth/**/*.{js,svelte,ts}',
   ],
   safelist: ['dark'],
   theme: {

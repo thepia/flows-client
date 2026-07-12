@@ -21,9 +21,9 @@ const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_
 const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
   console.error(chalk.red('Missing required environment variables:'));
-  missingVars.forEach((varName) => {
+  for (const varName of missingVars) {
     console.error(chalk.red(`  - ${varName}`));
-  });
+  }
   console.error(chalk.yellow('\nPlease check your .env file.'));
   process.exit(1);
 }
@@ -164,7 +164,7 @@ async function checkApiAccess() {
     // We expect this to fail due to RLS policies
     if (error && (error.code === 'PGRST116' || error.message.includes('permission denied'))) {
       spinner.succeed('API access: RLS policies working (anonymous access properly denied) ✓');
-    } else if (error && error.message.includes('schema must be one of')) {
+    } else if (error?.message.includes('schema must be one of')) {
       spinner.warn('API access: Schema configuration issue ⚠️');
     } else if (error) {
       spinner.warn(`API access: ${error.message} ⚠️`);
@@ -263,10 +263,10 @@ async function performHealthCheck() {
 
   console.log(chalk.blue.bold('\n📊 Health Check Summary\n'));
 
-  results.forEach((result) => {
+  for (const result of results) {
     const status = result.passed ? chalk.green('✓ PASS') : chalk.red('✗ FAIL');
     console.log(`${status} ${result.name}`);
-  });
+  }
 
   const healthScore = Math.round((passedChecks / checks.length) * 100);
 

@@ -1,7 +1,7 @@
-import { writable, get, type Writable } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SvelteAuthStore } from '@thepia/flows-auth';
 import { createFlowsSupabaseClient } from '@thepia/flows-client';
+import { get, type Writable, writable } from 'svelte/store';
 
 // Global stores - the single source of truth for Supabase client access
 // Used by both pages and services
@@ -20,7 +20,7 @@ export function initializeSupabaseStores(authStore: SvelteAuthStore): void {
   // Function to update stores based on current auth state
   const updateStores = (authState: any) => {
     // Check auth state using state machine pattern
-    const isAuthenticated = authState.state === "authenticated" && !!authState.supabase_token;
+    const isAuthenticated = authState.state === 'authenticated' && !!authState.supabase_token;
 
     // Only create new client if auth state actually changed
     if (authState.state !== lastAuthState) {
@@ -30,7 +30,7 @@ export function initializeSupabaseStores(authStore: SvelteAuthStore): void {
       if (isAuthenticated && !currentClient) {
         console.log('🔐 Creating authenticated Supabase client');
         currentClient = createFlowsSupabaseClient(authStore, {
-          clientCode: 'hygge-hvidlog'
+          clientCode: 'hygge-hvidlog',
         });
         console.log('✅ Supabase client created successfully');
       } else if (!isAuthenticated && currentClient) {
@@ -45,7 +45,7 @@ export function initializeSupabaseStores(authStore: SvelteAuthStore): void {
       console.log('📊 Stores updated:', {
         clientAvailable: !!currentClient,
         isAuthenticated,
-        stateTransition: `${lastAuthState} → ${authState.state}`
+        stateTransition: `${lastAuthState} → ${authState.state}`,
       });
     }
   };

@@ -1,34 +1,18 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Progress } from '$lib/components/ui/progress';
-import {
-  AlertTriangle,
-  Calendar,
-  CheckCircle,
-  CheckSquare,
-  Clock,
-  FileText,
-  MoreHorizontal,
-  Pause,
-  Play,
-  User,
-  Users,
-} from 'lucide-svelte';
+import { AlertTriangle, CheckCircle, Clock, FileText, Pause, Play } from 'lucide-svelte';
 
 // Props
 export let processes = [];
-export let onProcessSelect = (process) => {};
+export let onProcessSelect = (_process) => {};
 export let onCreateProcess = () => {};
-export const onUpdateProcessStatus = (processId, status) => {};
+export const onUpdateProcessStatus = (_processId, _status) => {};
 export let loading = false;
 
 // Local state
-let selectedProcess = null;
+let _selectedProcess = null;
 
 // Get status color and icon
-function getStatusInfo(status) {
+function _getStatusInfo(status) {
   switch (status) {
     case 'draft':
       return { color: 'bg-gray-100 text-gray-800', icon: FileText };
@@ -48,7 +32,7 @@ function getStatusInfo(status) {
 }
 
 // Get priority color
-function getPriorityColor(priority) {
+function _getPriorityColor(priority) {
   switch (priority) {
     case 'urgent':
       return 'bg-red-100 text-red-800';
@@ -74,7 +58,7 @@ function getDaysUntilDeadline(targetDate) {
 }
 
 // Format deadline text
-function formatDeadlineText(targetDate) {
+function _formatDeadlineText(targetDate) {
   const days = getDaysUntilDeadline(targetDate);
   if (days === null) return 'No deadline set';
   if (days < 0) return `${Math.abs(days)} days overdue`;
@@ -84,13 +68,13 @@ function formatDeadlineText(targetDate) {
 }
 
 // Handle process selection
-function selectProcess(process) {
-  selectedProcess = process;
+function _selectProcess(process) {
+  _selectedProcess = process;
   onProcessSelect(process);
 }
 
 // Format percentage
-function formatPercentage(value) {
+function _formatPercentage(value) {
   return Math.round(value || 0);
 }
 </script>

@@ -43,7 +43,9 @@ async function testAPI() {
       console.error('❌ Clients error:', clientError);
     } else {
       console.log('✅ Clients table accessible:', clients?.length || 0, 'records');
-      clients?.forEach((c) => console.log(`  • ${c.client_code}: ${c.legal_name}`));
+      for (const c of clients) {
+        console.log(`  • ${c.client_code}: ${c.legal_name}`);
+      }
     }
 
     // Test people table
@@ -57,7 +59,9 @@ async function testAPI() {
       console.error('❌ People error:', peopleError);
     } else {
       console.log('✅ People table accessible:', people?.length || 0, 'records');
-      people?.forEach((p) => console.log(`  • ${p.person_code}: ${p.first_name} ${p.last_name}`));
+      for (const p of people) {
+        console.log(`  • ${p.person_code}: ${p.first_name} ${p.last_name}`);
+      }
     }
   } catch (error) {
     console.error('❌ Test failed:', error);

@@ -1,36 +1,12 @@
 <script lang="ts">
-import { Alert, AlertDescription } from '$lib/components/ui/alert';
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Checkbox } from '$lib/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-import { Progress } from '$lib/components/ui/progress';
-import { Select } from '$lib/components/ui/select';
-import { Textarea } from '$lib/components/ui/textarea';
-import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
+import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-svelte';
+import { createEventDispatcher } from 'svelte';
+import { isSupabaseAuthenticatedStore, supabaseClientStore } from '$lib/contexts/supabase-context';
 import type {
   OffboardingComplianceCheck,
   OffboardingWorkflow,
   UpdateComplianceCheckRequest,
 } from '$lib/types/offboarding';
-import {
-  AlertCircle,
-  AlertTriangle,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Edit,
-  ExternalLink,
-  FileCheck,
-  Plus,
-  ShieldCheck,
-  User,
-  XCircle,
-} from 'lucide-svelte';
-import { createEventDispatcher } from 'svelte';
 
 export let workflow: OffboardingWorkflow;
 export const complianceChecks: OffboardingComplianceCheck[] = [];
@@ -41,9 +17,9 @@ const dispatch = createEventDispatcher();
 // Get Supabase client from context
 // Use global stores directly
 
-let loading = false;
-let error: string | null = null;
-let showUpdateModal = false;
+let _loading = false;
+let _error: string | null = null;
+let _showUpdateModal = false;
 let selectedCheck: OffboardingComplianceCheck | null = null;
 
 // Form data for updating compliance checks
@@ -65,7 +41,7 @@ function resetUpdateForm() {
   };
 }
 
-function getStatusColor(status: string): string {
+function _getStatusColor(status: string): string {
   switch (status) {
     case 'pending':
       return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -82,7 +58,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-function getCriticalityColor(criticality: string): string {
+function _getCriticalityColor(criticality: string): string {
   switch (criticality) {
     case 'critical':
       return 'bg-red-100 text-red-800 border-red-200';
@@ -97,7 +73,7 @@ function getCriticalityColor(criticality: string): string {
   }
 }
 
-function getRiskColor(risk: string | undefined): string {
+function _getRiskColor(risk: string | undefined): string {
   if (!risk) return 'bg-gray-100 text-gray-800 border-gray-200';
   switch (risk) {
     case 'severe':
@@ -115,7 +91,7 @@ function getRiskColor(risk: string | undefined): string {
   }
 }
 
-function getStatusIcon(status: string) {
+function _getStatusIcon(status: string) {
   switch (status) {
     case 'completed':
       return CheckCircle;
@@ -130,11 +106,11 @@ function getStatusIcon(status: string) {
   }
 }
 
-function formatComplianceType(type: string): string {
+function _formatComplianceType(type: string): string {
   return type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
-function formatDate(dateString: string | undefined): string {
+function _formatDate(dateString: string | undefined): string {
   if (!dateString) return 'Not set';
   return new Date(dateString).toLocaleDateString();
 }
@@ -151,7 +127,7 @@ function isOverdue(check: OffboardingComplianceCheck): boolean {
   return new Date(check.due_date) < new Date();
 }
 
-function getDaysUntilDue(check: OffboardingComplianceCheck): number | null {
+function _getDaysUntilDue(check: OffboardingComplianceCheck): number | null {
   if (!check.due_date) return null;
   const dueDate = new Date(check.due_date);
   const today = new Date();
@@ -179,12 +155,12 @@ function getGroupedChecks() {
   return groups;
 }
 
-async function handleUpdateCheck() {
+async function _handleUpdateCheck() {
   if (!selectedCheck) return;
 
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     // Check authentication
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
@@ -225,19 +201,19 @@ async function handleUpdateCheck() {
 
     if (updateError) throw updateError;
 
-    showUpdateModal = false;
+    _showUpdateModal = false;
     selectedCheck = null;
     resetUpdateForm();
     dispatch('refresh');
   } catch (err) {
     console.error('Error updating compliance check:', err);
-    error = err instanceof Error ? err.message : 'Failed to update compliance check';
+    _error = err instanceof Error ? err.message : 'Failed to update compliance check';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
-function openUpdateModal(check: OffboardingComplianceCheck) {
+function _openUpdateModal(check: OffboardingComplianceCheck) {
   selectedCheck = check;
   updateData = {
     id: check.id,
@@ -247,13 +223,13 @@ function openUpdateModal(check: OffboardingComplianceCheck) {
     verification_date: check.verification_date || '',
     waiver_reason: check.waiver_reason || '',
   };
-  showUpdateModal = true;
+  _showUpdateModal = true;
 }
 
-async function quickUpdateStatus(check: OffboardingComplianceCheck, newStatus: string) {
+async function _quickUpdateStatus(check: OffboardingComplianceCheck, newStatus: string) {
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     // Check authentication
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
@@ -280,9 +256,9 @@ async function quickUpdateStatus(check: OffboardingComplianceCheck, newStatus: s
     dispatch('refresh');
   } catch (err) {
     console.error('Error updating compliance check:', err);
-    error = err instanceof Error ? err.message : 'Failed to update compliance check';
+    _error = err instanceof Error ? err.message : 'Failed to update compliance check';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 

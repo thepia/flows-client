@@ -48,7 +48,7 @@
     "jsdom": "^26.1.0",
     "postcss": "^8.4.47",
     "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
+    "svelte-check": "^4.4.0",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
-    "@thepia/flows-auth": "file:../../../flows-auth",
+    "@thepia/flows-auth": "~1.0.14",
     "@thepia/flows-client": "workspace:*",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

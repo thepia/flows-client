@@ -1,22 +1,12 @@
 <script lang="ts">
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 import type { DemoMetrics } from '$lib/types';
-import {
-  Activity,
-  Building2,
-  CheckCircle,
-  FileText,
-  ListTodo,
-  TrendingUp,
-  Users,
-} from 'lucide-svelte';
 
 // Props
 export let metrics: DemoMetrics | null;
 export const loading: boolean = false;
 
 // Format numbers with commas
-function formatNumber(num: number): string {
+function _formatNumber(num: number): string {
   return num.toLocaleString();
 }
 

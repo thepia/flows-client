@@ -7,9 +7,9 @@
  * to resolve access control issues after the migration.
  */
 
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
@@ -39,7 +39,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 /**
  * Execute SQL directly
  */
-async function executeSql(sql) {
+async function _executeSql(sql) {
   const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
 
   if (error) {
@@ -76,7 +76,7 @@ async function fixRlsPolicies() {
         const statement = statements[i].trim();
 
         if (statement && !statement.startsWith('--') && statement !== ';') {
-          const cleanStatement = statement.endsWith(';') ? statement : statement + ';';
+          const cleanStatement = statement.endsWith(';') ? statement : `${statement};`;
 
           executeSpinner.text = `Executing statement ${i + 1}/${statements.length}`;
 

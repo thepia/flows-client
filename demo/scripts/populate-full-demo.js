@@ -7,11 +7,10 @@
  * in the Svelte UI, including employees, enrollments, documents, and tasks.
  */
 
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { config } from 'dotenv';
@@ -52,7 +51,7 @@ async function apiCall(endpoint, method = 'GET', data = null) {
   if (data && (method === 'POST' || method === 'PATCH')) {
     options.body = JSON.stringify(data);
     if (method === 'POST') {
-      options.headers['Prefer'] = 'return=representation';
+      options.headers.Prefer = 'return=representation';
     }
   }
 
@@ -526,9 +525,9 @@ function generateJWTHash(employee, appCode) {
  */
 async function createMatchingInvitations(clientId, applications, employees) {
   const appMap = {};
-  applications.forEach((app) => {
+  for (const app of applications) {
     appMap[app.app_code] = app.id;
-  });
+  }
 
   const invitationsData = [
     {
@@ -578,7 +577,7 @@ async function createMatchingInvitations(clientId, applications, employees) {
 /**
  * Main population function
  */
-async function populateFullDemo(options = {}) {
+async function populateFullDemo(_options = {}) {
   const spinner = ora('Populating comprehensive demo data...').start();
 
   try {
@@ -622,9 +621,9 @@ async function populateFullDemo(options = {}) {
     console.log(`   Invitations:  ${chalk.white(invitations.length)}`);
 
     console.log(chalk.cyan('\\n👥 Employees Created:'));
-    employees.forEach((emp) => {
+    for (const emp of employees) {
       console.log(`   • ${emp.first_name} ${emp.last_name} (${emp.position}) - ${emp.status}`);
-    });
+    }
 
     console.log(chalk.yellow('\\n🔗 Next Steps:'));
     console.log(`   1. Verify data: Check Supabase dashboard api schema`);

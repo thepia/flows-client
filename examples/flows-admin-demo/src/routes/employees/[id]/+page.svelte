@@ -1,25 +1,9 @@
 <script lang="ts">
-import { page } from '$app/stores';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { client, employees, enrollments, loadDemoData } from '$lib/stores/data';
-import type { DocumentStatus, Employee, TaskStatus } from '$lib/types';
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Download,
-  FileText,
-  Mail,
-  MapPin,
-  Phone,
-  User,
-  X,
-} from 'lucide-svelte';
+import { AlertCircle, CheckCircle, Clock, X } from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { page } from '$app/stores';
+import { employees, enrollments, loadDemoData } from '$lib/stores/data';
+import type { DocumentStatus, TaskStatus } from '$lib/types';
 
 // Load data on component mount if not already loaded
 onMount(() => {
@@ -32,7 +16,7 @@ $: employeeId = $page.params.id;
 $: employee = $employees.find((e) => e.id === employeeId);
 $: enrollment = $enrollments.find((e) => e.employeeId === employeeId);
 
-function getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) {
+function _getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) {
   switch (status) {
     case 'completed':
     case 'verified':
@@ -51,7 +35,7 @@ function getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) 
   }
 }
 
-function getStatusColor(status: DocumentStatus['status'] | TaskStatus['status']) {
+function _getStatusColor(status: DocumentStatus['status'] | TaskStatus['status']) {
   switch (status) {
     case 'completed':
     case 'verified':
@@ -70,7 +54,7 @@ function getStatusColor(status: DocumentStatus['status'] | TaskStatus['status'])
   }
 }
 
-function getPriorityColor(priority: TaskStatus['priority']) {
+function _getPriorityColor(priority: TaskStatus['priority']) {
   switch (priority) {
     case 'high':
       return 'text-red-600';
@@ -83,7 +67,7 @@ function getPriorityColor(priority: TaskStatus['priority']) {
   }
 }
 
-function formatDate(dateString: string) {
+function _formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -91,7 +75,7 @@ function formatDate(dateString: string) {
   });
 }
 
-function formatDateTime(dateString: string) {
+function _formatDateTime(dateString: string) {
   return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',

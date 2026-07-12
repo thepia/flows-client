@@ -11,7 +11,7 @@ import { browser } from '$app/environment';
  * Error reporting endpoints for different environments
  * Default to local demo server, fallback to disabled
  */
-const ERROR_REPORTING_ENDPOINTS = {
+const _ERROR_REPORTING_ENDPOINTS = {
   // Local demo server (default for development)
   localDemo: null, // Will be set dynamically to current dev server
   // Production: Intentionally not implemented yet (needs throttling/protection design)
@@ -47,7 +47,7 @@ async function checkServerHealth(endpoint) {
 
     clearTimeout(timeoutId);
     return response.ok;
-  } catch (error) {
+  } catch (_error) {
     // Return false for any error (timeout, network, etc)
     return false;
   }
