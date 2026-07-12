@@ -4,7 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests',
+  // Playwright's default file discovery matches any *.test.js/*.spec.js under
+  // testDir. tests/unit/** is vitest's domain (see vitest.config.ts) — scoping
+  // to tests/e2e keeps Playwright from also trying to load and execute those
+  // vitest-only files (which import `vitest` directly and fail outside its runner).
+  testDir: './tests/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
