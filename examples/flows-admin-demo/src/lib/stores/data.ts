@@ -1,5 +1,5 @@
+import { get, writable } from 'svelte/store';
 import { getCurrentClientId } from '$lib/utils/client-persistence';
-import { writable, get } from 'svelte/store';
 import { reportSupabaseError } from '../config/errorReporting.js';
 import { supabaseClientStore } from '../contexts/supabase-context.js';
 import type {
@@ -79,7 +79,7 @@ function transformPerson(dbPerson: any): Person {
 function transformPersonToEmployee(dbPerson: any): Employee {
   const mapToLegacyStatus = (
     employmentStatus: string | null,
-    associateStatus: string | null
+    _associateStatus: string | null
   ): string => {
     if (employmentStatus === 'active') return 'active';
     if (employmentStatus === 'former') return 'previous';
@@ -495,7 +495,7 @@ async function loadClientSpecificData(clientId: string) {
           if (!documentsMap.has(personId)) {
             documentsMap.set(personId, []);
           }
-          documentsMap.get(personId)!.push(doc);
+          documentsMap.get(personId)?.push(doc);
         });
 
         // Group tasks by person_id
@@ -504,7 +504,7 @@ async function loadClientSpecificData(clientId: string) {
           if (!tasksMap.has(personId)) {
             tasksMap.set(personId, []);
           }
-          tasksMap.get(personId)!.push(task);
+          tasksMap.get(personId)?.push(task);
         });
 
         // Build enrollment data efficiently
@@ -649,7 +649,10 @@ export async function loadDemoDataWithClient(authenticatedSupabase: any) {
       .single();
 
     if (clientError) {
-      console.error(`[loadDemoDataWithClient] Error loading client ${currentClientId}:`, clientError);
+      console.error(
+        `[loadDemoDataWithClient] Error loading client ${currentClientId}:`,
+        clientError
+      );
 
       // If it's a PGRST116 error (no rows), try the default client
       if (clientError.code === 'PGRST116') {
@@ -842,7 +845,7 @@ export function getEmployeeInvitations(employeeId: string) {
   if (employee) {
     invitations.subscribe((invitations) => {
       result = invitations.filter(
-        (inv) => inv.companyEmail === employee!.email || inv.privateEmail === employee!.email
+        (inv) => inv.companyEmail === employee?.email || inv.privateEmail === employee?.email
       );
     })();
   }
@@ -890,7 +893,7 @@ export async function createInvitation(invitationData: {
     const invitationCode = `${currentClient.code.toUpperCase()}-${Date.now()}`;
 
     // Generate JWT token with proper structure
-    const timestamp = Date.now();
+    const _timestamp = Date.now();
     const jwtPayload = {
       iss: 'api.thepia.com',
       aud: 'flows.thepia.net',

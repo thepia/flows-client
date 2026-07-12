@@ -1,6 +1,6 @@
+import { get } from 'svelte/store';
 import { reportSupabaseError } from '$lib/config/errorReporting';
 import { supabaseClientStore } from '$lib/contexts/supabase-context';
-import { get } from 'svelte/store';
 import type {
   TFCBalance,
   TFCPricingTier,

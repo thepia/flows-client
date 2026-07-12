@@ -1,29 +1,10 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Progress } from '$lib/components/ui/progress';
-import {
-  Activity,
-  AlertTriangle,
-  BarChart3,
-  Calendar,
-  CheckCircle,
-  ChevronRight,
-  Clock,
-  Target,
-  Timer,
-  TrendingUp,
-  UserCheck,
-  UserMinus,
-} from 'lucide-svelte';
-
 // Props
 export let processes = [];
 export let employees = [];
-export let onFilterByStatus = (status) => {};
-export let onFilterByTimeframe = (timeframe) => {};
-export let onViewProcess = (process) => {};
+export let onFilterByStatus = (_status) => {};
+export let onFilterByTimeframe = (_timeframe) => {};
+export let onViewProcess = (_process) => {};
 export let onCreateOffboarding = () => {};
 export let loading = false;
 
@@ -31,7 +12,7 @@ export let loading = false;
 $: stats = calculateStats(processes, employees);
 $: actionableProcesses = processes.filter((p) => needsUserAction(p)).slice(0, 5);
 
-function calculateStats(processes, employees) {
+function calculateStats(processes, _employees) {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -105,7 +86,7 @@ function needsUserAction(process) {
   );
 }
 
-function getUrgencyColor(process) {
+function _getUrgencyColor(process) {
   if (process.status === 'pending_approval') return 'border-yellow-200 bg-yellow-50';
   if (process.overdue_tasks > 0) return 'border-red-200 bg-red-50';
   if (process.priority === 'urgent') return 'border-red-200 bg-red-50';
@@ -113,7 +94,7 @@ function getUrgencyColor(process) {
   return 'border-blue-200 bg-blue-50';
 }
 
-function formatDateShort(dateString) {
+function _formatDateShort(dateString) {
   if (!dateString) return 'Not set';
   return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
@@ -121,12 +102,12 @@ function formatDateShort(dateString) {
   });
 }
 
-function getActionText(process) {
+function _getActionText(process) {
   if (process.status === 'pending_approval') return 'Needs approval';
   if (process.overdue_tasks > 0) return `${process.overdue_tasks} overdue tasks`;
   if (process.target_completion_date) {
     const daysUntil = Math.ceil(
-      (new Date(process.target_completion_date) - new Date()) / (1000 * 60 * 60 * 24)
+      (new Date(process.target_completion_date) - Date.now()) / (1000 * 60 * 60 * 24)
     );
     if (daysUntil <= 0) return 'Overdue';
     if (daysUntil <= 3) return `Due in ${daysUntil} days`;

@@ -1,14 +1,14 @@
 <script lang="ts">
+import { onMount } from 'svelte';
 import { getBrandingForClient, getBrandingLogo } from '$lib/services/brandingRegistry';
 import { client } from '$lib/stores/data';
-import { onMount } from 'svelte';
 
 // Props
 export const variant: 'square' | 'horizontal' = 'square';
 export const className: string = '';
 
-let logoUrl: string | null = null;
-let loading = true;
+let _logoUrl: string | null = null;
+let _loading = true;
 
 // Load logo when client changes
 $: if ($client) {
@@ -16,15 +16,15 @@ $: if ($client) {
 }
 
 async function loadClientLogo(clientCode: string) {
-  loading = true;
+  _loading = true;
   try {
     const brandingConfig = getBrandingForClient(clientCode);
-    logoUrl = await getBrandingLogo(brandingConfig, variant);
+    _logoUrl = await getBrandingLogo(brandingConfig, variant);
   } catch (error) {
     console.warn('Failed to load client logo:', error);
-    logoUrl = null;
+    _logoUrl = null;
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 

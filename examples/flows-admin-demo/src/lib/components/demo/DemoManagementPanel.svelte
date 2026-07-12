@@ -1,24 +1,11 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import {
-  demoCompanies,
-  demoError,
-  demoManagementStore,
-  demoMetrics,
-  isDemoLoading,
-} from '$lib/stores/demoManagement';
-import type { DemoCompany } from '$lib/types';
-import { AlertTriangle, Database, Plus, Wifi, WifiOff } from 'lucide-svelte';
 import { onMount } from 'svelte';
-import DemoActionProgress from './DemoActionProgress.svelte';
-import DemoCompanyCard from './DemoCompanyCard.svelte';
-import DemoGenerationDialog from './DemoGenerationDialog.svelte';
-import DemoMetricsDashboard from './DemoMetricsDashboard.svelte';
+import { demoCompanies, demoManagementStore } from '$lib/stores/demoManagement';
+import type { DemoCompany } from '$lib/types';
 
 // Dialog state
-let isGenerationDialogOpen = false;
-let selectedCompany: DemoCompany | null = null;
+let _isGenerationDialogOpen = false;
+let _selectedCompany: DemoCompany | null = null;
 
 // Initialize demo data on mount
 onMount(async () => {
@@ -30,15 +17,15 @@ onMount(async () => {
 });
 
 // Handle demo actions
-function handleGenerate(companyId: string) {
+function _handleGenerate(companyId: string) {
   const company = $demoCompanies.find((c) => c.id === companyId);
   if (company) {
-    selectedCompany = company;
-    isGenerationDialogOpen = true;
+    _selectedCompany = company;
+    _isGenerationDialogOpen = true;
   }
 }
 
-function handleReset(companyId: string) {
+function _handleReset(companyId: string) {
   if (
     confirm(
       'Are you sure you want to reset all demo data for this company? This action cannot be undone.'
@@ -48,24 +35,24 @@ function handleReset(companyId: string) {
   }
 }
 
-function handleEdit(companyId: string) {
+function _handleEdit(companyId: string) {
   // TODO: Implement company edit dialog
   console.log('Edit company:', companyId);
 }
 
-function handleDelete(companyId: string) {
+function _handleDelete(companyId: string) {
   if (confirm('Are you sure you want to delete this demo company? This action cannot be undone.')) {
     demoManagementStore.deleteCompany(companyId);
   }
 }
 
 // Handle generation dialog
-function closeGenerationDialog() {
-  isGenerationDialogOpen = false;
-  selectedCompany = null;
+function _closeGenerationDialog() {
+  _isGenerationDialogOpen = false;
+  _selectedCompany = null;
 }
 
-async function handleGenerateData(config: any) {
+async function _handleGenerateData(config: any) {
   try {
     await demoManagementStore.generateDemoData(config);
   } catch (error) {
@@ -74,7 +61,7 @@ async function handleGenerateData(config: any) {
 }
 
 // Clear error
-function clearError() {
+function _clearError() {
   demoManagementStore.clearError();
 }
 </script>

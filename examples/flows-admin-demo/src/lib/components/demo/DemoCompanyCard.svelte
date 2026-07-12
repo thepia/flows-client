@@ -1,20 +1,6 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-svelte';
 import type { DemoCompany } from '$lib/types';
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Edit,
-  Loader2,
-  Play,
-  RotateCcw,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from 'lucide-svelte';
 
 // Props
 export let company: DemoCompany;
@@ -37,7 +23,7 @@ function getStatusDisplay(status: DemoCompany['generationStatus']) {
   }
 }
 
-function getComplexityColor(complexity: string) {
+function _getComplexityColor(complexity: string) {
   switch (complexity) {
     case 'simple':
       return 'bg-green-100 text-green-800';
@@ -48,7 +34,7 @@ function getComplexityColor(complexity: string) {
   }
 }
 
-function getDemoTypeColor(type: string) {
+function _getDemoTypeColor(type: string) {
   switch (type) {
     case 'prospect':
       return 'bg-purple-100 text-purple-800';

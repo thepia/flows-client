@@ -1,9 +1,9 @@
 /**
  * Flows DB - Svelte Entry Point
- * 
+ *
  * This entry point provides Svelte-specific utilities for @thepia/flows-client.
  * Only import this in Svelte applications.
- * 
+ *
  * For framework-agnostic utilities, use the main entry point:
  * import { ... } from '@thepia/flows-client'
  */
@@ -13,6 +13,6 @@ export * from './index.ts';
 
 // Export Svelte-specific utilities
 export {
-	createSvelteReactiveSupabaseClient,
-	getSvelteFlowsSupabaseFromContext
+  createSvelteReactiveSupabaseClient,
+  getSvelteFlowsSupabaseFromContext,
 } from './lib/supabase-svelte.ts';

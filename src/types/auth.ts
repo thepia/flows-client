@@ -15,36 +15,35 @@ import type { SessionData, UserData } from '@thepia/flows-auth/types';
 // Re-export for convenience
 export type { SessionData, UserData };
 
-
 /**
  * Auth procedures for RPC calls
  */
 export interface AuthProcedures {
-	'auth.saveSession': {
-		input: Partial<SessionData>;
-		output: SessionData;
-	};
-	'auth.getSession': {
-		input: undefined;
-		output: SessionData | null;
-	};
-	'auth.clearSession': {
-		input: undefined;
-		// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-		output: void;
-	};
-	'auth.saveUser': {
-		input: UserData;
-		// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-		output: void;
-	};
-	'auth.getUser': {
-		input: string | undefined; // userId (optional - get current user if not provided)
-		output: UserData | null;
-	};
-	'auth.clearUser': {
-		input: string | undefined; // userId (optional - clear all or current user if not provided)
-		// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-		output: void;
-	};
+  'auth.saveSession': {
+    input: Partial<SessionData>;
+    output: SessionData;
+  };
+  'auth.getSession': {
+    input: undefined;
+    output: SessionData | null;
+  };
+  'auth.clearSession': {
+    input: undefined;
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+    output: void;
+  };
+  'auth.saveUser': {
+    input: UserData;
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+    output: void;
+  };
+  'auth.getUser': {
+    input: string | undefined; // userId (optional - get current user if not provided)
+    output: UserData | null;
+  };
+  'auth.clearUser': {
+    input: string | undefined; // userId (optional - clear all or current user if not provided)
+    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+    output: void;
+  };
 }

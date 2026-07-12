@@ -4,13 +4,13 @@
   Current: 1,462 lines → Target: ~100 lines
 -->
 <script lang="ts">
+import { onMount } from 'svelte';
 import FloatingStatusButton from '$lib/components/FloatingStatusButton.svelte';
-import TabContentRouter from '$lib/components/TabContentRouter.svelte';
 import AppNavigation from '$lib/components/navigation/AppNavigation.svelte';
+import TabContentRouter from '$lib/components/TabContentRouter.svelte';
 import { useTabNavigation } from '$lib/composables/useTabNavigation';
 import { applications, applicationsActions } from '$lib/stores/applications.store';
 import { client } from '$lib/stores/data';
-import { onMount } from 'svelte';
 
 // Initialize navigation composable
 const { activeTab, selectedApp, navigateToTab } = useTabNavigation(applications);

@@ -7,7 +7,7 @@
  * including purchases, usage, balances, contacts, and invoices
  */
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 
@@ -464,7 +464,7 @@ async function generatePurchaseHistory(clientId, config, primaryContact, billing
 }
 
 // Generate TFC usage history
-async function generateUsageHistory(clientId, config, purchases) {
+async function generateUsageHistory(clientId, config, _purchases) {
   console.log('Generating TFC usage history...');
 
   const usageTransactions = [];
@@ -595,7 +595,7 @@ async function generateInvoices(clientId, config, billingContact) {
   // Create monthly invoices
   for (const [monthKey, monthPayments] of Object.entries(paymentsByMonth)) {
     const [year, month] = monthKey.split('-');
-    const invoiceDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 15); // Mid-month
+    const invoiceDate = new Date(Number.parseInt(year, 10), Number.parseInt(month, 10) - 1, 15); // Mid-month
 
     const lineItems = monthPayments.map((payment) => ({
       description: payment.payment_description,

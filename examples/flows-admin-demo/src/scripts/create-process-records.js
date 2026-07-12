@@ -1,6 +1,7 @@
 // Create process records directly in the demo app
-import { supabaseClientStore } from '../lib/contexts/supabase-context';
+
 import { get } from 'svelte/store';
+import { supabaseClientStore } from '../lib/contexts/supabase-context';
 
 // Get current Supabase client from store
 function getCurrentSupabaseClient() {

@@ -1,8 +1,5 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 import type { DemoCompany, DemoGenerationConfig } from '$lib/types';
-import { FileText, ListTodo, Settings, Users, X, Zap } from 'lucide-svelte';
 
 // Props
 export const company: DemoCompany | null = null;
@@ -39,7 +36,7 @@ $: if (company) {
 }
 
 // Handle generation
-async function handleGenerate() {
+async function _handleGenerate() {
   if (!company || isGenerating) return;
 
   isGenerating = true;
@@ -64,7 +61,7 @@ $: estimatedMinutes = Math.round(
 );
 
 // Get complexity description
-function getComplexityDescription(complexity: string) {
+function _getComplexityDescription(complexity: string) {
   switch (complexity) {
     case 'simple':
       return 'Basic employee profiles with standard processes';

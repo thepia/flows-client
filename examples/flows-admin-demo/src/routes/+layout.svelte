@@ -1,9 +1,8 @@
 <script lang="ts">
-import { page } from '$app/stores';
 import { onMount } from 'svelte';
 import { browser } from '$app/environment';
+import { page } from '$app/stores';
 import '../app.pcss';
-import AppHeader from '$lib/components/layout/AppHeader.svelte';
 import { setupAuthContext } from '@thepia/flows-auth';
 import '@thepia/flows-auth/style.css';
 import { FlowsClient } from '@thepia/flows-client';
@@ -30,7 +29,7 @@ const authConfig = {
     // primaryColor: '#3b82f6'
   },
   // Automatic session persistence via flows-client service worker
-  database: flowsDB.session
+  database: flowsDB.session,
 };
 
 const authStore = setupAuthContext(authConfig);
@@ -57,7 +56,9 @@ onMount(async () => {
     const { initializeStoreBridge } = await import('../lib/stores/store-bridge');
     initializeStoreBridge();
 
-    console.log('[Admin Demo] Application initialized with error reporting, store bridge, and auth');
+    console.log(
+      '[Admin Demo] Application initialized with error reporting, store bridge, and auth'
+    );
   } catch (error) {
     console.error('[Admin Demo] Failed to initialize application:', error);
   }

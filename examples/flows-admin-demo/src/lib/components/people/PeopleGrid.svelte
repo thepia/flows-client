@@ -1,8 +1,4 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { EmployeeCard } from '$lib/components/employee';
-import PeopleEmptyState from './PeopleEmptyState.svelte';
-
 export let people: any[];
 export let loading: boolean = false;
 export let hasActiveFilters: boolean = false;

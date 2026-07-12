@@ -1,6 +1,4 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Loader2, Users } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
 
 export let currentCount: number;
@@ -10,12 +8,12 @@ export let hasNextPage: boolean = false;
 export let loading: boolean = false;
 
 const dispatch = createEventDispatcher<{
-  loadMore: void;
+  loadMore: undefined;
 }>();
 
 $: shouldShowLoadMore = totalCount > currentCount && hasNextPage;
 
-function handleLoadMore() {
+function _handleLoadMore() {
   dispatch('loadMore');
 }
 </script>

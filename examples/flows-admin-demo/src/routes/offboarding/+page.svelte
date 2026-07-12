@@ -1,9 +1,5 @@
 <script lang="ts">
-import EmployeeDirectory from '$lib/components/employee/EmployeeDirectory.svelte';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { employees, loading } from '$lib/stores/data';
-import { Plus, UserMinus, Users } from 'lucide-svelte';
+import { employees } from '$lib/stores/data';
 
 // Filter employees who are leaving (status: previous) or in offboarding process
 $: offboardingEmployees = $employees.filter(

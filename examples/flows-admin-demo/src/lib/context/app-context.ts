@@ -1,5 +1,5 @@
-import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 interface AppEnvironment {
   mode: 'demo' | 'development' | 'production';

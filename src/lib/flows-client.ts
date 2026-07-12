@@ -8,398 +8,401 @@
  */
 
 // TYPES ONLY imports from flows-auth - no runtime code
-import type { SessionPersistence, SessionData, UserData } from '@thepia/flows-auth/types';
+import type { SessionData, SessionPersistence, UserData } from '@thepia/flows-auth/types';
 
 import type {
-	FlowsProcedures,
-	ProcedureInput,
-	ProcedureOutput,
-	TransportMessage,
-	WebAppStatePayload
+  BackgroundMaterial,
+  FlowsProcedures,
+  ProcedureInput,
+  ProcedureOutput,
+  TransportMessage,
+  WebAppStatePayload,
 } from '../types/index';
 
+// DETECTION: Check for ThepiaApp (WebKit message handlers)
+export const hasThepiaWebKit =
+  typeof window !== 'undefined' &&
+  window.webkit?.messageHandlers?.thepia?.postMessage !== undefined;
+
 export interface FlowsTenantConfig {
-	/**
-	 * Path to the service worker file (browser mode only)
-	 * @default '/flows-sw.js'
-	 */
-	serviceWorkerUrl?: string;
+  /**
+   * Path to the service worker file (browser mode only)
+   * @default '/flows-sw.js'
+   */
+  serviceWorkerUrl?: string;
 
-	/**
-	 * Service worker scope (browser mode only)
-	 * @default '/'
-	 */
-	scope?: string;
+  /**
+   * Service worker scope (browser mode only)
+   * @default '/'
+   */
+  scope?: string;
 
-	/**
-	 * Whether to log debug messages
-	 * @default false
-	 */
-	debug?: boolean;
+  /**
+   * Whether to log debug messages
+   * @default false
+   */
+  debug?: boolean;
 
-	/**
-	 * Element (or CSS selector) to observe for content height changes.
-	 * Use this to avoid measuring body, which is polluted by min-height and navigation transitions.
-	 * @default document.body
-	 * @example '#svelte'
-	 */
-	contentElement?: string | Element;
+  /**
+   * Element (or CSS selector) to observe for content height changes.
+   * Use this to avoid measuring body, which is polluted by min-height and navigation transitions.
+   * @default document.body
+   * @example '#svelte'
+   */
+  contentElement?: string | Element;
 }
 
+// function detectNative(): boolean {
+//   return typeof window !== 'undefined'
+//     && !!window.webkit?.messageHandlers?.thepia?.postMessage;
+// }
+
 export class FlowsClient {
-	private registration: ServiceWorkerRegistration | null = null;
-	private nativeBridge: NativeAppBridge | null = null;
-	private isNativeApp: boolean = false;
-	private ready: Promise<void>;
-	private config: Required<Omit<FlowsTenantConfig, 'contentElement'>>;
-	private readonly contentElementConfig: string | Element | undefined;
-	private heightObserver: ResizeObserver | null = null;
-	private heightDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-	private lastSentHeight: number | null = null;
-	private lastSentTime: number = 0;
-	private currentPageHeight: WebAppStatePayload['pageHeight'] | null = null;
+  private registration: ServiceWorkerRegistration | null = null;
+  private nativeBridge: NativeAppBridge | null = null;
+  readonly isNativeApp = hasThepiaWebKit;
+  private ready: Promise<void>;
+  private config: Required<Omit<FlowsTenantConfig, 'contentElement'>>;
+  private readonly contentElementConfig: string | Element | undefined;
+  private heightObserver: ResizeObserver | null = null;
+  private heightDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastSentHeight: number | null = null;
+  private lastSentTime: number = 0;
+  private currentPageHeight: WebAppStatePayload['pageHeight'] | null = null;
 
-	constructor(config: FlowsTenantConfig = {}) {
-		this.config = {
-			serviceWorkerUrl: config.serviceWorkerUrl || '/flows-sw.js',
-			scope: config.scope || '/',
-			debug: config.debug || false
-		};
-		this.contentElementConfig = config.contentElement;
+  constructor(config: FlowsTenantConfig = {}) {
+    this.config = {
+      serviceWorkerUrl: config.serviceWorkerUrl || '/flows-sw.js',
+      scope: config.scope || '/',
+      debug: config.debug || false,
+    };
+    this.contentElementConfig = config.contentElement;
+    this.ready = this.init();
+  }
 
-		this.ready = this.init();
-	}
+  private log(...args: unknown[]): void {
+    if (this.config.debug) {
+      console.log('[FlowsClient]', ...args);
+    }
+  }
 
-	private log(...args: unknown[]): void {
-		if (this.config.debug) {
-			console.log('[FlowsClient]', ...args);
-		}
-	}
+  private async init(): Promise<void> {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      // Skip initialization during SSR
+      return;
+    }
 
-	private async init(): Promise<void> {
-		// Check if we're in a browser environment
-		if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-			// Skip initialization during SSR
-			return;
-		}
+    if (this.isNativeApp) {
+      // Running in native ThepiaApp
+      this.nativeBridge = new NativeAppBridge();
+      this.log('Running in ThepiaApp - using native message handlers');
 
-		// DETECTION: Check for ThepiaApp (WebKit message handlers)
-		const hasThepiaWebKit =
-			typeof window !== 'undefined' &&
-			window.webkit?.messageHandlers?.thepia?.postMessage !== undefined;
+      // Ping native app to verify connectivity and get initial context
+      try {
+        const pingResult = await this.nativeBridge.sendMessage<{ pageHeight?: string }>(
+          'ping',
+          undefined
+        );
+        if (pingResult?.pageHeight) {
+          this.currentPageHeight = pingResult.pageHeight as WebAppStatePayload['pageHeight'];
+          this.log('Initial pageHeight from native:', this.currentPageHeight);
+        }
+        this.log('Successfully connected to native app');
+      } catch (error) {
+        this.log('Warning: Failed to connect to native app:', error);
+        throw new Error('Failed to connect to native app');
+      }
 
-		if (hasThepiaWebKit) {
-			// Running in native ThepiaApp
-			this.isNativeApp = true;
-			this.nativeBridge = new NativeAppBridge();
-			this.log('Running in ThepiaApp - using native message handlers');
+      this.startHeightObserver();
+      return; // Done - no ServiceWorker needed
+    }
 
-			// Ping native app to verify connectivity and get initial context
-			try {
-				const pingResult = await this.nativeBridge.sendMessage<{ pageHeight?: string }>('ping', undefined);
-				if (pingResult?.pageHeight) {
-					this.currentPageHeight = pingResult.pageHeight as WebAppStatePayload['pageHeight'];
-					this.log('Initial pageHeight from native:', this.currentPageHeight);
-				}
-				this.log('Successfully connected to native app');
-			} catch (error) {
-				this.log('Warning: Failed to connect to native app:', error);
-				throw new Error('Failed to connect to native app');
-			}
+    // Not in native app - use ServiceWorker
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('Service Workers not supported in this browser');
+    }
 
-			this.startHeightObserver();
-			return; // Done - no ServiceWorker needed
-		}
+    // Register service worker
+    this.log('Running in browser - registering ServiceWorker');
+    this.registration = await navigator.serviceWorker.register(this.config.serviceWorkerUrl, {
+      scope: this.config.scope,
+    });
 
-		// Not in native app - use ServiceWorker
-		if (!('serviceWorker' in navigator)) {
-			throw new Error('Service Workers not supported in this browser');
-		}
+    // Wait for service worker to be ready
+    this.log('Waiting for service worker to be ready...');
+    await navigator.serviceWorker.ready;
 
-		// Register service worker
-		this.log('Running in browser - registering ServiceWorker');
-		this.registration = await navigator.serviceWorker.register(
-			this.config.serviceWorkerUrl,
-			{
-				scope: this.config.scope
-			}
-		);
+    this.log('Service Worker registered and ready');
+  }
 
-		// Wait for service worker to be ready
-		this.log('Waiting for service worker to be ready...');
-		await navigator.serviceWorker.ready;
+  /**
+   * Call a procedure - automatically uses native bridge or service worker
+   */
+  private async call<P extends keyof FlowsProcedures>(
+    procedure: P,
+    input: ProcedureInput<P>
+  ): Promise<ProcedureOutput<P>> {
+    await this.ready;
 
-		this.log('Service Worker registered and ready');
-	}
+    // CONDITIONAL: Use native bridge if in ThepiaApp
+    if (this.isNativeApp && this.nativeBridge) {
+      return await this.nativeBridge.sendMessage(procedure, input);
+    }
 
-	/**
-	 * Call a procedure - automatically uses native bridge or service worker
-	 */
-	private async call<P extends keyof FlowsProcedures>(
-		procedure: P,
-		input: ProcedureInput<P>
-	): Promise<ProcedureOutput<P>> {
-		await this.ready;
+    // Otherwise use ServiceWorker
+    const worker = this.registration?.active || navigator.serviceWorker.controller;
+    if (!worker) {
+      throw new Error('No active service worker');
+    }
 
-		// CONDITIONAL: Use native bridge if in ThepiaApp
-		if (this.isNativeApp && this.nativeBridge) {
-			return await this.nativeBridge.sendMessage(procedure, input);
-		}
+    return new Promise((resolve, reject) => {
+      const messageChannel = new MessageChannel();
+      const requestId = crypto.randomUUID();
 
-		// Otherwise use ServiceWorker
-		const worker = this.registration?.active || navigator.serviceWorker.controller;
-		if (!worker) {
-			throw new Error('No active service worker');
-		}
+      messageChannel.port1.onmessage = (event) => {
+        const response: TransportMessage = event.data;
 
-		return new Promise((resolve, reject) => {
-			const messageChannel = new MessageChannel();
-			const requestId = crypto.randomUUID();
+        if (response.error) {
+          reject(new Error(response.error.message));
+        } else {
+          resolve(response.payload as ProcedureOutput<P>);
+        }
+      };
 
-			messageChannel.port1.onmessage = (event) => {
-				const response: TransportMessage = event.data;
+      const message: TransportMessage = {
+        id: requestId,
+        type: 'request',
+        procedure,
+        payload: input,
+      };
 
-				if (response.error) {
-					reject(new Error(response.error.message));
-				} else {
-					resolve(response.payload as ProcedureOutput<P>);
-				}
-			};
+      worker.postMessage(message, [messageChannel.port2]);
+    });
+  }
 
-			const message: TransportMessage = {
-				id: requestId,
-				type: 'request',
-				procedure,
-				payload: input
-			};
+  private startHeightObserver(): void {
+    if (typeof ResizeObserver === 'undefined' || typeof document === 'undefined') return;
 
-			worker.postMessage(message, [messageChannel.port2]);
-		});
-	}
+    const target =
+      typeof this.contentElementConfig === 'string'
+        ? (document.querySelector(this.contentElementConfig) ?? document.body)
+        : (this.contentElementConfig ?? document.body);
 
-	private startHeightObserver(): void {
-		if (typeof ResizeObserver === 'undefined' || typeof document === 'undefined') return;
+    this.log('contentHeight observer target:', target);
 
-		const target =
-			typeof this.contentElementConfig === 'string'
-				? document.querySelector(this.contentElementConfig) ?? document.body
-				: (this.contentElementConfig ?? document.body);
+    this.heightObserver = new ResizeObserver(([entry]) => {
+      const height = Math.ceil(entry.contentRect.height);
+      if (height === this.lastSentHeight) return;
 
-		this.log('contentHeight observer target:', target);
+      if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
 
-		this.heightObserver = new ResizeObserver(([entry]) => {
-			const height = Math.ceil(entry.contentRect.height);
-			if (height === this.lastSentHeight) return;
+      const elapsed = Date.now() - this.lastSentTime;
+      if (elapsed >= 50) {
+        this.lastSentHeight = height;
+        this.lastSentTime = Date.now();
+        this.log('contentHeight send (immediate):', height);
+        this.notifyNativeAppState({ contentHeight: height });
+      } else {
+        // In cooldown — schedule trailing send with remaining time
+        this.heightDebounceTimer = setTimeout(() => {
+          if (height !== this.lastSentHeight) {
+            this.lastSentHeight = height;
+            this.lastSentTime = Date.now();
+            this.log('contentHeight send (trailing):', height);
+            this.notifyNativeAppState({ contentHeight: height });
+          }
+        }, 50 - elapsed);
+      }
+    });
 
-			if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
+    this.heightObserver.observe(target);
+  }
 
-			const elapsed = Date.now() - this.lastSentTime;
-			if (elapsed >= 50) {
-				this.lastSentHeight = height;
-				this.lastSentTime = Date.now();
-				this.log('contentHeight send (immediate):', height);
-				this.notifyNativeAppState({ contentHeight: height });
-			} else {
-				// In cooldown — schedule trailing send with remaining time
-				this.heightDebounceTimer = setTimeout(() => {
-					if (height !== this.lastSentHeight) {
-						this.lastSentHeight = height;
-						this.lastSentTime = Date.now();
-						this.log('contentHeight send (trailing):', height);
-						this.notifyNativeAppState({ contentHeight: height });
-					}
-				}, 50 - elapsed);
-			}
-		});
+  destroy(): void {
+    if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
+    this.heightObserver?.disconnect();
+    this.nativeBridge?.cleanup();
+  }
 
-		this.heightObserver.observe(target);
-	}
+  get camera() {
+    if (!this.isNativeApp || !this.nativeBridge) {
+      console.debug(
+        '[FlowsClient] camera: not in native app — returning null (media path expected)'
+      );
+      return null;
+    }
+    console.debug('[FlowsClient] camera: native path available');
+    return {
+      mountPreview: (input: ProcedureInput<'camera.mountPreview'>) => {
+        console.debug('[FlowsClient] camera.mountPreview (native)', input);
+        return this.call('camera.mountPreview', input);
+      },
+      unmountPreview: () => {
+        console.debug('[FlowsClient] camera.unmountPreview (native)');
+        return this.call('camera.unmountPreview', undefined);
+      },
+      startRecording: (input?: ProcedureInput<'camera.startRecording'>) => {
+        console.debug('[FlowsClient] camera.startRecording (native)', input);
+        return this.call('camera.startRecording', input);
+      },
+      stopRecording: () => {
+        console.debug('[FlowsClient] camera.stopRecording (native)');
+        return this.call('camera.stopRecording', undefined);
+      },
+      capture: () => {
+        console.debug('[FlowsClient] camera.capture (native)');
+        return this.call('camera.capture', undefined);
+      },
+      listDevices: () => {
+        console.debug('[FlowsClient] camera.listDevices (native)');
+        return this.call('camera.listDevices', undefined);
+      },
+      selectDevice: (id: string) => {
+        console.debug('[FlowsClient] camera.selectDevice (native)', id);
+        return this.call('camera.selectDevice', id);
+      },
+    };
+  }
 
-	destroy(): void {
-		if (this.heightDebounceTimer) clearTimeout(this.heightDebounceTimer);
-		this.heightObserver?.disconnect();
-		this.nativeBridge?.cleanup();
-	}
+  /**
+   * Query procedures
+   */
+  get query() {
+    return {
+      journeys: (input: ProcedureInput<'query.journeys'>) => this.call('query.journeys', input),
 
-	get camera() {
-		if (!this.isNativeApp || !this.nativeBridge) {
-			console.debug('[FlowsClient] camera: not in native app — returning null (media path expected)');
-			return null;
-		}
-		console.debug('[FlowsClient] camera: native path available');
-		return {
-			mountPreview: (input: ProcedureInput<'camera.mountPreview'>) => {
-				console.debug('[FlowsClient] camera.mountPreview (native)', input);
-				return this.call('camera.mountPreview', input);
-			},
-			unmountPreview: () => {
-				console.debug('[FlowsClient] camera.unmountPreview (native)');
-				return this.call('camera.unmountPreview', undefined);
-			},
-			startRecording: (input?: ProcedureInput<'camera.startRecording'>) => {
-				console.debug('[FlowsClient] camera.startRecording (native)', input);
-				return this.call('camera.startRecording', input);
-			},
-			stopRecording: () => {
-				console.debug('[FlowsClient] camera.stopRecording (native)');
-				return this.call('camera.stopRecording', undefined);
-			},
-			capture: () => {
-				console.debug('[FlowsClient] camera.capture (native)');
-				return this.call('camera.capture', undefined);
-			},
-			listDevices: () => {
-				console.debug('[FlowsClient] camera.listDevices (native)');
-				return this.call('camera.listDevices', undefined);
-			},
-			selectDevice: (id: string) => {
-				console.debug('[FlowsClient] camera.selectDevice (native)', id);
-				return this.call('camera.selectDevice', id);
-			},
-		};
-	}
+      journeyById: (input: ProcedureInput<'query.journeyById'>) =>
+        this.call('query.journeyById', input),
 
+      tasks: (input: ProcedureInput<'query.tasks'>) => this.call('query.tasks', input),
 
-	/**
-	 * Query procedures
-	 */
-	get query() {
-		return {
-			journeys: (input: ProcedureInput<'query.journeys'>) =>
-				this.call('query.journeys', input),
+      tasksByJourney: (input: ProcedureInput<'query.tasksByJourney'>) =>
+        this.call('query.tasksByJourney', input),
 
-			journeyById: (input: ProcedureInput<'query.journeyById'>) =>
-				this.call('query.journeyById', input),
+      evidence: (input: ProcedureInput<'query.evidence'>) => this.call('query.evidence', input),
 
-			tasks: (input: ProcedureInput<'query.tasks'>) => this.call('query.tasks', input),
+      evidenceByTask: (input: ProcedureInput<'query.evidenceByTask'>) =>
+        this.call('query.evidenceByTask', input),
+    };
+  }
 
-			tasksByJourney: (input: ProcedureInput<'query.tasksByJourney'>) =>
-				this.call('query.tasksByJourney', input),
+  /**
+   * Mutation procedures
+   */
+  get mutation() {
+    return {
+      insertJourney: (input: ProcedureInput<'mutation.insertJourney'>) =>
+        this.call('mutation.insertJourney', input),
 
-			evidence: (input: ProcedureInput<'query.evidence'>) =>
-				this.call('query.evidence', input),
+      updateJourney: (input: ProcedureInput<'mutation.updateJourney'>) =>
+        this.call('mutation.updateJourney', input),
 
-			evidenceByTask: (input: ProcedureInput<'query.evidenceByTask'>) =>
-				this.call('query.evidenceByTask', input)
-		};
-	}
+      deleteJourney: (input: ProcedureInput<'mutation.deleteJourney'>) =>
+        this.call('mutation.deleteJourney', input),
 
-	/**
-	 * Mutation procedures
-	 */
-	get mutation() {
-		return {
-			insertJourney: (input: ProcedureInput<'mutation.insertJourney'>) =>
-				this.call('mutation.insertJourney', input),
+      insertTask: (input: ProcedureInput<'mutation.insertTask'>) =>
+        this.call('mutation.insertTask', input),
 
-			updateJourney: (input: ProcedureInput<'mutation.updateJourney'>) =>
-				this.call('mutation.updateJourney', input),
+      updateTask: (input: ProcedureInput<'mutation.updateTask'>) =>
+        this.call('mutation.updateTask', input),
+    };
+  }
 
-			deleteJourney: (input: ProcedureInput<'mutation.deleteJourney'>) =>
-				this.call('mutation.deleteJourney', input),
+  /**
+   * Sync procedures
+   */
+  get sync() {
+    return {
+      status: (input: ProcedureInput<'sync.status'>) => this.call('sync.status', input),
+    };
+  }
 
-			insertTask: (input: ProcedureInput<'mutation.insertTask'>) =>
-				this.call('mutation.insertTask', input),
+  /**
+   * Session management procedures
+   * Implements SessionPersistence interface from @thepia/flows-auth (TYPES ONLY)
+   *
+   * @returns {SessionPersistence} Session persistence adapter that stores data in IndexedDB via Service Worker
+   */
+  get session(): SessionPersistence {
+    return {
+      saveSession: async (session: Partial<SessionData>): Promise<SessionData> => {
+        return await this.call('auth.saveSession', session);
+      },
 
-			updateTask: (input: ProcedureInput<'mutation.updateTask'>) =>
-				this.call('mutation.updateTask', input)
-		};
-	}
+      loadSession: async (): Promise<SessionData | null> => {
+        return await this.call('auth.getSession', undefined);
+      },
 
-	/**
-	 * Sync procedures
-	 */
-	get sync() {
-		return {
-			status: (input: ProcedureInput<'sync.status'>) => this.call('sync.status', input)
-		};
-	}
+      clearSession: async (): Promise<void> => {
+        await this.call('auth.clearSession', undefined);
+      },
 
-	/**
-	 * Session management procedures
-	 * Implements SessionPersistence interface from @thepia/flows-auth (TYPES ONLY)
-	 *
-	 * @returns {SessionPersistence} Session persistence adapter that stores data in IndexedDB via Service Worker
-	 */
-	get session(): SessionPersistence {
-		return {
-			saveSession: async (session: Partial<SessionData>): Promise<SessionData> => {
-				return await this.call('auth.saveSession', session);
-			},
+      saveUser: async (user: UserData): Promise<void> => {
+        await this.call('auth.saveUser', user);
+      },
 
-			loadSession: async (): Promise<SessionData | null> => {
-				return await this.call('auth.getSession', undefined);
-			},
+      getUser: async (userId?: string): Promise<UserData | null> => {
+        return await this.call('auth.getUser', userId);
+      },
 
-			clearSession: async (): Promise<void> => {
-				await this.call('auth.clearSession', undefined);
-			},
+      clearUser: async (userId?: string): Promise<void> => {
+        await this.call('auth.clearUser', userId);
+      },
+    };
+  }
 
-			saveUser: async (user: UserData): Promise<void> => {
-				await this.call('auth.saveUser', user);
-			},
+  /**
+   * Update user metadata in IndexedDB (targeted update)
+   * Broadcasts update to all tabs via BroadcastChannel
+   */
+  async updateUserMetadata(userId: string, metadata: Record<string, unknown>): Promise<void> {
+    await this.call('auth.updateUserMetadata', { userId, metadata });
+  }
 
-			getUser: async (userId?: string): Promise<UserData | null> => {
-				return await this.call('auth.getUser', userId);
-			},
+  /**
+   * Patch user metadata via API with atomic server-side merge
+   * Service Worker makes the API request, updates IndexedDB, and broadcasts to all tabs
+   *
+   * @param userId - The user ID
+   * @param patch - The metadata patch to apply
+   * @param appCode - The app code for the API endpoint
+   * @param token - The Bearer token for authentication
+   * @returns The updated metadata from the server
+   */
+  async patchMetadata(
+    userId: string,
+    patch: Record<string, unknown>,
+    appCode: string,
+    token: string
+  ): Promise<Record<string, unknown>> {
+    return await this.call('auth.patchMetadata', { userId, patch, appCode, token });
+  }
 
-			clearUser: async (userId?: string): Promise<void> => {
-				await this.call('auth.clearUser', userId);
-			}
-		};
-	}
+  /**
+   * Notify native app of web app state changes
+   * Fire-and-forget notification (no response expected)
+   * Only sends in native app context, silently ignored in browser
+   *
+   * @param payload - The state update payload
+   */
+  async notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
+    if (!this.isNativeApp || !this.nativeBridge) {
+      this.log('notifyNativeAppState: Not in native app, ignoring');
+      return;
+    }
 
-	/**
-	 * Update user metadata in IndexedDB (targeted update)
-	 * Broadcasts update to all tabs via BroadcastChannel
-	 */
-	async updateUserMetadata(userId: string, metadata: Record<string, unknown>): Promise<void> {
-		await this.call('auth.updateUserMetadata', { userId, metadata });
-	}
+    if (payload.pageHeight !== undefined) {
+      this.currentPageHeight = payload.pageHeight;
+    }
 
-	/**
-	 * Patch user metadata via API with atomic server-side merge
-	 * Service Worker makes the API request, updates IndexedDB, and broadcasts to all tabs
-	 *
-	 * @param userId - The user ID
-	 * @param patch - The metadata patch to apply
-	 * @param appCode - The app code for the API endpoint
-	 * @param token - The Bearer token for authentication
-	 * @returns The updated metadata from the server
-	 */
-	async patchMetadata(
-		userId: string,
-		patch: Record<string, unknown>,
-		appCode: string,
-		token: string
-	): Promise<Record<string, unknown>> {
-		return await this.call('auth.patchMetadata', { userId, patch, appCode, token });
-	}
-
-	/**
-	 * Notify native app of web app state changes
-	 * Fire-and-forget notification (no response expected)
-	 * Only sends in native app context, silently ignored in browser
-	 *
-	 * @param payload - The state update payload
-	 */
-	async notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
-		if (!this.isNativeApp || !this.nativeBridge) {
-			this.log('notifyNativeAppState: Not in native app, ignoring');
-			return;
-		}
-
-		if (payload.pageHeight !== undefined) {
-			this.currentPageHeight = payload.pageHeight;
-		}
-
-		try {
-			await this.nativeBridge.sendMessage('webapp_state', payload);
-		} catch (error) {
-			// Log but don't throw - state notifications are best-effort
-			this.log('notifyNativeAppState: Failed to send state update', error);
-		}
-	}
+    try {
+      await this.nativeBridge.sendMessage('webapp_state', payload);
+    } catch (error) {
+      // Log but don't throw - state notifications are best-effort
+      this.log('notifyNativeAppState: Failed to send state update', error);
+    }
+  }
 }
 
 // Singleton instance
@@ -409,17 +412,17 @@ let instance: FlowsClient | null = null;
  * Get or create the singleton FlowsClient instance
  */
 export function getFlowsClient(config?: FlowsTenantConfig): FlowsClient {
-	if (!instance) {
-		instance = new FlowsClient(config);
-	}
-	return instance;
+  if (!instance) {
+    instance = new FlowsClient(config);
+  }
+  return instance;
 }
 
 /**
  * Reset the singleton instance (useful for testing)
  */
 export function resetFlowsClient(): void {
-	instance = null;
+  instance = null;
 }
 
 /**
@@ -429,22 +432,39 @@ export function resetFlowsClient(): void {
  * @param payload - The state update payload
  */
 export async function notifyNativeAppState(payload: WebAppStatePayload): Promise<void> {
-	return getFlowsClient().notifyNativeAppState(payload);
+  return getFlowsClient().notifyNativeAppState(payload);
 }
 
 // Export IndexedDB constants for direct database access
 export { INDEXEDDB_NAME, INDEXEDDB_VERSION } from '../constants';
+
+export async function updatePageBackground(
+  url: string | null,
+  material: BackgroundMaterial
+): Promise<void> {
+  const client = getFlowsClient();
+  if (hasThepiaWebKit) {
+    const payload: WebAppStatePayload = {
+      cameraBackground: { url: url ? new URL(url, window.location.origin).toString() : null },
+      backgroundMaterial: material,
+    };
+    return await client.notifyNativeAppState(payload);
+  }
+  document.body.style.backgroundImage = `url(${url})`;
+  // set body background
+  return Promise.resolve();
+}
 
 /**
  * JWT Utilities
  */
 
 export interface JWTPayload {
-	sub?: string;
-	email?: string;
-	role?: string;
-	user_metadata?: Record<string, any>;
-	[key: string]: any;
+  sub?: string;
+  email?: string;
+  role?: string;
+  user_metadata?: Record<string, any>;
+  [key: string]: any;
 }
 
 /**
@@ -453,22 +473,22 @@ export interface JWTPayload {
  * @returns The decoded payload or null if invalid
  */
 export function decodeJWTPayload(token: string): JWTPayload | null {
-	if (!token || typeof token !== 'string') {
-		return null;
-	}
+  if (!token || typeof token !== 'string') {
+    return null;
+  }
 
-	try {
-		const parts = token.split('.');
-		if (parts.length !== 3) {
-			return null;
-		}
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
 
-		const payload = parts[1];
-		const decoded = atob(payload);
-		return JSON.parse(decoded);
-	} catch {
-		return null;
-	}
+    const payload = parts[1];
+    const decoded = atob(payload);
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -476,119 +496,118 @@ export function decodeJWTPayload(token: string): JWTPayload | null {
  * Similar pattern to flows-auth native-app-session-adapter
  */
 class NativeAppBridge {
-	private pendingRequests = new Map<
-		string,
-		{
-			resolve: (value: any) => void;
-			reject: (error: Error) => void;
-			timeout: ReturnType<typeof setTimeout>;
-		}
-	>();
+  private pendingRequests = new Map<
+    string,
+    {
+      resolve: (value: any) => void;
+      reject: (error: Error) => void;
+      timeout: ReturnType<typeof setTimeout>;
+    }
+  >();
 
-	private requestTimeout = 10000; // 10 second timeout
+  private requestTimeout = 10000; // 10 second timeout
 
-	constructor() {
-		// Set up response listener
-		if (typeof window !== 'undefined') {
-			(window as any).__thepiaResponseHandler = this.handleResponse.bind(this);
-		}
-	}
+  constructor() {
+    // Set up response listener
+    if (typeof window !== 'undefined') {
+      (window as any).__thepiaResponseHandler = this.handleResponse.bind(this);
+    }
+  }
 
-	async sendMessage<T>(procedure: string, input: unknown): Promise<T> {
-		const requestId = `flowsdb_${procedure}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  async sendMessage<T>(procedure: string, input: unknown): Promise<T> {
+    const requestId = `flowsdb_${procedure}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-		const message = {
-			type: 'flowsdb', // Namespace to distinguish from 'auth' messages
-			procedure,
-			payload: input,
-			requestId
-		};
+    const message = {
+      type: 'flowsdb', // Namespace to distinguish from 'auth' messages
+      procedure,
+      payload: input,
+      requestId,
+    };
 
-		return new Promise<T>((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				this.pendingRequests.delete(requestId);
-				reject(new Error(`FlowsClient request timeout: ${procedure}`));
-			}, this.requestTimeout);
+    return new Promise<T>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pendingRequests.delete(requestId);
+        reject(new Error(`FlowsClient request timeout: ${procedure}`));
+      }, this.requestTimeout);
 
-			this.pendingRequests.set(requestId, { resolve, reject, timeout });
+      this.pendingRequests.set(requestId, { resolve, reject, timeout });
 
-			try {
-				const webkit = (window as any).webkit;
-				if (!webkit?.messageHandlers?.thepia) {
-					throw new Error('WebKit message handlers not available');
-				}
-				webkit.messageHandlers.thepia.postMessage(message);
-			} catch (error) {
-				clearTimeout(timeout);
-				this.pendingRequests.delete(requestId);
-				reject(error);
-			}
-		});
-	}
+      try {
+        const webkit = (window as any).webkit;
+        if (!webkit?.messageHandlers?.thepia) {
+          throw new Error('WebKit message handlers not available');
+        }
+        webkit.messageHandlers.thepia.postMessage(message);
+      } catch (error) {
+        clearTimeout(timeout);
+        this.pendingRequests.delete(requestId);
+        reject(error);
+      }
+    });
+  }
 
-	private handleResponse(response: {
-		requestId: string;
-		success: boolean;
-		payload?: any;
-		error?: { message: string };
-	}): void {
-		const pending = this.pendingRequests.get(response.requestId);
-		if (!pending) {
-			return;
-		}
+  private handleResponse(response: {
+    requestId: string;
+    success: boolean;
+    payload?: any;
+    error?: { message: string };
+  }): void {
+    const pending = this.pendingRequests.get(response.requestId);
+    if (!pending) {
+      return;
+    }
 
-		clearTimeout(pending.timeout);
-		this.pendingRequests.delete(response.requestId);
+    clearTimeout(pending.timeout);
+    this.pendingRequests.delete(response.requestId);
 
-		if (response.success) {
-			pending.resolve(response.payload);
-		} else {
-			pending.reject(new Error(response.error?.message || 'FlowsClient request failed'));
-		}
-	}
+    if (response.success) {
+      pending.resolve(response.payload);
+    } else {
+      pending.reject(new Error(response.error?.message || 'FlowsClient request failed'));
+    }
+  }
 
-	// subscribe() — not yet implemented.
-// Native push events (e.g. camera.detection from EvidentNet) require
-// agreeing the wire format with the Swift side before this can be built.
-// See docs/ml/IMAGE_CLASSIFICATION.md for the intended use case.
+  // subscribe() — not yet implemented.
+  // Native push events (e.g. camera.detection from EvidentNet) require
+  // agreeing the wire format with the Swift side before this can be built.
+  // See docs/ml/IMAGE_CLASSIFICATION.md for the intended use case.
 
-// 	subscribe(channel: string, handler: (msg: unknown) => void): () => void {
-//   		if (this.isNativeApp && this.nativeBridge)
-//     		return this.nativeBridge.subscribe(channel, handler)
-//   		const bc = new BroadcastChannel(channel)
-//   		bc.onmessage = (e) => handler(e.data)
-//   		return () => bc.close()
-// }	
+  // 	subscribe(channel: string, handler: (msg: unknown) => void): () => void {
+  //   		if (this.isNativeApp && this.nativeBridge)
+  //     		return this.nativeBridge.subscribe(channel, handler)
+  //   		const bc = new BroadcastChannel(channel)
+  //   		bc.onmessage = (e) => handler(e.data)
+  //   		return () => bc.close()
+  // }
 
+  cleanup(): void {
+    for (const [, pending] of this.pendingRequests.entries()) {
+      clearTimeout(pending.timeout);
+      pending.reject(new Error('Bridge cleanup'));
+    }
+    this.pendingRequests.clear();
 
-	cleanup(): void {
-		for (const [, pending] of this.pendingRequests.entries()) {
-			clearTimeout(pending.timeout);
-			pending.reject(new Error('Bridge cleanup'));
-		}
-		this.pendingRequests.clear();
-
-		if (typeof window !== 'undefined') {
-			(window as any).__thepiaResponseHandler = undefined;
-		}
-	}
+    if (typeof window !== 'undefined') {
+      (window as any).__thepiaResponseHandler = undefined;
+    }
+  }
 }
 
 // Type augmentation for WebKit message handlers
 declare global {
-	interface Window {
-		webkit?: {
-			messageHandlers?: {
-				thepia?: {
-					postMessage(message: unknown): void;
-				};
-			};
-		};
-		__thepiaResponseHandler?: (response: {
-			requestId: string;
-			success: boolean;
-			payload?: any;
-			error?: { message: string };
-		}) => void;
-	}
+  interface Window {
+    webkit?: {
+      messageHandlers?: {
+        thepia?: {
+          postMessage(message: unknown): void;
+        };
+      };
+    };
+    __thepiaResponseHandler?: (response: {
+      requestId: string;
+      success: boolean;
+      payload?: any;
+      error?: { message: string };
+    }) => void;
+  }
 }

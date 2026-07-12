@@ -7,10 +7,10 @@
  * Sets up realistic Nordic employee data with onboarding/offboarding workflows.
  */
 
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import chalk from 'chalk';
 import { Command } from 'commander';
@@ -36,7 +36,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+const _supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -51,11 +51,11 @@ function loadDemoConfig() {
   const employeesPath = path.join(__dirname, '../data/employees.json');
 
   if (!fs.existsSync(configPath)) {
-    throw new Error('Demo configuration file not found: ' + configPath);
+    throw new Error(`Demo configuration file not found: ${configPath}`);
   }
 
   if (!fs.existsSync(employeesPath)) {
-    throw new Error('Demo employees file not found: ' + employeesPath);
+    throw new Error(`Demo employees file not found: ${employeesPath}`);
   }
 
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -210,9 +210,9 @@ async function createDemoInvitations(clientId, applications, employees) {
 
   // Get application IDs by code
   const appMap = {};
-  applications.forEach((app) => {
+  for (const app of applications) {
     appMap[app.app_code] = app.id;
-  });
+  }
 
   // Create invitations for employees with 'invited' or 'offboarding_initiated' status
   const invitationCandidates = employees.employees.filter(
@@ -351,16 +351,16 @@ async function setupDemo(options = {}) {
     console.log(`   Invitations:  ${chalk.white(invitations.length)}`);
 
     console.log(chalk.cyan('\\n📱 Applications:'));
-    applications.forEach((app) => {
+    for (const app of applications) {
       console.log(`   • ${app.app_name} (${app.app_code})`);
-    });
+    }
 
     console.log(chalk.cyan('\\n📧 Demo Invitations:'));
-    invitations.forEach((inv) => {
+    for (const inv of invitations) {
       console.log(
         `   • ${inv.invitation_code} (expires: ${new Date(inv.expires_at).toLocaleDateString()})`
       );
-    });
+    }
 
     console.log(chalk.yellow('\\n🔗 Next Steps:'));
     console.log(`   1. Run demo admin: ${chalk.green('pnpm run demo:admin')}`);

@@ -45,7 +45,12 @@ export async function initLogger(): Promise<void> {
 /**
  * Log an auth-related event to persistent storage
  */
-export async function logAuthEvent(event: string, data: any, url?: string, tabId?: string): Promise<void> {
+export async function logAuthEvent(
+  event: string,
+  data: any,
+  url?: string,
+  tabId?: string
+): Promise<void> {
   // Initialize logger DB if not already done
   if (!loggerDB) {
     try {
@@ -66,7 +71,7 @@ export async function logAuthEvent(event: string, data: any, url?: string, tabId
     event,
     data,
     url: url || 'service-worker',
-    tabId
+    tabId,
   };
 
   return new Promise((resolve, reject) => {
@@ -221,7 +226,9 @@ export async function exportLogs(): Promise<DebugLogEntry[]> {
     request.onsuccess = () => {
       const logs = request.result;
       // Sort by timestamp
-      logs.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      logs.sort(
+        (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
       resolve(logs);
     };
 
@@ -235,9 +242,11 @@ export async function exportLogs(): Promise<DebugLogEntry[]> {
 export function logSessionSave(sessionData: any) {
   logAuthEvent('SESSION_SAVE', {
     userId: sessionData.userId,
-    refreshTokenPrefix: sessionData.refreshToken ? `${sessionData.refreshToken.substring(0, 8)}...` : 'none',
+    refreshTokenPrefix: sessionData.refreshToken
+      ? `${sessionData.refreshToken.substring(0, 8)}...`
+      : 'none',
     expiresAt: new Date(sessionData.expiresAt).toISOString(),
-    hasSupabaseToken: !!sessionData.supabaseToken
+    hasSupabaseToken: !!sessionData.supabaseToken,
   });
 }
 
@@ -252,10 +261,12 @@ export function logSessionLoad(sessionData: any | null) {
 
   logAuthEvent('SESSION_LOAD', {
     userId: sessionData.userId,
-    refreshTokenPrefix: sessionData.refreshToken ? `${sessionData.refreshToken.substring(0, 8)}...` : 'none',
+    refreshTokenPrefix: sessionData.refreshToken
+      ? `${sessionData.refreshToken.substring(0, 8)}...`
+      : 'none',
     expiresAt: new Date(sessionData.expiresAt).toISOString(),
     isExpired: sessionData.expiresAt <= Date.now(),
-    hasSupabaseToken: !!sessionData.supabaseToken
+    hasSupabaseToken: !!sessionData.supabaseToken,
   });
 }
 

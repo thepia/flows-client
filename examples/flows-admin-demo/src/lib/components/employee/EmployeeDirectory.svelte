@@ -1,9 +1,5 @@
 <script lang="ts">
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 import type { Employee, EmployeeEnrollment } from '$lib/types';
-import { UserPlus } from 'lucide-svelte';
-import EmployeeCard from './EmployeeCard.svelte';
 
 // Props
 export let employees: Employee[];
@@ -12,7 +8,7 @@ export const loading: boolean = false;
 export const onEmployeeSelect: ((employee: Employee) => void) | undefined = undefined;
 
 // Helper function to get employee enrollment
-function getEmployeeEnrollment(employeeId: string): EmployeeEnrollment | undefined {
+function _getEmployeeEnrollment(employeeId: string): EmployeeEnrollment | undefined {
   return enrollments.find((e) => e.employeeId === employeeId);
 }
 </script>

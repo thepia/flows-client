@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # npm / pnpm dependencies
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    # @thepia/flows-auth is a file: link to a sibling repo, so Dependabot
+    # ignores it automatically. Registry @thepia/* packages, if added later,
+    # would need a `registries:` block with a DEPENDABOT_NPM_TOKEN secret.
+    groups:
+      # Batch low-risk updates into single PRs to cut review noise.
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+
+  # Keep the GitHub Actions used in workflows up to date
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - github-actions

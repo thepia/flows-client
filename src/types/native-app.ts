@@ -5,6 +5,13 @@
  * Used by FlowsClient to send state updates to the native UI.
  */
 
+export type BackgroundMaterial =
+  | 'clear'
+  | 'thinMaterial'
+  | 'ultraThinMaterial'
+  | 'regularMaterial'
+  | 'thickMaterial';
+
 /**
  * Web app state notification payload
  * Sent to native app to control UI appearance and behavior
@@ -43,7 +50,9 @@ export interface WebAppStatePayload {
    * - 'regularMaterial': Regular frosted glass
    * - 'thickMaterial': Thick frosted glass
    */
-  backgroundMaterial?: 'clear' | 'thinMaterial' | 'ultraThinMaterial' | 'regularMaterial' | 'thickMaterial';
+  backgroundMaterial?: BackgroundMaterial;
+
+  cameraBackground?: { url: string | null };
 
   /**
    * Current step in multi-step flow (e.g., 'signin', 'verify', 'complete')
@@ -120,4 +129,3 @@ export interface NativeAppMessage {
    */
   requestId: string;
 }
-

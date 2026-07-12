@@ -112,7 +112,6 @@ async function populateOffboardingProcesses() {
             break;
           } else {
             console.log(`❌ Batch ${Math.floor(i / batchSize) + 1}: ${processError.message}`);
-            continue;
           }
         } else {
           totalCreated += createdProcesses.length;

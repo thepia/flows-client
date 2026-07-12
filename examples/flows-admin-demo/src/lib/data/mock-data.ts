@@ -1,13 +1,11 @@
 import type {
   Application,
   Client,
-  DocumentStatus,
   Employee,
   EmployeeEnrollment,
   Invitation,
   Person,
   PersonEnrollment,
-  TaskStatus,
 } from '$lib/types';
 
 // Mock client data

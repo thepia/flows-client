@@ -24,7 +24,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Demo client ID (using "demo-client" from existing setup)
-const DEMO_CLIENT_ID = 'demo-client';
+const _DEMO_CLIENT_ID = 'demo-client';
 
 // Template definitions for different departments and roles
 const OFFBOARDING_TEMPLATES = [
@@ -640,4 +640,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   createTaskOrientedTemplates();
 }
 
-export { createTaskOrientedTemplates, createOffboardingTemplates };
+export { createOffboardingTemplates, createTaskOrientedTemplates };

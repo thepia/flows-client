@@ -1,11 +1,7 @@
 <script lang="ts">
-import LoadingAnimation from '$lib/components/shared/LoadingAnimation.svelte';
-import TFCManagementPanel from '$lib/components/tfc/TFCManagementPanel.svelte';
-import { client } from '$lib/stores/data';
-import { Download, FileText } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
 
-const dispatch = createEventDispatcher();
+const _dispatch = createEventDispatcher();
 
 // Props for account data (will be passed from parent)
 export let recentInvoices = [];

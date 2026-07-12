@@ -51,14 +51,14 @@ async function generateInvoicesForClient(clientId, clientCode) {
 
     // Group payments by month
     const paymentsByMonth = {};
-    payments.forEach((payment) => {
+    for (const payment of payments) {
       const date = new Date(payment.completed_at);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       if (!paymentsByMonth[key]) {
         paymentsByMonth[key] = [];
       }
       paymentsByMonth[key].push(payment);
-    });
+    }
 
     console.log(
       `  Found ${payments.length} payments in ${Object.keys(paymentsByMonth).length} months`
@@ -68,7 +68,7 @@ async function generateInvoicesForClient(clientId, clientCode) {
     let invoicesCreated = 0;
     for (const [monthKey, monthPayments] of Object.entries(paymentsByMonth)) {
       const [year, month] = monthKey.split('-');
-      const invoiceDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 15); // Mid-month
+      const invoiceDate = new Date(Number.parseInt(year, 10), Number.parseInt(month, 10) - 1, 15); // Mid-month
 
       const lineItems = monthPayments.map((payment) => ({
         description:
@@ -94,7 +94,7 @@ async function generateInvoicesForClient(clientId, clientCode) {
         .select('id')
         .eq('client_id', clientId)
         .gte('invoice_date', `${year}-${month}-01`)
-        .lt('invoice_date', `${year}-${String(Number.parseInt(month) + 1).padStart(2, '0')}-01`)
+        .lt('invoice_date', `${year}-${String(Number.parseInt(month, 10) + 1).padStart(2, '0')}-01`)
         .single();
 
       if (existingInvoice) {

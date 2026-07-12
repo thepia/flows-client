@@ -1,5 +1,5 @@
-import { supabaseClientStore } from '$lib/contexts/supabase-context';
 import { get } from 'svelte/store';
+import { supabaseClientStore } from '$lib/contexts/supabase-context';
 
 // Get current Supabase client from store (returns null if not available)
 function getCurrentSupabaseClient(): SupabaseClient | null {
@@ -7,18 +7,17 @@ function getCurrentSupabaseClient(): SupabaseClient | null {
 }
 
 // Get current Supabase client from store (throws if not available)
-function getRequiredSupabaseClient(): SupabaseClient {
+function _getRequiredSupabaseClient(): SupabaseClient {
   const client = get(supabaseClientStore);
   if (!client) {
     throw new Error('Authentication required - please sign in to access notifications');
   }
   return client;
 }
+
 import type {
   NotificationService as INotificationService,
   Notification,
-  NotificationDemoConfig,
-  NotificationEvent,
   NotificationFilter,
   NotificationPriority,
   NotificationStakeholder,
@@ -53,7 +52,9 @@ class NotificationService implements INotificationService {
 
   private initializeRealtime(supabase: any) {
     if (!supabase) {
-      console.warn('⚠️ NotificationService: Supabase client not available, skipping realtime initialization');
+      console.warn(
+        '⚠️ NotificationService: Supabase client not available, skipping realtime initialization'
+      );
       return;
     }
 
@@ -586,13 +587,17 @@ class NotificationService implements INotificationService {
 
   private notifySubscribers(notification?: Notification) {
     if (notification) {
-      this.subscribers.forEach((callback) => callback(notification));
+      for (const callback of this.subscribers) {
+        callback(notification);
+      }
     }
   }
 
   private async notifyStatsSubscribers() {
     const stats = await this.getStats();
-    this.statsSubscribers.forEach((callback) => callback(stats));
+    for (const callback of this.statsSubscribers) {
+      callback(stats);
+    }
   }
 
   // Cleanup

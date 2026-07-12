@@ -1,7 +1,5 @@
 <script lang="ts">
 import type { Invitation } from '$lib/types';
-import InvitationActionsDropdown from './InvitationActionsDropdown.svelte';
-import InvitationStatusBadge from './InvitationStatusBadge.svelte';
 
 // Props
 export let invitation: Invitation;
@@ -9,7 +7,7 @@ export const compact: boolean = false;
 export const showActions: boolean = true;
 
 // Format date helper
-function formatDate(dateString: string) {
+function _formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString();
 }
 </script>

@@ -1,5 +1,5 @@
-import { browser } from '$app/environment';
 import { derived, get, writable } from 'svelte/store';
+import { browser } from '$app/environment';
 import { ClientService } from './client.service';
 import type { Client, ClientActions, ClientState } from './client.types';
 

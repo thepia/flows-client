@@ -26,7 +26,7 @@ export function getCurrentClientId(): string {
         if (settings.selectedClient && typeof settings.selectedClient === 'string') {
           return settings.selectedClient;
         }
-      } catch (e) {
+      } catch (_e) {
         console.warn('Failed to parse settings, using default client');
       }
     }

@@ -7,7 +7,7 @@ console.log('🔍 Starting authentication debug...');
 
 // Check if service worker is registered
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
     console.log('📋 Service Worker registrations:', registrations.length);
     registrations.forEach((reg, i) => {
       console.log(`  ${i + 1}. Scope: ${reg.scope}, State: ${reg.active?.state}`);
@@ -20,24 +20,24 @@ if ('serviceWorker' in navigator) {
 // Check IndexedDB
 function checkIndexedDB() {
   console.log('🗄️ Checking IndexedDB...');
-  
+
   const request = indexedDB.open('flows_db', 1);
-  
+
   request.onsuccess = (event) => {
     const db = event.target.result;
     console.log('✅ IndexedDB opened successfully');
     console.log('📊 Object stores:', Array.from(db.objectStoreNames));
-    
+
     // Check auth_sessions table
     if (db.objectStoreNames.contains('auth_sessions')) {
       const transaction = db.transaction(['auth_sessions'], 'readonly');
       const store = transaction.objectStore('auth_sessions');
       const getAllRequest = store.getAll();
-      
+
       getAllRequest.onsuccess = () => {
         const sessions = getAllRequest.result;
         console.log(`🔐 Found ${sessions.length} auth sessions:`, sessions);
-        
+
         if (sessions.length > 0) {
           const session = sessions[0];
           console.log('📋 Session details:', {
@@ -48,18 +48,20 @@ function checkIndexedDB() {
             accessTokenPreview: session.accessToken?.substring(0, 20) + '...',
             supabaseTokenPreview: session.supabaseToken?.substring(0, 20) + '...',
             expiresAt: new Date(session.expiresAt).toISOString(),
-            supabaseExpiresAt: session.supabaseExpiresAt ? new Date(session.supabaseExpiresAt).toISOString() : 'none',
-            savedAt: session.savedAt
+            supabaseExpiresAt: session.supabaseExpiresAt
+              ? new Date(session.supabaseExpiresAt).toISOString()
+              : 'none',
+            savedAt: session.savedAt,
           });
         }
       };
     } else {
       console.log('❌ auth_sessions table not found');
     }
-    
+
     db.close();
   };
-  
+
   request.onerror = () => {
     console.error('❌ Failed to open IndexedDB:', request.error);
   };
@@ -68,7 +70,7 @@ function checkIndexedDB() {
 // Check auth store state (if available)
 function checkAuthStore() {
   console.log('🔐 Checking auth store...');
-  
+
   // Try to get auth store from window (if exposed for debugging)
   if (window.authStore) {
     const state = window.authStore.getState();
@@ -81,7 +83,9 @@ function checkAuthStore() {
       accessTokenPreview: state.access_token?.substring(0, 20) + '...',
       supabaseTokenPreview: state.supabase_token?.substring(0, 20) + '...',
       expiresAt: state.expires_at ? new Date(state.expires_at).toISOString() : 'none',
-      supabaseExpiresAt: state.supabase_expires_at ? new Date(state.supabase_expires_at).toISOString() : 'none'
+      supabaseExpiresAt: state.supabase_expires_at
+        ? new Date(state.supabase_expires_at).toISOString()
+        : 'none',
     });
   } else {
     console.log('❌ Auth store not found on window object');
@@ -89,7 +93,7 @@ function checkAuthStore() {
 }
 
 // Function to view persistent debug logs from service worker
-window.viewDebugLogs = async function() {
+window.viewDebugLogs = async () => {
   console.log('🔍 === PERSISTENT DEBUG LOGS FROM SERVICE WORKER ===');
 
   if (!('serviceWorker' in navigator)) {
@@ -115,12 +119,15 @@ window.viewDebugLogs = async function() {
         }
       };
 
-      registration.active.postMessage({
-        id: Date.now(),
-        type: 'request',
-        procedure: 'debug.getRecentLogs',
-        payload: { limit: 100 }
-      }, [channel.port2]);
+      registration.active.postMessage(
+        {
+          id: Date.now(),
+          type: 'request',
+          procedure: 'debug.getRecentLogs',
+          payload: { limit: 100 },
+        },
+        [channel.port2]
+      );
     });
 
     const logs = response;
@@ -138,9 +145,10 @@ window.viewDebugLogs = async function() {
     });
 
     // Look for "already exchanged" patterns
-    const alreadyExchangedLogs = logs.filter(log =>
-      log.event.includes('ALREADY_EXCHANGED') ||
-      log.data?.errorMessage?.includes('already exchanged')
+    const alreadyExchangedLogs = logs.filter(
+      (log) =>
+        log.event.includes('ALREADY_EXCHANGED') ||
+        log.data?.errorMessage?.includes('already exchanged')
     );
 
     if (alreadyExchangedLogs.length > 0) {
@@ -160,7 +168,7 @@ window.viewDebugLogs = async function() {
 };
 
 // Function to clear debug logs in service worker
-window.clearDebugLogs = async function() {
+window.clearDebugLogs = async () => {
   console.log('🗑️ Clearing debug logs in service worker...');
 
   if (!('serviceWorker' in navigator)) {
@@ -186,12 +194,15 @@ window.clearDebugLogs = async function() {
         }
       };
 
-      registration.active.postMessage({
-        id: Date.now(),
-        type: 'request',
-        procedure: 'debug.clearDebugLogs',
-        payload: {}
-      }, [channel.port2]);
+      registration.active.postMessage(
+        {
+          id: Date.now(),
+          type: 'request',
+          procedure: 'debug.clearDebugLogs',
+          payload: {},
+        },
+        [channel.port2]
+      );
     });
 
     console.log('✅ Debug logs cleared from service worker');
@@ -201,7 +212,7 @@ window.clearDebugLogs = async function() {
 };
 
 // Function to export debug logs from service worker
-window.exportDebugLogs = async function() {
+window.exportDebugLogs = async () => {
   console.log('📤 Exporting debug logs from service worker...');
 
   if (!('serviceWorker' in navigator)) {
@@ -227,12 +238,15 @@ window.exportDebugLogs = async function() {
         }
       };
 
-      registration.active.postMessage({
-        id: Date.now(),
-        type: 'request',
-        procedure: 'debug.exportLogs',
-        payload: {}
-      }, [channel.port2]);
+      registration.active.postMessage(
+        {
+          id: Date.now(),
+          type: 'request',
+          procedure: 'debug.exportLogs',
+          payload: {},
+        },
+        [channel.port2]
+      );
     });
 
     if (!logs || logs.length === 0) {
@@ -241,7 +255,7 @@ window.exportDebugLogs = async function() {
     }
 
     const dataStr = JSON.stringify(logs, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;

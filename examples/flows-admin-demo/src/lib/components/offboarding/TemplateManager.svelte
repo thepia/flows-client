@@ -1,29 +1,16 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger
-// } from '$lib/components/ui/select';
-import { Clock, Copy, Edit, FileText, Filter, Plus, Settings, Users } from 'lucide-svelte';
-
 // Props
 export let templates = [];
-export let onTemplateSelect = (template) => {};
+export let onTemplateSelect = (_template) => {};
 export let onCreateTemplate = () => {};
-export let onEditTemplate = (template) => {};
+export let onEditTemplate = (_template) => {};
 export let loading = false;
 
 // Local state
 let searchTerm = '';
 let filterDepartment = 'all';
 let filterType = 'all';
-let selectedTemplate = null;
+let _selectedTemplate = null;
 
 // Filter templates based on search and filters
 $: filteredTemplates = templates.filter((template) => {
@@ -59,7 +46,7 @@ $: filteredTemplates = templates.filter((template) => {
 $: departments = [...new Set(templates.filter((t) => t.department).map((t) => t.department))];
 
 // Get complexity color
-function getComplexityColor(score) {
+function _getComplexityColor(score) {
   if (score <= 2) return 'bg-green-100 text-green-800';
   if (score <= 3) return 'bg-yellow-100 text-yellow-800';
   if (score <= 4) return 'bg-orange-100 text-orange-800';
@@ -67,7 +54,7 @@ function getComplexityColor(score) {
 }
 
 // Get template type badge variant
-function getTypeVariant(type) {
+function _getTypeVariant(type) {
   switch (type) {
     case 'company_wide':
       return 'default';
@@ -81,8 +68,8 @@ function getTypeVariant(type) {
 }
 
 // Handle template selection
-function selectTemplate(template) {
-  selectedTemplate = template;
+function _selectTemplate(template) {
+  _selectedTemplate = template;
   onTemplateSelect(template);
 }
 </script>

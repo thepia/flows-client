@@ -3,8 +3,8 @@
   This component helps diagnose store behavior issues
 -->
 <script lang="ts">
-import { applications, loadDemoData } from '$lib/stores/data';
 import { onMount } from 'svelte';
+import { applications } from '$lib/stores/data';
 import { initializeStoreDiagnostics, testApplicationsStore } from './store-diagnostics';
 
 let debugInfo = {
@@ -30,7 +30,7 @@ function checkStoreValue() {
 }
 
 // Test store subscription
-function testSubscription() {
+function _testSubscription() {
   console.log('🧪 [Debug] Testing store subscription');
   const unsubscribe = applications.subscribe((value) => {
     console.log('🧪 [Debug] Subscription triggered:', value);

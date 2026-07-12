@@ -1,30 +1,28 @@
 <script lang="ts">
+import { onDestroy, onMount } from 'svelte';
 import { notificationService } from '$lib/services/NotificationService';
 import type { Notification, NotificationFilter, NotificationStats } from '$lib/types/notifications';
-import { Archive, Bell, Check, CheckCheck, Filter, Search, X } from 'lucide-svelte';
-import { onDestroy, onMount } from 'svelte';
-import NotificationItem from './NotificationItem.svelte';
 
 export let isOpen = false;
 export let onClose: (() => void) | undefined = undefined;
 
 let notifications: Notification[] = [];
-let stats: NotificationStats | null = null;
-let loading = true;
+let _stats: NotificationStats | null = null;
+let _loading = true;
 let searchTerm = '';
 let activeFilters: NotificationFilter = {};
-let showFilters = false;
+let _showFilters = false;
 let unsubscribeNotifications: (() => void) | null = null;
 let unsubscribeStats: (() => void) | null = null;
 
 // Filter options
-const statusOptions = [
+const _statusOptions = [
   { value: 'unread', label: 'Unread' },
   { value: 'read', label: 'Read' },
   { value: 'archived', label: 'Archived' },
 ];
 
-const typeOptions = [
+const _typeOptions = [
   { value: 'onboarding_reminder', label: 'Onboarding' },
   { value: 'document_review', label: 'Document Review' },
   { value: 'task_assignment', label: 'Task Assignment' },
@@ -32,7 +30,7 @@ const typeOptions = [
   { value: 'system_alert', label: 'System Alert' },
 ];
 
-const priorityOptions = [
+const _priorityOptions = [
   { value: 'urgent', label: 'Urgent' },
   { value: 'high', label: 'High' },
   { value: 'medium', label: 'Medium' },
@@ -59,7 +57,7 @@ onMount(async () => {
   });
 
   unsubscribeStats = notificationService.subscribeToStats((newStats) => {
-    stats = newStats;
+    _stats = newStats;
   });
 });
 
@@ -70,24 +68,24 @@ onDestroy(() => {
 
 async function loadNotifications() {
   try {
-    loading = true;
+    _loading = true;
     notifications = await notificationService.getNotifications(activeFilters);
   } catch (error) {
     console.error('Error loading notifications:', error);
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
 async function loadStats() {
   try {
-    stats = await notificationService.getStats(activeFilters);
+    _stats = await notificationService.getStats(activeFilters);
   } catch (error) {
     console.error('Error loading notification stats:', error);
   }
 }
 
-async function markAllAsRead() {
+async function _markAllAsRead() {
   try {
     await notificationService.markAllAsRead(activeFilters);
     await loadNotifications();
@@ -97,7 +95,7 @@ async function markAllAsRead() {
   }
 }
 
-async function archiveAll() {
+async function _archiveAll() {
   try {
     await notificationService.archiveAll(activeFilters);
     await loadNotifications();
@@ -107,7 +105,7 @@ async function archiveAll() {
   }
 }
 
-async function handleNotificationAction(notification: Notification, action: string) {
+async function _handleNotificationAction(notification: Notification, action: string) {
   try {
     switch (action) {
       case 'mark-read':
@@ -130,27 +128,27 @@ async function handleNotificationAction(notification: Notification, action: stri
   }
 }
 
-function applyFilters() {
+function _applyFilters() {
   loadNotifications();
   loadStats();
 }
 
-function clearFilters() {
+function _clearFilters() {
   activeFilters = {};
   searchTerm = '';
-  showFilters = false;
+  _showFilters = false;
   loadNotifications();
   loadStats();
 }
 
-function handleClose() {
+function _handleClose() {
   if (onClose) {
     onClose();
   }
 }
 
 // Generate demo data if no notifications exist
-async function generateDemoData() {
+async function _generateDemoData() {
   try {
     await notificationService.generateDemoNotifications(15);
     await loadNotifications();

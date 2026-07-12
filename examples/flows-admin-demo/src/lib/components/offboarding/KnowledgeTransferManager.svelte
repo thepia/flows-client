@@ -1,37 +1,12 @@
 <script lang="ts">
-import { Alert, AlertDescription } from '$lib/components/ui/alert';
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Checkbox } from '$lib/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-import { Progress } from '$lib/components/ui/progress';
-import { Select } from '$lib/components/ui/select';
-import { Textarea } from '$lib/components/ui/textarea';
-import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context';
+import { BookOpen, ContactIcon, FileText, Users } from 'lucide-svelte';
+import { createEventDispatcher } from 'svelte';
+import { isSupabaseAuthenticatedStore, supabaseClientStore } from '$lib/contexts/supabase-context';
 import type {
   CreateKnowledgeTransferItemRequest,
   KnowledgeTransferItem,
   OffboardingWorkflow,
 } from '$lib/types/offboarding';
-import {
-  AlertTriangle,
-  BookOpen,
-  Calendar,
-  CheckCircle,
-  Clock,
-  ContactIcon,
-  Edit,
-  FileText,
-  Plus,
-  Trash2,
-  User,
-  Users,
-  Video,
-} from 'lucide-svelte';
-import { createEventDispatcher } from 'svelte';
 
 export let workflow: OffboardingWorkflow;
 export const knowledgeItems: KnowledgeTransferItem[] = [];
@@ -40,9 +15,9 @@ export const readonly = false;
 const dispatch = createEventDispatcher();
 // Use global stores directly
 
-let loading = false;
-let error: string | null = null;
-let showCreateModal = false;
+let _loading = false;
+let _error: string | null = null;
+let _showCreateModal = false;
 let editingItem: KnowledgeTransferItem | null = null;
 
 // Form data for creating/editing knowledge items
@@ -70,7 +45,7 @@ function resetForm() {
   };
 }
 
-function getStatusColor(status: string): string {
+function _getStatusColor(status: string): string {
   switch (status) {
     case 'pending':
       return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -85,7 +60,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-function getBusinessImpactColor(impact: string): string {
+function _getBusinessImpactColor(impact: string): string {
   switch (impact) {
     case 'critical':
       return 'bg-red-100 text-red-800 border-red-200';
@@ -100,7 +75,7 @@ function getBusinessImpactColor(impact: string): string {
   }
 }
 
-function getKnowledgeTypeIcon(type: string) {
+function _getKnowledgeTypeIcon(type: string) {
   switch (type) {
     case 'process_documentation':
       return FileText;
@@ -133,8 +108,8 @@ function getTotalActualHours(): number {
 
 async function handleCreateItem() {
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
       throw new Error('Please sign in to create knowledge transfer items');
@@ -163,24 +138,24 @@ async function handleCreateItem() {
 
     if (insertError) throw insertError;
 
-    showCreateModal = false;
+    _showCreateModal = false;
     resetForm();
     dispatch('refresh');
   } catch (err) {
     console.error('Error creating knowledge item:', err);
-    error = err instanceof Error ? err.message : 'Failed to create knowledge item';
+    _error = err instanceof Error ? err.message : 'Failed to create knowledge item';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
-async function handleUpdateStatus(
+async function _handleUpdateStatus(
   item: KnowledgeTransferItem,
   updates: Partial<KnowledgeTransferItem>
 ) {
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
       throw new Error('Please sign in to update knowledge transfer items');
@@ -196,18 +171,18 @@ async function handleUpdateStatus(
     dispatch('refresh');
   } catch (err) {
     console.error('Error updating knowledge item:', err);
-    error = err instanceof Error ? err.message : 'Failed to update knowledge item';
+    _error = err instanceof Error ? err.message : 'Failed to update knowledge item';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
-async function handleDeleteItem(item: KnowledgeTransferItem) {
+async function _handleDeleteItem(item: KnowledgeTransferItem) {
   if (!confirm('Are you sure you want to delete this knowledge transfer item?')) return;
 
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
       throw new Error('Please sign in to delete knowledge transfer items');
@@ -223,19 +198,19 @@ async function handleDeleteItem(item: KnowledgeTransferItem) {
     dispatch('refresh');
   } catch (err) {
     console.error('Error deleting knowledge item:', err);
-    error = err instanceof Error ? err.message : 'Failed to delete knowledge item';
+    _error = err instanceof Error ? err.message : 'Failed to delete knowledge item';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 
-function openCreateModal() {
+function _openCreateModal() {
   resetForm();
   editingItem = null;
-  showCreateModal = true;
+  _showCreateModal = true;
 }
 
-function openEditModal(item: KnowledgeTransferItem) {
+function _openEditModal(item: KnowledgeTransferItem) {
   formData = {
     offboarding_workflow_id: item.offboarding_workflow_id,
     knowledge_type: item.knowledge_type,
@@ -247,10 +222,10 @@ function openEditModal(item: KnowledgeTransferItem) {
     estimated_hours: item.estimated_hours,
   };
   editingItem = item;
-  showCreateModal = true;
+  _showCreateModal = true;
 }
 
-async function handleSaveItem() {
+async function _handleSaveItem() {
   if (editingItem) {
     await handleUpdateItem();
   } else {
@@ -260,8 +235,8 @@ async function handleSaveItem() {
 
 async function handleUpdateItem() {
   try {
-    loading = true;
-    error = null;
+    _loading = true;
+    _error = null;
 
     if (!$isSupabaseAuthenticatedStore || !$supabaseClientStore) {
       throw new Error('Please sign in to update knowledge transfer items');
@@ -282,19 +257,19 @@ async function handleUpdateItem() {
         successor_role: formData.successor_role?.trim() || null,
         estimated_hours: formData.estimated_hours || 2.0,
       })
-      .eq('id', editingItem!.id);
+      .eq('id', editingItem?.id);
 
     if (updateError) throw updateError;
 
-    showCreateModal = false;
+    _showCreateModal = false;
     editingItem = null;
     resetForm();
     dispatch('refresh');
   } catch (err) {
     console.error('Error updating knowledge item:', err);
-    error = err instanceof Error ? err.message : 'Failed to update knowledge item';
+    _error = err instanceof Error ? err.message : 'Failed to update knowledge item';
   } finally {
-    loading = false;
+    _loading = false;
   }
 }
 

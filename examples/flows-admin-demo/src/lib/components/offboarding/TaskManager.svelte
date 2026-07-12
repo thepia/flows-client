@@ -1,42 +1,28 @@
 <script lang="ts">
-import { Badge } from '$lib/components/ui/badge';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
-import { Progress } from '$lib/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-import { Textarea } from '$lib/components/ui/textarea';
 import {
   AlertTriangle,
   ArrowRight,
-  Calendar,
   CheckCircle,
   CheckSquare,
   Clock,
   Download,
-  Edit,
   FileText,
-  Link,
-  MessageSquare,
-  Pause,
   Play,
-  Upload,
   User,
 } from 'lucide-svelte';
 
 // Props
 export let process = null;
 export let tasks = [];
-export let onTaskUpdate = (taskId, updates) => {};
-export let onTaskComplete = (taskId) => {};
-export let onTaskStart = (taskId) => {};
-export let onAddNote = (taskId, note) => {};
-export let onUploadDocument = (taskId, file) => {};
+export let onTaskUpdate = (_taskId, _updates) => {};
+export let onTaskComplete = (_taskId) => {};
+export let onTaskStart = (_taskId) => {};
+export let onAddNote = (_taskId, _note) => {};
+export let onUploadDocument = (_taskId, _file) => {};
 export let loading = false;
 
 // Local state
-let selectedTask = null;
+let _selectedTask = null;
 let newNote = '';
 let showCompleted = true;
 
@@ -55,7 +41,7 @@ $: tasksByStatus = {
 };
 
 // Get status info
-function getStatusInfo(status) {
+function _getStatusInfo(status) {
   switch (status) {
     case 'pending':
       return { color: 'bg-gray-100 text-gray-800', icon: Clock };
@@ -71,7 +57,7 @@ function getStatusInfo(status) {
 }
 
 // Get priority color
-function getPriorityColor(priority) {
+function _getPriorityColor(priority) {
   switch (priority) {
     case 'urgent':
       return 'bg-red-100 text-red-800';
@@ -87,7 +73,7 @@ function getPriorityColor(priority) {
 }
 
 // Get task type icon
-function getTaskTypeIcon(type) {
+function _getTaskTypeIcon(type) {
   switch (type) {
     case 'access_revocation':
       return User;
@@ -105,7 +91,7 @@ function getTaskTypeIcon(type) {
 }
 
 // Format date
-function formatDate(dateString) {
+function _formatDate(dateString) {
   if (!dateString) return 'No due date';
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -116,13 +102,13 @@ function formatDate(dateString) {
 }
 
 // Check if task is overdue
-function isOverdue(dueDateString) {
+function _isOverdue(dueDateString) {
   if (!dueDateString) return false;
   return new Date(dueDateString) < new Date();
 }
 
 // Handle task action
-async function handleTaskAction(task, action) {
+async function _handleTaskAction(task, action) {
   switch (action) {
     case 'start':
       await onTaskStart(task.id);
@@ -137,7 +123,7 @@ async function handleTaskAction(task, action) {
 }
 
 // Add note to task
-async function addNote(taskId) {
+async function _addNote(taskId) {
   if (!newNote.trim()) return;
 
   await onAddNote(taskId, newNote.trim());
@@ -145,7 +131,7 @@ async function addNote(taskId) {
 }
 
 // Handle file upload
-function handleFileUpload(taskId, event) {
+function _handleFileUpload(taskId, event) {
   const file = event.target.files[0];
   if (file) {
     onUploadDocument(taskId, file);

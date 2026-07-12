@@ -1,7 +1,4 @@
 <script lang="ts">
-import { AlertCircle, UserPlus, UserX, Users } from 'lucide-svelte';
-import MetricCard from './MetricCard.svelte';
-
 // Props
 export let totalEmployees: number;
 export let onboardingCount: number;

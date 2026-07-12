@@ -1,12 +1,8 @@
+import { derived, writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import {
-  applyBrandingToDocument,
-  getAvailableBrandings,
-  getBrandingById,
-} from '$lib/services/brandingRegistry';
+import { applyBrandingToDocument, getBrandingById } from '$lib/services/brandingRegistry';
 import type { BrandingConfig, Client, DemoSettings, SettingsState } from '$lib/types';
 import { LocalStorageManager } from '$lib/utils/localStorage';
-import { derived, writable } from 'svelte/store';
 
 // Create the settings store
 function createSettingsStore() {

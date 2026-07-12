@@ -279,7 +279,6 @@ async function populateRichOffboardingData() {
 
         if (processError) {
           console.log(`❌ Batch ${Math.floor(i / batchSize) + 1}: ${processError.message}`);
-          continue;
         } else {
           totalCreated += createdProcesses.length;
           console.log(

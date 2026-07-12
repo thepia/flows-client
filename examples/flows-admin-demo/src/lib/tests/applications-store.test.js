@@ -3,9 +3,9 @@
  * Test to understand and verify applications store behavior
  */
 
-import { applications } from '$lib/stores/data';
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { applications } from '$lib/stores/data';
 
 describe('Applications Store', () => {
   beforeEach(() => {

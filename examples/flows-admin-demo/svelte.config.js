@@ -13,7 +13,7 @@ const config = {
     adapter: adapter(),
     prerender: {
       entries: [], // No prerendering - pure client-side app
-    }
+    },
   },
 };
 

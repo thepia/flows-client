@@ -26,7 +26,10 @@ export interface SupabaseClientOptions {
  */
 export function createReactiveSupabaseClient(
   config: SupabaseConfig,
-  authStore: { subscribe: (callback: (state: AuthStore) => void) => () => void; getState?: () => AuthStore },
+  authStore: {
+    subscribe: (callback: (state: AuthStore) => void) => () => void;
+    getState?: () => AuthStore;
+  },
   options: SupabaseClientOptions = {}
 ): { subscribe: (callback: (client: SupabaseClient) => void) => () => void } {
   return {
@@ -34,11 +37,11 @@ export function createReactiveSupabaseClient(
       return authStore.subscribe((authState) => {
         const client = createSupabaseClient(config, {
           ...options,
-          authState
+          authState,
         });
         callback(client);
       });
-    }
+    },
   };
 }
 
@@ -46,16 +49,9 @@ export function createSupabaseClient(
   config: SupabaseConfig,
   options: SupabaseClientOptions & { authState?: any } = {}
 ): SupabaseClient<any, 'public', any> {
-  const {
-    useServiceRole = false,
-    skipAuth = false,
-    headers = {},
-    authState
-  } = options;
+  const { useServiceRole = false, skipAuth = false, headers = {}, authState } = options;
 
-  const key = useServiceRole && config.serviceRoleKey
-    ? config.serviceRoleKey
-    : config.anonKey;
+  const key = useServiceRole && config.serviceRoleKey ? config.serviceRoleKey : config.anonKey;
 
   let authToken: string | null = null;
   if (!skipAuth && authState) {
@@ -80,36 +76,30 @@ export function createSupabaseClient(
         // the number of OPTIONS requests sent to Supabase
         'Access-Control-Max-Age': '86400',
         ...(authToken && {
-          Authorization: `Bearer ${authToken}`
-        })
-      }
-    }
+          Authorization: `Bearer ${authToken}`,
+        }),
+      },
+    },
   });
 
   return client;
 }
 
-export function createSupabaseConfigFromEnv(
-  fallbacks?: Partial<SupabaseConfig>
-): SupabaseConfig {
+export function createSupabaseConfigFromEnv(fallbacks?: Partial<SupabaseConfig>): SupabaseConfig {
   const isBrowser = typeof window !== 'undefined';
 
   const metaEnv = (import.meta as any).env || {};
 
-  const url = isBrowser
-    ? metaEnv.SUPABASE_URL
-    : process.env?.SUPABASE_URL;
+  const url = isBrowser ? metaEnv.SUPABASE_URL : process.env?.SUPABASE_URL;
 
-  const anonKey = isBrowser
-    ? metaEnv.SUPABASE_ANON_KEY
-    : process.env?.SUPABASE_ANON_KEY;
+  const anonKey = isBrowser ? metaEnv.SUPABASE_ANON_KEY : process.env?.SUPABASE_ANON_KEY;
 
   return {
     url: url || fallbacks?.url || '',
     anonKey: anonKey || fallbacks?.anonKey || '',
     schema: fallbacks?.schema || 'api',
     defaultClientId: fallbacks?.defaultClientId,
-    debug: fallbacks?.debug || false
+    debug: fallbacks?.debug || false,
   };
 }
 
@@ -125,7 +115,7 @@ export function getUserContext(authStore: AuthStore | any) {
     email: state.user.email,
     role: 'authenticated',
     supabaseToken: state.supabase_token,
-    accessToken: state.access_token
+    accessToken: state.access_token,
   };
 }
 

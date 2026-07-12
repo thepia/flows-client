@@ -5,9 +5,9 @@
  * and improve performance with large datasets (1000+ records).
  */
 
+import { derived, get, writable } from 'svelte/store';
 import { supabaseClientStore } from '$lib/contexts/supabase-context';
 import type { Person, ProcessSummary } from '$lib/types';
-import { derived, get, writable } from 'svelte/store';
 
 // Get current Supabase client from store
 function getCurrentSupabaseClient() {

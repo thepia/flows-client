@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { derived, writable } from 'svelte/store';
 import type {
   DemoAction,
   DemoCompany,
@@ -6,7 +6,6 @@ import type {
   DemoMetrics,
   DemoTemplate,
 } from '$lib/types';
-import { derived, writable } from 'svelte/store';
 
 // Demo management state
 interface DemoManagementState {
@@ -45,7 +44,9 @@ function createDemoManagementStore() {
         const companies = await loadDemoCompanies();
 
         // Try to load other data, but don't fail if they error
-        let metrics, templates, actions;
+        let metrics: DemoMetrics;
+        let templates: DemoTemplate[];
+        let actions: DemoAction[];
 
         try {
           metrics = await loadDemoMetrics();

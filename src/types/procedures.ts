@@ -7,6 +7,7 @@
  * @see /docs/SERVICE_WORKER_RPC_INTERFACE.md
  */
 
+import type { SessionData, UserData } from './auth';
 import type {
   FlowsAttachment,
   FlowsComment,
@@ -18,7 +19,6 @@ import type {
   FlowsNote,
   FlowsTask,
 } from './flows-entities';
-import type { SessionData, UserData } from './auth';
 
 /**
  * Filter operations for queries
@@ -176,7 +176,7 @@ export interface MutationProcedures {
 
   'mutation.deleteJourney': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Task mutations
@@ -192,7 +192,7 @@ export interface MutationProcedures {
 
   'mutation.deleteTask': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Attachment mutations
@@ -208,7 +208,7 @@ export interface MutationProcedures {
 
   'mutation.deleteAttachment': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Note mutations
@@ -224,7 +224,7 @@ export interface MutationProcedures {
 
   'mutation.deleteNote': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Comment mutations
@@ -240,7 +240,7 @@ export interface MutationProcedures {
 
   'mutation.deleteComment': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Evidence mutations
@@ -256,7 +256,7 @@ export interface MutationProcedures {
 
   'mutation.deleteEvidence': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Invitation mutations
@@ -272,7 +272,7 @@ export interface MutationProcedures {
 
   'mutation.deleteInvitation': {
     input: { id: string };
-    output: void;
+    output: undefined;
   };
 
   // Generic mutations
@@ -288,7 +288,7 @@ export interface MutationProcedures {
 
   'mutation.delete': {
     input: { table: string; id: string };
-    output: void;
+    output: undefined;
   };
 }
 
@@ -323,7 +323,7 @@ export interface SyncProcedures {
       resolution: 'local' | 'remote' | 'merge';
       mergeData?: unknown;
     };
-    output: void;
+    output: undefined;
   };
 }
 
@@ -343,14 +343,12 @@ export interface AuthProcedures {
 
   'auth.clearSession': {
     input: undefined;
-    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-    output: void;
+    output: undefined;
   };
 
   'auth.saveUser': {
     input: UserData;
-    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-    output: void;
+    output: undefined;
   };
 
   'auth.getUser': {
@@ -360,8 +358,7 @@ export interface AuthProcedures {
 
   'auth.clearUser': {
     input: string | undefined; // userId (optional - clear all or current user if not provided)
-    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-    output: void;
+    output: undefined;
   };
 
   'auth.updateUserMetadata': {
@@ -369,8 +366,7 @@ export interface AuthProcedures {
       userId: string;
       metadata: Record<string, unknown>;
     };
-    // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-    output: void;
+    output: undefined;
   };
 
   'auth.patchMetadata': {
@@ -415,22 +411,24 @@ export interface ProcedureContext {
 }
 
 export interface CameraProcedures {
-  'camera.listDevices':    { input: undefined;                              output: CameraDevice[] }
-  'camera.selectDevice':   { input: string;                                 output: void }
-  'camera.mountPreview':   { input: { rect: DOMRectInit; pixelRatio: number }; output: void }
-  'camera.unmountPreview': { input: undefined;                              output: void }
-  'camera.startRecording': { input: { subjectId?: string } | undefined;    output: void }
-  'camera.stopRecording':  { input: undefined;                              output: CaptureResult }
-  'camera.capture':        { input: undefined;                              output: CaptureResult }
+  'camera.listDevices': { input: undefined; output: CameraDevice[] };
+  'camera.selectDevice': { input: string; output: void };
+  'camera.mountPreview': { input: { rect: DOMRectInit; pixelRatio: number }; output: void };
+  'camera.unmountPreview': { input: undefined; output: void };
+  'camera.startRecording': { input: { subjectId?: string } | undefined; output: void };
+  'camera.stopRecording': { input: undefined; output: CaptureResult };
+  'camera.capture': { input: undefined; output: CaptureResult };
 }
 
 export interface CameraDevice {
-  id: string; name: string; position: 'front' | 'back' | 'unspecified'; 
-  deviceType: string
+  id: string;
+  name: string;
+  position: 'front' | 'back' | 'unspecified';
+  deviceType: string;
 }
 
 export interface CaptureResult {
-  assetId: string       // native asset identifier
-  timestamp: number
-  contentLabels?: string[]  // EvidentNet labels when available
+  assetId: string; // native asset identifier
+  timestamp: number;
+  contentLabels?: string[]; // EvidentNet labels when available
 }

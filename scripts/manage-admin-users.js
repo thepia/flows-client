@@ -103,14 +103,14 @@ async function listAdminUsers() {
       '-------------------------|---------------|----------------------|--------------------'
     );
 
-    data.forEach((user) => {
+    for (const user of data) {
       const email = user.user_email.padEnd(24);
       const role = user.role.padEnd(13);
       const assignedBy = (user.assigned_by_email || 'System').padEnd(20);
       const assignedAt = new Date(user.assigned_at).toLocaleDateString();
 
       console.log(`${email} | ${role} | ${assignedBy} | ${assignedAt}`);
-    });
+    }
 
     console.log(`\n📊 Total: ${data.length} admin users`);
     return true;

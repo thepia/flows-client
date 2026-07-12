@@ -200,12 +200,12 @@ function validateData(analysis) {
   });
 
   // Display results
-  results.forEach((result) => {
+  for (const result of results) {
     const status = result.passed ? chalk.green('✅') : chalk.red('❌');
     console.log(
       `${status} ${chalk.cyan(result.test.padEnd(25))}: ${chalk.white(result.actual)} ${chalk.gray(`(expected: ${result.expected})`)}`
     );
-  });
+  }
 
   const passedCount = results.filter((r) => r.passed).length;
   const totalCount = results.length;
@@ -262,12 +262,12 @@ function displayAnalysis(analysis) {
 
   if (analysis.samplePeople.length > 0) {
     console.log(chalk.cyan('Sample People:'));
-    analysis.samplePeople.forEach((person) => {
+    for (const person of analysis.samplePeople) {
       const status = person.employment_status || person.associate_status || 'unknown';
       console.log(
         `   ${chalk.white(person.person_code)}: ${person.name} - ${person.department} (${status})`
       );
-    });
+    }
     console.log('');
   }
 }
@@ -310,4 +310,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { analyzeDatabase, validateData, displayAnalysis };
+export { analyzeDatabase, displayAnalysis, validateData };

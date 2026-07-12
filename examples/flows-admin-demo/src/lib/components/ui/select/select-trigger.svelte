@@ -1,7 +1,4 @@
 <script lang="ts">
-import { cn } from '$lib/utils.js';
-import { ChevronDown } from 'lucide-svelte';
-
 let {
   ref = $bindable(null),
   class: className,

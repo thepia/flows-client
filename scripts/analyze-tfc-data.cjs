@@ -53,11 +53,11 @@ async function analyzeAvailableTFCData() {
 
   console.log(`\n💳 TFC Payments (${payments?.length || 0} recent):`);
   if (payments) {
-    payments.forEach((p) => {
+    for (const p of payments) {
       console.log(
         `  ✓ ${p.payment_amount} ${p.currency} - ${p.payment_method} (${p.payment_status})`
       );
-    });
+    }
   }
 
   // 3. TFC Credit Transactions

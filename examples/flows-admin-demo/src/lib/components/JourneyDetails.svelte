@@ -1,34 +1,34 @@
 <script lang="ts">
-	import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
+import type { FlowsJourney, FlowsTask } from '@thepia/flows-client/types';
 
-	interface Props {
-		journey: FlowsJourney;
-		tasks: FlowsTask[];
-	}
+interface Props {
+  journey: FlowsJourney;
+  tasks: FlowsTask[];
+}
 
-	let { journey, tasks }: Props = $props();
+let { journey, tasks }: Props = $props();
 
-	function getStatusColor(status: FlowsJourney['status']): string {
-		const colors: Record<FlowsJourney['status'], string> = {
-			invited: 'bg-gray-100 text-gray-800',
-			active: 'bg-blue-100 text-blue-800',
-			completed: 'bg-green-100 text-green-800',
-			cancelled: 'bg-red-100 text-red-800',
-			archived: 'bg-gray-100 text-gray-600'
-		};
-		return colors[status];
-	}
+function _getStatusColor(status: FlowsJourney['status']): string {
+  const colors: Record<FlowsJourney['status'], string> = {
+    invited: 'bg-gray-100 text-gray-800',
+    active: 'bg-blue-100 text-blue-800',
+    completed: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+    archived: 'bg-gray-100 text-gray-600',
+  };
+  return colors[status];
+}
 
-	function getTaskStatusColor(status: FlowsTask['status']): string {
-		const colors: Record<FlowsTask['status'], string> = {
-			pending: 'bg-gray-100 text-gray-800',
-			in_progress: 'bg-blue-100 text-blue-800',
-			completed: 'bg-green-100 text-green-800',
-			cancelled: 'bg-red-100 text-red-800',
-			blocked: 'bg-yellow-100 text-yellow-800'
-		};
-		return colors[status];
-	}
+function _getTaskStatusColor(status: FlowsTask['status']): string {
+  const colors: Record<FlowsTask['status'], string> = {
+    pending: 'bg-gray-100 text-gray-800',
+    in_progress: 'bg-blue-100 text-blue-800',
+    completed: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+    blocked: 'bg-yellow-100 text-yellow-800',
+  };
+  return colors[status];
+}
 </script>
 
 <div>

@@ -1,5 +1,5 @@
+import { derived, writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { derived, get, writable } from 'svelte/store';
 
 interface DemoContext {
   isDemoMode: boolean;

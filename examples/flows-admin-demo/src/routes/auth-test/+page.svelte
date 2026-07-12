@@ -1,423 +1,432 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import { getAuthStoreFromContext, SignInForm } from '@thepia/flows-auth';
-	import { createFlowsSupabaseClient, decodeJWTPayload } from '@thepia/flows-client';
+import { getAuthStoreFromContext } from '@thepia/flows-auth';
+import { createFlowsSupabaseClient, decodeJWTPayload } from '@thepia/flows-client';
+import { onMount } from 'svelte';
+import { browser } from '$app/environment';
 
-	// Get auth store from context (set up in +layout.svelte)
-	const authStore = getAuthStoreFromContext();
-	window.authStore = authStore;
+// Get auth store from context (set up in +layout.svelte)
+const authStore = getAuthStoreFromContext();
+window.authStore = authStore;
 
-	// Import IndexedDB constants
-	let INDEXEDDB_NAME: string;
-	let INDEXEDDB_VERSION: number;
+// Import IndexedDB constants
+let INDEXEDDB_NAME: string;
+let INDEXEDDB_VERSION: number;
 
-	let authState = $state({
-		isAuthenticated: false,
-		isLoading: false,
-		error: null as string | null,
-		session: null as any
-	});
-	let flowsDB = $state<any>(null);
-	let indexedDBData = $state({
-		users: [] as any[],
-		sessions: [] as any[],
-		loading: false,
-		error: null as string | null
-	});
-	let supabaseData = $state({
-		hasSupabaseToken: false,
-		tokenPreview: 'none',
-		tokenExpiry: null as string | null,
-		dbConnectionTest: null as any,
-		loading: false,
-		error: null as string | null
-	});
-	let userMetadata = $state({
-		data: null as any,
-		lastUpdated: null as string | null,
-		error: null as string | null
-	});
-	let isLoadingDB = false; // Guard against concurrent loads
+let authState = $state({
+  isAuthenticated: false,
+  isLoading: false,
+  error: null as string | null,
+  session: null as any,
+});
+let flowsDB = $state<any>(null);
+let indexedDBData = $state({
+  users: [] as any[],
+  sessions: [] as any[],
+  loading: false,
+  error: null as string | null,
+});
+let supabaseData = $state({
+  hasSupabaseToken: false,
+  tokenPreview: 'none',
+  tokenExpiry: null as string | null,
+  dbConnectionTest: null as any,
+  loading: false,
+  error: null as string | null,
+});
+let userMetadata = $state({
+  data: null as any,
+  lastUpdated: null as string | null,
+  error: null as string | null,
+});
+let isLoadingDB = false; // Guard against concurrent loads
 
-	// Decode JWT payload using utility function
-	const jwtPayload = $derived(authState?.supabase_token ? decodeJWTPayload(authState.supabase_token) : null);
+// Decode JWT payload using utility function
+const _jwtPayload = $derived(
+  authState?.supabase_token ? decodeJWTPayload(authState.supabase_token) : null
+);
 
-	onMount(async () => {
-		if (!browser) return;
+onMount(async () => {
+  if (!browser) return;
 
-		try {
-			// Import IndexedDB constants dynamically
-			const clientModule = await import('@thepia/flows-client/client');
-			console.log('[Auth Test] Loaded client module:', clientModule);
-			INDEXEDDB_NAME = clientModule.INDEXEDDB_NAME;
-			INDEXEDDB_VERSION = clientModule.INDEXEDDB_VERSION;
-			console.log('[Auth Test] Constants loaded:', { INDEXEDDB_NAME, INDEXEDDB_VERSION });
+  try {
+    // Import IndexedDB constants dynamically
+    const clientModule = await import('@thepia/flows-client/client');
+    console.log('[Auth Test] Loaded client module:', clientModule);
+    INDEXEDDB_NAME = clientModule.INDEXEDDB_NAME;
+    INDEXEDDB_VERSION = clientModule.INDEXEDDB_VERSION;
+    console.log('[Auth Test] Constants loaded:', { INDEXEDDB_NAME, INDEXEDDB_VERSION });
 
-			// Subscribe to auth state changes
-			const unsubscribeAuth = authStore.subscribe((state: any) => {
-				const wasAuthenticated = authState.isAuthenticated;
-				authState = {
-					isAuthenticated: state.isAuthenticated,
-					isLoading: state.isLoading,
-					error: state.error,
-					session: state.session
-				};
+    // Subscribe to auth state changes
+    const unsubscribeAuth = authStore.subscribe((state: any) => {
+      const wasAuthenticated = authState.isAuthenticated;
+      authState = {
+        isAuthenticated: state.isAuthenticated,
+        isLoading: state.isLoading,
+        error: state.error,
+        session: state.session,
+      };
 
-				console.log('[Auth Test] Auth state updated:', { isAuthenticated: state.isAuthenticated, wasAuthenticated });
+      console.log('[Auth Test] Auth state updated:', {
+        isAuthenticated: state.isAuthenticated,
+        wasAuthenticated,
+      });
 
-				// Update Supabase token information
-				updateSupabaseInfo(state);
+      // Update Supabase token information
+      updateSupabaseInfo(state);
 
-				// Reload IndexedDB data when auth state changes
-				if (wasAuthenticated !== state.isAuthenticated) {
-					setTimeout(() => loadIndexedDBData(), 500);
-					// Also load metadata when auth state changes
-					if (state.isAuthenticated) {
-						console.log('[Auth Test] User authenticated, loading metadata...');
-						setTimeout(() => loadUserMetadata(), 1000);
-					}
-				}
-			});
+      // Reload IndexedDB data when auth state changes
+      if (wasAuthenticated !== state.isAuthenticated) {
+        setTimeout(() => loadIndexedDBData(), 500);
+        // Also load metadata when auth state changes
+        if (state.isAuthenticated) {
+          console.log('[Auth Test] User authenticated, loading metadata...');
+          setTimeout(() => loadUserMetadata(), 1000);
+        }
+      }
+    });
 
-			// Get flows-client client
-			const { FlowsClient } = await import('@thepia/flows-client/client');
-			flowsDB = new FlowsClient();
+    // Get flows-client client
+    const { FlowsClient } = await import('@thepia/flows-client/client');
+    flowsDB = new FlowsClient();
 
-			// Wait for service worker to be ready before accessing IndexedDB
-			if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-				console.log('[Auth Test] Service Worker is active, waiting for it to be ready...');
-				await navigator.serviceWorker.ready;
-				console.log('[Auth Test] Service Worker ready!');
-			}
+    // Wait for service worker to be ready before accessing IndexedDB
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      console.log('[Auth Test] Service Worker is active, waiting for it to be ready...');
+      await navigator.serviceWorker.ready;
+      console.log('[Auth Test] Service Worker ready!');
+    }
 
-			// Initial load of IndexedDB data - wait longer to ensure SW has initialized DB
-			setTimeout(() => loadIndexedDBData(), 2000);
+    // Initial load of IndexedDB data - wait longer to ensure SW has initialized DB
+    setTimeout(() => loadIndexedDBData(), 2000);
 
-			// Listen for metadata updates via BroadcastChannel
-			const metadataChannel = new BroadcastChannel('auth-metadata-updates');
-			metadataChannel.addEventListener('message', (event) => {
-				if (event.data.type === 'METADATA_UPDATED') {
-					console.log('[Auth Test] Metadata update received:', event.data);
-					userMetadata.data = event.data.metadata;
-					userMetadata.lastUpdated = new Date(event.data.timestamp).toLocaleString();
-					userMetadata.error = null;
-				}
-			});
+    // Listen for metadata updates via BroadcastChannel
+    const metadataChannel = new BroadcastChannel('auth-metadata-updates');
+    metadataChannel.addEventListener('message', (event) => {
+      if (event.data.type === 'METADATA_UPDATED') {
+        console.log('[Auth Test] Metadata update received:', event.data);
+        userMetadata.data = event.data.metadata;
+        userMetadata.lastUpdated = new Date(event.data.timestamp).toLocaleString();
+        userMetadata.error = null;
+      }
+    });
 
-			// Load initial metadata from IndexedDB after a delay
-			setTimeout(() => loadUserMetadata(), 2500);
+    // Load initial metadata from IndexedDB after a delay
+    setTimeout(() => loadUserMetadata(), 2500);
 
-			// Cleanup subscriptions
-			return () => {
-				metadataChannel.close();
-				unsubscribeAuth();
-			};
-		} catch (err) {
-			console.error('[Auth Test] Failed to initialize:', err);
-			authState.error = err instanceof Error ? err.message : 'Failed to initialize';
-		}
-	});
+    // Cleanup subscriptions
+    return () => {
+      metadataChannel.close();
+      unsubscribeAuth();
+    };
+  } catch (err) {
+    console.error('[Auth Test] Failed to initialize:', err);
+    authState.error = err instanceof Error ? err.message : 'Failed to initialize';
+  }
+});
 
-	async function handleSignOut() {
-		try {
-			await authStore.signOut();
-		} catch (err) {
-			console.error('[Auth Test] Sign out failed:', err);
-		}
-	}
+async function _handleSignOut() {
+  try {
+    await authStore.signOut();
+  } catch (err) {
+    console.error('[Auth Test] Sign out failed:', err);
+  }
+}
 
-	function updateSupabaseInfo(authState: any) {
-		supabaseData.hasSupabaseToken = !!authState.supabase_token;
-		supabaseData.tokenPreview = authState.supabase_token
-			? `${authState.supabase_token.substring(0, 20)}...`
-			: 'none';
-		supabaseData.tokenExpiry = authState.supabase_expires_at
-			? new Date(authState.supabase_expires_at).toISOString()
-			: null;
-	}
+function updateSupabaseInfo(authState: any) {
+  supabaseData.hasSupabaseToken = !!authState.supabase_token;
+  supabaseData.tokenPreview = authState.supabase_token
+    ? `${authState.supabase_token.substring(0, 20)}...`
+    : 'none';
+  supabaseData.tokenExpiry = authState.supabase_expires_at
+    ? new Date(authState.supabase_expires_at).toISOString()
+    : null;
+}
 
-	async function testSupabaseConnection() {
-		supabaseData.loading = true;
-		supabaseData.error = null;
-		supabaseData.dbConnectionTest = null;
+async function _testSupabaseConnection() {
+  supabaseData.loading = true;
+  supabaseData.error = null;
+  supabaseData.dbConnectionTest = null;
 
-		try {
-			const supabaseClient = createFlowsSupabaseClient(authStore, {
-				clientCode: 'hygge-hvidlog'
-			});
-			window.supabaseClient = supabaseClient;
+  try {
+    const supabaseClient = createFlowsSupabaseClient(authStore, {
+      clientCode: 'hygge-hvidlog',
+    });
+    window.supabaseClient = supabaseClient;
 
-			// Debug: Show what's actually in the JWT
-			console.log('Auth state:', authStore.getState());
-			console.log('Supabase client:', supabaseClient);
+    // Debug: Show what's actually in the JWT
+    console.log('Auth state:', authStore.getState());
+    console.log('Supabase client:', supabaseClient);
 
-			// Decode and show JWT contents
-			const authState = authStore.getState();
-			if (authState.supabase_token) {
-				try {
-					const token = authState.supabase_token;
-					const payload = JSON.parse(atob(token.split('.')[1]));
-					console.log('JWT payload:', payload);
-					console.log('User metadata:', payload.user_metadata);
-				} catch (jwtError) {
-					console.error('Failed to decode JWT:', jwtError);
-				}
-			}
+    // Decode and show JWT contents
+    const authState = authStore.getState();
+    if (authState.supabase_token) {
+      try {
+        const token = authState.supabase_token;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('JWT payload:', payload);
+        console.log('User metadata:', payload.user_metadata);
+      } catch (jwtError) {
+        console.error('Failed to decode JWT:', jwtError);
+      }
+    }
 
-			// Test basic connection
-			const { data: healthCheck, error: healthError } = await supabaseClient
-				.from('clients')
-				.select('id, client_code')
-				.limit(1);
+    // Test basic connection
+    const { data: healthCheck, error: healthError } = await supabaseClient
+      .from('clients')
+      .select('id, client_code')
+      .limit(1);
 
-			if (healthError) {
-				throw new Error(`Database connection failed: ${healthError.message}`);
-			}
+    if (healthError) {
+      throw new Error(`Database connection failed: ${healthError.message}`);
+    }
 
-			// Test RLS context - handle missing function gracefully
-			let contextTest = 'none';
-			let contextError = null;
-			let userRole = 'none';
-			let userRoleError = null;
+    // Test RLS context - handle missing function gracefully
+    let contextTest = 'none';
+    let contextError = null;
+    let userRole = 'none';
+    let userRoleError = null;
 
-			try {
-				const { data, error } = await supabaseClient.rpc('get_current_client_id');
-				if (error) {
-					contextError = error.message;
-				} else {
-					contextTest = data || 'none';
-				}
-			} catch (err) {
-				contextError = err instanceof Error ? err.message : 'RLS function not available';
-			}
+    try {
+      const { data, error } = await supabaseClient.rpc('get_current_client_id');
+      if (error) {
+        contextError = error.message;
+      } else {
+        contextTest = data || 'none';
+      }
+    } catch (err) {
+      contextError = err instanceof Error ? err.message : 'RLS function not available';
+    }
 
-			// Test user role function
-			let rawUserId = 'none';
-			let rawUserIdError = null;
+    // Test user role function
+    let rawUserId = 'none';
+    let rawUserIdError = null;
 
-			try {
-				const { data, error } = await supabaseClient.rpc('get_current_thepia_user_id');
-				if (error) {
-					rawUserIdError = error.message;
-				} else {
-					rawUserId = data || 'none';
-				}
-			} catch (err) {
-				rawUserIdError = err instanceof Error ? err.message : 'User ID function not available';
-			}
+    try {
+      const { data, error } = await supabaseClient.rpc('get_current_thepia_user_id');
+      if (error) {
+        rawUserIdError = error.message;
+      } else {
+        rawUserId = data || 'none';
+      }
+    } catch (err) {
+      rawUserIdError = err instanceof Error ? err.message : 'User ID function not available';
+    }
 
-			try {
-				const { data, error } = await supabaseClient.rpc('get_current_user_role');
-				if (error) {
-					userRoleError = error.message;
-				} else {
-					userRole = data || 'authenticated';
-				}
-			} catch (err) {
-				userRoleError = err instanceof Error ? err.message : 'User role function not available';
-			}
+    try {
+      const { data, error } = await supabaseClient.rpc('get_current_user_role');
+      if (error) {
+        userRoleError = error.message;
+      } else {
+        userRole = data || 'authenticated';
+      }
+    } catch (err) {
+      userRoleError = err instanceof Error ? err.message : 'User role function not available';
+    }
 
-			supabaseData.dbConnectionTest = {
-				success: true,
-				healthCheck: healthCheck?.length || 0,
-				currentClientId: contextTest,
-				contextError: contextError,
-				rawUserId: rawUserId,
-				rawUserIdError: rawUserIdError,
-				userRole: userRole,
-				userRoleError: userRoleError,
-				timestamp: new Date().toISOString()
-			};
+    supabaseData.dbConnectionTest = {
+      success: true,
+      healthCheck: healthCheck?.length || 0,
+      currentClientId: contextTest,
+      contextError: contextError,
+      rawUserId: rawUserId,
+      rawUserIdError: rawUserIdError,
+      userRole: userRole,
+      userRoleError: userRoleError,
+      timestamp: new Date().toISOString(),
+    };
 
-			// Use $state.snapshot to avoid proxy warnings
-			console.log('[Auth Test] Supabase connection test successful:', $state.snapshot(supabaseData.dbConnectionTest));
-		} catch (err) {
-			console.error('[Auth Test] Supabase connection test failed:', err);
-			supabaseData.error = err instanceof Error ? err.message : 'Connection test failed';
-		} finally {
-			supabaseData.loading = false;
-		}
-	}
+    // Use $state.snapshot to avoid proxy warnings
+    console.log(
+      '[Auth Test] Supabase connection test successful:',
+      $state.snapshot(supabaseData.dbConnectionTest)
+    );
+  } catch (err) {
+    console.error('[Auth Test] Supabase connection test failed:', err);
+    supabaseData.error = err instanceof Error ? err.message : 'Connection test failed';
+  } finally {
+    supabaseData.loading = false;
+  }
+}
 
-	async function checkServiceWorkerSession() {
-		if (!flowsDB) return;
+async function _checkServiceWorkerSession() {
+  if (!flowsDB) return;
 
-		try {
-			const session = await flowsDB.session.loadSession();
-			console.log('[Auth Test] Session from Service Worker:', session);
-			alert(
-				session
-					? `Session found: ${session.email}`
-					: 'No session found in Service Worker'
-			);
-		} catch (err) {
-			console.error('[Auth Test] Failed to get session:', err);
-			alert('Error getting session from Service Worker');
-		}
-	}
+  try {
+    const session = await flowsDB.session.loadSession();
+    console.log('[Auth Test] Session from Service Worker:', session);
+    alert(session ? `Session found: ${session.email}` : 'No session found in Service Worker');
+  } catch (err) {
+    console.error('[Auth Test] Failed to get session:', err);
+    alert('Error getting session from Service Worker');
+  }
+}
 
-	async function loadIndexedDBData() {
-		if (!browser) return;
+async function loadIndexedDBData() {
+  if (!browser) return;
 
-		// Prevent concurrent loads
-		if (isLoadingDB) {
-			console.log('[Auth Test] Already loading IndexedDB data, skipping...');
-			return;
-		}
+  // Prevent concurrent loads
+  if (isLoadingDB) {
+    console.log('[Auth Test] Already loading IndexedDB data, skipping...');
+    return;
+  }
 
-		isLoadingDB = true;
-		console.log('[Auth Test] Loading IndexedDB data...', { INDEXEDDB_NAME, INDEXEDDB_VERSION });
-		indexedDBData.loading = true;
-		indexedDBData.error = null;
+  isLoadingDB = true;
+  console.log('[Auth Test] Loading IndexedDB data...', { INDEXEDDB_NAME, INDEXEDDB_VERSION });
+  indexedDBData.loading = true;
+  indexedDBData.error = null;
 
-		try {
-			// Ensure constants are loaded
-			if (!INDEXEDDB_NAME || !INDEXEDDB_VERSION) {
-				throw new Error('IndexedDB constants not loaded yet. Please reload the page.');
-			}
+  try {
+    // Ensure constants are loaded
+    if (!INDEXEDDB_NAME || !INDEXEDDB_VERSION) {
+      throw new Error('IndexedDB constants not loaded yet. Please reload the page.');
+    }
 
-			console.log('[Auth Test] Opening database:', INDEXEDDB_NAME);
-			const db = await new Promise<IDBDatabase>((resolve, reject) => {
-				// Add timeout to prevent hanging forever
-				const timeout = setTimeout(() => {
-					console.error('[Auth Test] Database open timeout after 10 seconds');
-					reject(new Error('Database open timeout - Service Worker may still be initializing'));
-				}, 10000);
+    console.log('[Auth Test] Opening database:', INDEXEDDB_NAME);
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      // Add timeout to prevent hanging forever
+      const timeout = setTimeout(() => {
+        console.error('[Auth Test] Database open timeout after 10 seconds');
+        reject(new Error('Database open timeout - Service Worker may still be initializing'));
+      }, 10000);
 
-				// Open without specifying version - opens whatever version exists
-				const request = indexedDB.open(INDEXEDDB_NAME);
-				request.onsuccess = () => {
-					clearTimeout(timeout);
-					console.log('[Auth Test] Database opened successfully');
-					resolve(request.result);
-				};
-				request.onerror = () => {
-					clearTimeout(timeout);
-					console.error('[Auth Test] Database open error:', request.error);
-					reject(request.error);
-				};
-				request.onblocked = () => {
-					clearTimeout(timeout);
-					console.warn('[Auth Test] Database open blocked');
-					reject(new Error('Database open blocked - close other tabs'));
-				};
-				request.onupgradeneeded = (event) => {
-					clearTimeout(timeout);
-					console.warn('[Auth Test] Database upgrade triggered - this should not happen!');
-					// Don't create tables here, let the SW do it
-					reject(new Error('Database upgrade triggered from page - wait for Service Worker'));
-				};
-			});
+      // Open without specifying version - opens whatever version exists
+      const request = indexedDB.open(INDEXEDDB_NAME);
+      request.onsuccess = () => {
+        clearTimeout(timeout);
+        console.log('[Auth Test] Database opened successfully');
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        clearTimeout(timeout);
+        console.error('[Auth Test] Database open error:', request.error);
+        reject(request.error);
+      };
+      request.onblocked = () => {
+        clearTimeout(timeout);
+        console.warn('[Auth Test] Database open blocked');
+        reject(new Error('Database open blocked - close other tabs'));
+      };
+      request.onupgradeneeded = (_event) => {
+        clearTimeout(timeout);
+        console.warn('[Auth Test] Database upgrade triggered - this should not happen!');
+        // Don't create tables here, let the SW do it
+        reject(new Error('Database upgrade triggered from page - wait for Service Worker'));
+      };
+    });
 
-			console.log('[Auth Test] Database object stores:', Array.from(db.objectStoreNames));
+    console.log('[Auth Test] Database object stores:', Array.from(db.objectStoreNames));
 
-			// Check if object stores exist
-			if (!db.objectStoreNames.contains('users') || !db.objectStoreNames.contains('auth_sessions')) {
-				throw new Error('Database not initialized. Please sign in first to initialize the Service Worker.');
-			}
+    // Check if object stores exist
+    if (!db.objectStoreNames.contains('users') || !db.objectStoreNames.contains('auth_sessions')) {
+      throw new Error(
+        'Database not initialized. Please sign in first to initialize the Service Worker.'
+      );
+    }
 
-			// Load users table
-			console.log('[Auth Test] Loading users...');
-			const usersTransaction = db.transaction(['users'], 'readonly');
-			const usersStore = usersTransaction.objectStore('users');
-			const usersRequest = usersStore.getAll();
+    // Load users table
+    console.log('[Auth Test] Loading users...');
+    const usersTransaction = db.transaction(['users'], 'readonly');
+    const usersStore = usersTransaction.objectStore('users');
+    const usersRequest = usersStore.getAll();
 
-			const users = await new Promise<any[]>((resolve, reject) => {
-				usersRequest.onsuccess = () => {
-					console.log('[Auth Test] Users loaded:', usersRequest.result.length);
-					resolve(usersRequest.result);
-				};
-				usersRequest.onerror = () => reject(usersRequest.error);
-			});
+    const users = await new Promise<any[]>((resolve, reject) => {
+      usersRequest.onsuccess = () => {
+        console.log('[Auth Test] Users loaded:', usersRequest.result.length);
+        resolve(usersRequest.result);
+      };
+      usersRequest.onerror = () => reject(usersRequest.error);
+    });
 
-			// Load auth_sessions table
-			console.log('[Auth Test] Loading sessions...');
-			const sessionsTransaction = db.transaction(['auth_sessions'], 'readonly');
-			const sessionsStore = sessionsTransaction.objectStore('auth_sessions');
-			const sessionsRequest = sessionsStore.getAll();
+    // Load auth_sessions table
+    console.log('[Auth Test] Loading sessions...');
+    const sessionsTransaction = db.transaction(['auth_sessions'], 'readonly');
+    const sessionsStore = sessionsTransaction.objectStore('auth_sessions');
+    const sessionsRequest = sessionsStore.getAll();
 
-			const sessions = await new Promise<any[]>((resolve, reject) => {
-				sessionsRequest.onsuccess = () => {
-					console.log('[Auth Test] Sessions loaded:', sessionsRequest.result.length);
-					resolve(sessionsRequest.result);
-				};
-				sessionsRequest.onerror = () => reject(sessionsRequest.error);
-			});
+    const sessions = await new Promise<any[]>((resolve, reject) => {
+      sessionsRequest.onsuccess = () => {
+        console.log('[Auth Test] Sessions loaded:', sessionsRequest.result.length);
+        resolve(sessionsRequest.result);
+      };
+      sessionsRequest.onerror = () => reject(sessionsRequest.error);
+    });
 
-			indexedDBData.users = users.sort((a, b) =>
-				new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
-			);
-			indexedDBData.sessions = sessions.sort((a, b) => b.expiresAt - a.expiresAt);
+    indexedDBData.users = users.sort(
+      (a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+    );
+    indexedDBData.sessions = sessions.sort((a, b) => b.expiresAt - a.expiresAt);
 
-			console.log('[Auth Test] IndexedDB data loaded successfully:', {
-				usersCount: users.length,
-				sessionsCount: sessions.length
-			});
-		} catch (err) {
-			console.error('[Auth Test] Failed to load IndexedDB data:', err);
-			indexedDBData.error = err instanceof Error ? err.message : 'Failed to load data';
-		} finally {
-			indexedDBData.loading = false;
-			isLoadingDB = false;
-		}
-	}
+    console.log('[Auth Test] IndexedDB data loaded successfully:', {
+      usersCount: users.length,
+      sessionsCount: sessions.length,
+    });
+  } catch (err) {
+    console.error('[Auth Test] Failed to load IndexedDB data:', err);
+    indexedDBData.error = err instanceof Error ? err.message : 'Failed to load data';
+  } finally {
+    indexedDBData.loading = false;
+    isLoadingDB = false;
+  }
+}
 
-	async function loadUserMetadata() {
-		if (!browser) {
-			console.log('[Auth Test] Not in browser, skipping metadata load');
-			return;
-		}
+async function loadUserMetadata() {
+  if (!browser) {
+    console.log('[Auth Test] Not in browser, skipping metadata load');
+    return;
+  }
 
-		console.log('[Auth Test] loadUserMetadata called, authState.isAuthenticated:', authState.isAuthenticated);
+  console.log(
+    '[Auth Test] loadUserMetadata called, authState.isAuthenticated:',
+    authState.isAuthenticated
+  );
 
-		try {
-			console.log('[Auth Test] Loading user metadata from IndexedDB...');
-			const db = await new Promise<IDBDatabase>((resolve, reject) => {
-				const request = indexedDB.open(INDEXEDDB_NAME);
-				request.onsuccess = () => resolve(request.result);
-				request.onerror = () => reject(request.error);
-			});
+  try {
+    console.log('[Auth Test] Loading user metadata from IndexedDB...');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(INDEXEDDB_NAME);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
 
-			// Load users table to get metadata
-			const usersTransaction = db.transaction(['users'], 'readonly');
-			const usersStore = usersTransaction.objectStore('users');
-			const usersRequest = usersStore.getAll();
+    // Load users table to get metadata
+    const usersTransaction = db.transaction(['users'], 'readonly');
+    const usersStore = usersTransaction.objectStore('users');
+    const usersRequest = usersStore.getAll();
 
-			const users = await new Promise<any[]>((resolve, reject) => {
-				usersRequest.onsuccess = () => resolve(usersRequest.result);
-				usersRequest.onerror = () => reject(usersRequest.error);
-			});
+    const users = await new Promise<any[]>((resolve, reject) => {
+      usersRequest.onsuccess = () => resolve(usersRequest.result);
+      usersRequest.onerror = () => reject(usersRequest.error);
+    });
 
-			console.log('[Auth Test] Users found in IndexedDB:', users.length);
+    console.log('[Auth Test] Users found in IndexedDB:', users.length);
 
-			// Get the most recent user (by lastUsed)
-			if (users.length > 0) {
-				const currentUser = users.sort((a, b) =>
-					new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
-				)[0];
+    // Get the most recent user (by lastUsed)
+    if (users.length > 0) {
+      const currentUser = users.sort(
+        (a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+      )[0];
 
-				console.log('[Auth Test] Current user from IndexedDB:', currentUser);
+      console.log('[Auth Test] Current user from IndexedDB:', currentUser);
 
-				if (currentUser.metadata) {
-					userMetadata.data = currentUser.metadata;
-					userMetadata.lastUpdated = new Date().toLocaleString();
-					userMetadata.error = null;
-					console.log('[Auth Test] User metadata loaded:', userMetadata.data);
-				} else {
-					console.log('[Auth Test] No metadata found for current user');
-					userMetadata.data = {};
-					userMetadata.lastUpdated = new Date().toLocaleString();
-				}
-			} else {
-				console.log('[Auth Test] No users found in IndexedDB');
-				userMetadata.data = null;
-			}
-		} catch (err) {
-			console.error('[Auth Test] Failed to load user metadata:', err);
-			userMetadata.error = err instanceof Error ? err.message : 'Failed to load metadata';
-		}
-	}
+      if (currentUser.metadata) {
+        userMetadata.data = currentUser.metadata;
+        userMetadata.lastUpdated = new Date().toLocaleString();
+        userMetadata.error = null;
+        console.log('[Auth Test] User metadata loaded:', userMetadata.data);
+      } else {
+        console.log('[Auth Test] No metadata found for current user');
+        userMetadata.data = {};
+        userMetadata.lastUpdated = new Date().toLocaleString();
+      }
+    } else {
+      console.log('[Auth Test] No users found in IndexedDB');
+      userMetadata.data = null;
+    }
+  } catch (err) {
+    console.error('[Auth Test] Failed to load user metadata:', err);
+    userMetadata.error = err instanceof Error ? err.message : 'Failed to load metadata';
+  }
+}
 </script>
 
 <div class="min-h-screen bg-gray-50 p-6">

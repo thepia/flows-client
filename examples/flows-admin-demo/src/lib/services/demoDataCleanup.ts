@@ -1,5 +1,5 @@
-import { supabaseClientStore } from '../contexts/supabase-context';
 import { get } from 'svelte/store';
+import { supabaseClientStore } from '../contexts/supabase-context';
 
 // Get current Supabase client from store
 function getCurrentSupabaseClient() {

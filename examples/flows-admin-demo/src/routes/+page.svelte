@@ -1,53 +1,45 @@
 <script lang="ts">
-import FloatingStatusButton from '$lib/components/FloatingStatusButton.svelte';
-import TabContentRouter from '$lib/components/TabContentRouter.svelte';
-import AppNavigation from '$lib/components/navigation/AppNavigation.svelte';
-import { getMockOffboardingData, getTasksForProcess } from '$lib/mockData/offboarding';
-import {
-  applications,
-  client,
-  error,
-  getClientMetrics,
-  loadDemoData,
-  loading,
-} from '$lib/stores/data';
 import { getAuthStoreFromContext } from '@thepia/flows-auth';
-import { supabaseClientStore, isSupabaseAuthenticatedStore } from '$lib/contexts/supabase-context.ts';
 import { onMount } from 'svelte';
+import { supabaseClientStore } from '$lib/contexts/supabase-context.ts';
+import { getMockOffboardingData } from '$lib/mockData/offboarding';
+import { applications, client, getClientMetrics, loadDemoData } from '$lib/stores/data';
 
 // Get auth store from context and Supabase client from global store
 const authStore = getAuthStoreFromContext();
 
 // Auth state tracking - use auth store state machine pattern
 const authState = $derived({
-  isAuthenticated: $authStore.state === "authenticated" && !!$authStore.supabase_token,
+  isAuthenticated: $authStore.state === 'authenticated' && !!$authStore.supabase_token,
   hasSupabaseToken: !!$authStore.supabase_token,
-  error: $authStore.error
+  error: $authStore.error,
 });
 
 // Tab state - using $state for Svelte 5 reactivity
 let activeTab = $state('people');
 
 // Reactive selectedApp calculation that updates when either activeTab or applications change
-const selectedApp = $derived($applications?.find((app) => app.code === activeTab) || null);
+const _selectedApp = $derived($applications?.find((app) => app.code === activeTab) || null);
 
 // Applications reactive logic with proper guards
-const applicationsLoaded = $derived($applications && Array.isArray($applications) && $applications.length > 0);
+const applicationsLoaded = $derived(
+  $applications && Array.isArray($applications) && $applications.length > 0
+);
 
 // State for different tabs - using $state for Svelte 5 reactivity
-let offboardingView = $state('overview');
-let selectedTemplate = $state(null);
-let selectedProcess = $state(null);
-let offboardingTemplates = $state([]);
+let _offboardingView = $state('overview');
+let _selectedTemplate = $state(null);
+let _selectedProcess = $state(null);
+let _offboardingTemplates = $state([]);
 let offboardingProcesses = $state([]);
-let allProcesses = $state([]);
-let offboardingTasks = $state([]);
+let _allProcesses = $state([]);
+let _offboardingTasks = $state([]);
 
 // Account state - using $state for Svelte 5 reactivity
-let tfcBalance = $state(null);
-let recentInvoices = $state([]);
-let accountContacts = $state([]);
-let loadingAccount = $state(false);
+let _tfcBalance = $state(null);
+let _recentInvoices = $state([]);
+let _accountContacts = $state([]);
+let _loadingAccount = $state(false);
 
 // Process filtering
 let processFilters = {
@@ -58,10 +50,10 @@ let processFilters = {
   priority: null,
   template: null,
 };
-let showProcessList = false;
+let _showProcessList = false;
 
 // Functions from original component
-function applyProcessFilter(filterType, filterValue) {
+function _applyProcessFilter(filterType, filterValue) {
   processFilters = {
     status: null,
     timeframe: null,
@@ -71,10 +63,10 @@ function applyProcessFilter(filterType, filterValue) {
     template: null,
   };
   processFilters[filterType] = filterValue;
-  showProcessList = true;
+  _showProcessList = true;
 }
 
-function clearProcessFilters() {
+function _clearProcessFilters() {
   processFilters = {
     status: null,
     timeframe: null,
@@ -83,10 +75,10 @@ function clearProcessFilters() {
     priority: null,
     template: null,
   };
-  showProcessList = false;
+  _showProcessList = false;
 }
 
-async function generateProcessData() {
+async function _generateProcessData() {
   console.log('🔄 Starting process data generation...');
 
   // Check if user is authenticated
@@ -125,17 +117,17 @@ async function generateProcessData() {
 async function loadAccountData() {
   if (!$client?.id) return;
 
-  loadingAccount = true;
+  _loadingAccount = true;
 
   try {
     // Load TFC balance, invoices, and contacts
     // Simplified for now - full implementation would be in AccountService
-    recentInvoices = [];
-    accountContacts = [];
+    _recentInvoices = [];
+    _accountContacts = [];
   } catch (error) {
     console.error('Error loading account data:', error);
   } finally {
-    loadingAccount = false;
+    _loadingAccount = false;
   }
 }
 
@@ -148,10 +140,10 @@ $effect(() => {
         // Load metrics after client data is loaded
         return getClientMetrics();
       })
-      .then(metrics => {
+      .then((metrics) => {
         console.log('📊 Metrics loaded:', metrics);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error loading demo data or metrics:', error);
       });
   }
@@ -160,18 +152,18 @@ $effect(() => {
 // Load mock data on mount (doesn't require authentication)
 onMount(() => {
   // Load offboarding mock data
-  offboardingTemplates = getMockOffboardingData().templates;
+  _offboardingTemplates = getMockOffboardingData().templates;
   offboardingProcesses = getMockOffboardingData().processes;
-  allProcesses = [...offboardingProcesses];
+  _allProcesses = [...offboardingProcesses];
 
   // Load account data (mock data, doesn't require auth)
-  loadAccountData().catch(error => {
+  loadAccountData().catch((error) => {
     console.error('Error loading account data:', error);
   });
 });
 
 // Handle tab changes
-function handleTabChange(event) {
+function _handleTabChange(event) {
   activeTab = event.detail.tab;
   console.log('🔄 Tab changed to:', activeTab);
 }

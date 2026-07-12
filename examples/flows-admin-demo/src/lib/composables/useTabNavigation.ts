@@ -1,4 +1,3 @@
-import type { Application } from '$lib/types';
 import { derived, writable } from 'svelte/store';
 
 export function useTabNavigation(applications: any) {

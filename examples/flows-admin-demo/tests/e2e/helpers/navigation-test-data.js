@@ -99,7 +99,7 @@ export class NavigationTestData {
    * Mock the data stores for testing
    */
   static async mockDataStores(page, testData = null) {
-    const data = testData || this.generateMinimalTestData();
+    const data = testData || NavigationTestData.generateMinimalTestData();
 
     await page.addInitScript((injectedData) => {
       // Mock the Svelte stores

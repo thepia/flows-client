@@ -1,24 +1,21 @@
 /**
  * Svelte-specific Supabase client utilities
- * 
+ *
  * This module provides Svelte-specific reactive patterns for Supabase clients.
  * These utilities work with Svelte stores and provide reactive updates.
  */
 
-import { derived, type Readable } from 'svelte/store';
-import { getContext } from 'svelte';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthStore } from '@thepia/flows-auth';
+import { getContext } from 'svelte';
+import { derived, type Readable } from 'svelte/store';
+import { createFlowsSupabaseConfig, type DEMO_CLIENT_IDS } from './flows-supabase.js';
 import {
-  createSupabaseClient,
   createReactiveSupabaseClient,
+  createSupabaseClient,
+  type SupabaseClientOptions,
   type SupabaseConfig,
-  type SupabaseClientOptions
 } from './supabase-client.js';
-import {
-  createFlowsSupabaseConfig,
-  DEMO_CLIENT_IDS
-} from './flows-supabase.js';
 
 // Type for Svelte-compatible auth store (has subscribe method)
 export interface SvelteAuthStore extends Readable<AuthStore> {
@@ -28,7 +25,7 @@ export interface SvelteAuthStore extends Readable<AuthStore> {
 
 /**
  * Create a reactive Supabase client that updates when auth state changes (Svelte-specific)
- * 
+ *
  * @param config - Supabase configuration
  * @param authStore - Svelte-compatible auth store
  * @param options - Client options
@@ -42,7 +39,7 @@ export function createSvelteReactiveSupabaseClient(
   return derived(authStore, ($authState) => {
     return createSupabaseClient(config, {
       ...options,
-      authState: $authState
+      authState: $authState,
     });
   });
 }
@@ -65,7 +62,9 @@ export function getSvelteFlowsSupabaseFromContext(
     // Use the standard flows-auth context key
     const authStore = getContext<SvelteAuthStore>('flows-auth-store');
     if (!authStore) {
-      throw new Error('Auth store not found in context. Make sure flows-auth setupAuthContext() was called in your root layout.');
+      throw new Error(
+        'Auth store not found in context. Make sure flows-auth setupAuthContext() was called in your root layout.'
+      );
     }
 
     const config = createFlowsSupabaseConfig();

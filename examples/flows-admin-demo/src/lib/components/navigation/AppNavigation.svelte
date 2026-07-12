@@ -1,7 +1,6 @@
 <script lang="ts">
-import type { Application } from '$lib/types';
-import { Briefcase, Settings, Users } from 'lucide-svelte';
 import { createEventDispatcher } from 'svelte';
+import type { Application } from '$lib/types';
 
 export let activeTab: string;
 export let applications: Application[] = [];
@@ -11,7 +10,7 @@ const dispatch = createEventDispatcher<{
   tabChange: { tab: string };
 }>();
 
-function handleTabClick(tab: string) {
+function _handleTabClick(tab: string) {
   activeTab = tab;
   dispatch('tabChange', { tab });
 }

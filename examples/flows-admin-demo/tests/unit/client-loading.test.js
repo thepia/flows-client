@@ -22,6 +22,7 @@ function createMockChain(resolveValue = { data: [], error: null }) {
     limit: vi.fn(() => chain),
     order: vi.fn(() => chain),
     single: vi.fn(() => Promise.resolve(resolveValue)),
+    // biome-ignore lint/suspicious/noThenProperty: mocks Supabase's thenable query-builder chain
     then: vi.fn((resolve) => Promise.resolve(resolveValue).then(resolve)),
   };
   return chain;
@@ -60,7 +61,7 @@ describe('Client Loading Regression Tests', () => {
     };
 
     let callCount = 0;
-    mockSupabaseClient.from.mockImplementation((table) => {
+    mockSupabaseClient.from.mockImplementation((_table) => {
       callCount++;
       // First call: load clients
       if (callCount === 1) {
@@ -98,7 +99,7 @@ describe('Client Loading Regression Tests', () => {
     };
 
     let callCount = 0;
-    mockSupabaseClient.from.mockImplementation((table) => {
+    mockSupabaseClient.from.mockImplementation((_table) => {
       callCount++;
       // First call: load clients - return meridian
       if (callCount === 1) {
@@ -128,7 +129,7 @@ describe('Client Loading Regression Tests', () => {
       legal_name: 'Test Client Corp',
     };
 
-    mockSupabaseClient.from.mockImplementation((table) => {
+    mockSupabaseClient.from.mockImplementation((_table) => {
       return createMockChain({ data: testClient, error: null });
     });
 
@@ -165,7 +166,7 @@ describe('Client Loading Regression Tests', () => {
       legal_name: 'Hygge & Hvidløg A/S',
     };
 
-    mockSupabaseClient.from.mockImplementation((table) => {
+    mockSupabaseClient.from.mockImplementation((_table) => {
       return createMockChain({ data: hyggeClient, error: null });
     });
 

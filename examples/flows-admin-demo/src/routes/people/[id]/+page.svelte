@@ -1,28 +1,9 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { page } from '$app/stores';
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-import { client, enrollments, loadDemoData, people } from '$lib/stores/data';
-import type { DocumentStatus, Person, TaskStatus } from '$lib/types';
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Download,
-  Edit,
-  FileText,
-  Mail,
-  MapPin,
-  Phone,
-  Save,
-  User,
-  X,
-} from 'lucide-svelte';
+import { AlertCircle, CheckCircle, Clock, X } from 'lucide-svelte';
 import { onMount } from 'svelte';
+import { page } from '$app/stores';
+import { enrollments, loadDemoData, people } from '$lib/stores/data';
+import type { DocumentStatus, TaskStatus } from '$lib/types';
 
 // Load data on component mount if not already loaded
 onMount(() => {
@@ -38,11 +19,11 @@ $: enrollment = $enrollments.find((e) => e.personId === personId || e.employeeId
 // Edit mode state
 let isEditing = false;
 let editFormData: any = {};
-let isSaving = false;
-let saveError: string | null = null;
+let _isSaving = false;
+let _saveError: string | null = null;
 
 // Department options
-const departments = [
+const _departments = [
   'Engineering',
   'Product',
   'Design',
@@ -56,7 +37,7 @@ const departments = [
 ];
 
 // Location options
-const locations = [
+const _locations = [
   'Copenhagen, Denmark',
   'Stockholm, Sweden',
   'Oslo, Norway',
@@ -67,7 +48,7 @@ const locations = [
 ];
 
 // Associate status options
-const associateStatuses = [
+const _associateStatuses = [
   { value: 'board_member', label: 'Board Member' },
   { value: 'consultant', label: 'Consultant' },
   { value: 'advisor', label: 'Advisor' },
@@ -100,22 +81,22 @@ $: if (isEditing && person) {
 // Determine person type
 $: personType = person?.employmentStatus ? 'employee' : 'associate';
 
-function startEditing() {
+function _startEditing() {
   isEditing = true;
-  saveError = null;
+  _saveError = null;
 }
 
-function cancelEditing() {
+function _cancelEditing() {
   isEditing = false;
   editFormData = {};
-  saveError = null;
+  _saveError = null;
 }
 
-async function saveChanges() {
+async function _saveChanges() {
   if (!person) return;
 
-  isSaving = true;
-  saveError = null;
+  _isSaving = true;
+  _saveError = null;
 
   try {
     // TODO: Implement actual save function to Supabase
@@ -130,14 +111,14 @@ async function saveChanges() {
     isEditing = false;
   } catch (err) {
     console.error('Failed to save person:', err);
-    saveError = err instanceof Error ? err.message : 'Failed to save changes';
+    _saveError = err instanceof Error ? err.message : 'Failed to save changes';
   } finally {
-    isSaving = false;
+    _isSaving = false;
   }
 }
 
 // Toggle between employee and associate when editing
-function togglePersonType() {
+function _togglePersonType() {
   if (editFormData.employmentStatus) {
     // Currently employee, switch to associate
     editFormData.employmentStatus = null;
@@ -149,7 +130,7 @@ function togglePersonType() {
   }
 }
 
-function getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) {
+function _getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) {
   switch (status) {
     case 'completed':
     case 'verified':
@@ -168,7 +149,7 @@ function getStatusIcon(status: DocumentStatus['status'] | TaskStatus['status']) 
   }
 }
 
-function getStatusColor(status: DocumentStatus['status'] | TaskStatus['status']) {
+function _getStatusColor(status: DocumentStatus['status'] | TaskStatus['status']) {
   switch (status) {
     case 'completed':
     case 'verified':
@@ -187,7 +168,7 @@ function getStatusColor(status: DocumentStatus['status'] | TaskStatus['status'])
   }
 }
 
-function getPriorityColor(priority: TaskStatus['priority']) {
+function _getPriorityColor(priority: TaskStatus['priority']) {
   switch (priority) {
     case 'high':
       return 'text-red-600';
@@ -200,7 +181,7 @@ function getPriorityColor(priority: TaskStatus['priority']) {
   }
 }
 
-function formatDate(dateString: string) {
+function _formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -208,7 +189,7 @@ function formatDate(dateString: string) {
   });
 }
 
-function formatDateTime(dateString: string) {
+function _formatDateTime(dateString: string) {
   return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',

@@ -1,10 +1,5 @@
 <script lang="ts">
-import { NotificationBell, NotificationPanel } from '$lib/components/notifications';
-import { Button } from '$lib/components/ui/button';
-import { client, loadingProgress } from '$lib/stores/data';
-import { ArrowLeft, Settings, User } from 'lucide-svelte';
-import LogoWrapper from '../branding/LogoWrapper.svelte';
-import { getAuthStoreFromContext, SignInForm } from '@thepia/flows-auth';
+import { getAuthStoreFromContext } from '@thepia/flows-auth';
 
 // Props
 export const title: string = 'Flows Dashboard';
@@ -15,48 +10,48 @@ const authStore = getAuthStoreFromContext();
 
 // State
 let showNotifications = $state(false);
-let showAuthDialog = $state(false);
+let _showAuthDialog = $state(false);
 let isAuthenticated = $state(false);
-let userEmail = $state<string | null>(null);
+let _userEmail = $state<string | null>(null);
 
 // Subscribe to auth state
 authStore.subscribe((state: any) => {
-	isAuthenticated = state.isAuthenticated;
-	userEmail = state.user?.email || null;
+  isAuthenticated = state.isAuthenticated;
+  _userEmail = state.user?.email || null;
 });
 
 // Navigation handlers
-function navigateToSettings() {
+function _navigateToSettings() {
   console.log('Settings button clicked - navigating to /settings');
   window.location.href = '/settings';
 }
 
-function navigateBack() {
+function _navigateBack() {
   console.log('Back button clicked - navigating to home');
   window.location.href = '/';
 }
 
-function toggleNotifications() {
+function _toggleNotifications() {
   showNotifications = !showNotifications;
 }
 
-function closeNotifications() {
+function _closeNotifications() {
   showNotifications = false;
 }
 
-function openProfile() {
-	if (isAuthenticated) {
-		// If authenticated, show user menu with sign out option
-		showAuthDialog = true;
-	} else {
-		// If not authenticated, show sign in form
-		showAuthDialog = true;
-	}
+function _openProfile() {
+  if (isAuthenticated) {
+    // If authenticated, show user menu with sign out option
+    _showAuthDialog = true;
+  } else {
+    // If not authenticated, show sign in form
+    _showAuthDialog = true;
+  }
 }
 
-async function handleSignOut() {
-	await authStore.signOut();
-	showAuthDialog = false;
+async function _handleSignOut() {
+  await authStore.signOut();
+  _showAuthDialog = false;
 }
 </script>
 

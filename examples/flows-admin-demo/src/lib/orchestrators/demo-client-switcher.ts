@@ -1,7 +1,7 @@
+import { get } from 'svelte/store';
 import { loadingProgress } from '$lib/stores/data';
 import { clientStore } from '$lib/stores/domains/client/client.store';
 import { tfcStore } from '$lib/stores/domains/tfc/tfc.store';
-import { get } from 'svelte/store';
 
 /**
  * Central orchestrator for demo client switching
