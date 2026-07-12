@@ -1,0 +1,102 @@
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '11.11.0'
+
+jobs:
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create GitHub releases + upload the tarball asset
+      packages: write   # publish to GitHub Packages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@thepia'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      # @thepia/flows-auth is a devDependency resolved from GitHub Packages
+      # (types only, see package.json `comments`). GITHUB_TOKEN is scoped to
+      # this repo — if install fails with 404/403 pulling flows-auth, the org
+      # doesn't allow cross-repo package reads via GITHUB_TOKEN; swap this for
+      # a PAT in the NODE_AUTH_TOKEN repo secret (read:packages scope), same
+      # as thepia.com/.github/workflows/deploy-auth-api.yml.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ephemeral, auto-expires
+
+      - name: Lint with Biome
+        run: pnpm run check
+
+      - name: Type check
+        run: pnpm run typecheck
+
+      # Build BEFORE tests: service-worker-bundle.test.ts and
+      # service-worker-execution.test.ts load dist/flows-sw.js, the built
+      # bundle, not source files. Running tests first fails with ENOENT.
+      - name: Build library
+        run: pnpm run build
+
+      # `pnpm test` (vitest run) only picks up tests/**/*.test.{ts,js} per
+      # vitest.config.ts — examples/** (the admin demo) and *.spec.ts
+      # (Playwright) are excluded, so nothing here needs a live API.
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Verify build artifacts
+        run: |
+          ls -la dist/
+          test -f dist/flows-client.js
+          test -f dist/flows-sw.js
+
+      - name: Configure pnpm authentication
+        run: |
+          pnpm config set //npm.pkg.github.com/:_authToken "${NODE_AUTH_TOKEN}"
+          pnpm config set @thepia:registry https://npm.pkg.github.com
+        env:
+          # Built-in, auto-provided token — no PAT to create or rotate. Authorized
+          # to publish because package.json `repository` points at this repo and the
+          # job grants `packages: write`.
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release tarball
+        run: npm pack
+
+      - name: Create GitHub Release with tarball
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: |
+            *.tgz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        run: pnpm publish --no-git-checks
+        env:
+          # Built-in, auto-provided token — no PAT to create or rotate. Authorized
+          # to publish because package.json `repository` points at this repo and the
+          # job grants `packages: write`.
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

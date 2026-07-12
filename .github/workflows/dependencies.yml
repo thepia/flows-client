@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '11.11.0'
+
 permissions:
   contents: read
   packages: read
@@ -13,50 +17,44 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout flows-client
-        uses: actions/checkout@v4
-        with:
-          path: flows-client
-
-      # @thepia/flows-auth is consumed via `file:../flows-auth` (types only),
-      # so the sibling repo must exist next to flows-client for install to work.
-      # NODE_AUTH_TOKEN must be a PAT with `repo` (contents:read) scope so it
-      # can check out the private thepia/flows-auth repo.
-      - name: Checkout flows-auth (sibling dependency)
-        uses: actions/checkout@v4
-        with:
-          repository: thepia/flows-auth
-          token: ${{ secrets.NODE_AUTH_TOKEN }}
-          path: flows-auth
+      - name: Checkout
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 11
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: flows-client/pnpm-lock.yaml
+          registry-url: https://npm.pkg.github.com
+          scope: '@thepia'
 
+      # @thepia/flows-auth is a devDependency resolved from GitHub Packages
+      # (types only, see package.json `comments`). GITHUB_TOKEN is scoped to
+      # this repo — if install fails with 404/403 pulling flows-auth, the org
+      # doesn't allow cross-repo package reads via GITHUB_TOKEN; swap this for
+      # a PAT in the NODE_AUTH_TOKEN repo secret (read:packages scope), same
+      # as thepia.com/.github/workflows/deploy-auth-api.yml.
       - name: Install
-        working-directory: flows-client
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ephemeral, auto-expires
 
       - name: Lint (biome)
-        working-directory: flows-client
         run: pnpm check
 
       - name: Typecheck
-        working-directory: flows-client
         run: pnpm typecheck
 
-      - name: Test
-        working-directory: flows-client
-        run: pnpm test
-
+      # Build BEFORE tests: service-worker-bundle.test.ts and
+      # service-worker-execution.test.ts load dist/flows-sw.js, the built
+      # bundle, not source files. Running tests first fails with ENOENT.
       - name: Build
-        working-directory: flows-client
         run: pnpm build
+
+      - name: Test
+        run: pnpm test

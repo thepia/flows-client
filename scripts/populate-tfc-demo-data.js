@@ -583,14 +583,14 @@ async function generateInvoices(clientId, config, billingContact) {
 
   // Group payments by month
   const paymentsByMonth = {};
-  payments.forEach((payment) => {
+  for (const payment of payments) {
     const date = new Date(payment.completed_at);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     if (!paymentsByMonth[key]) {
       paymentsByMonth[key] = [];
     }
     paymentsByMonth[key].push(payment);
-  });
+  }
 
   // Create monthly invoices
   for (const [monthKey, monthPayments] of Object.entries(paymentsByMonth)) {

@@ -45,7 +45,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
   },
 });
 
-// SQL files to execute in order
+// SQL files to execute in order (this is problematic as we add more migration files)
 const sqlFiles = [
   '00_schema_setup.sql',
   '01_clients.sql',
@@ -91,9 +91,9 @@ function displaySetupInstructions() {
   console.log(chalk.white('   → Navigate to the "SQL Editor" tab\n'));
 
   console.log(chalk.yellow('2. Execute the schema files in order:'));
-  sqlFiles.forEach((file, index) => {
+  for (const [index, file] of sqlFiles.entries()) {
     console.log(chalk.white(`   ${index + 1}. Copy and paste the contents of schemas/${file}`));
-  });
+  }
 
   console.log(chalk.yellow('\n3. Verify the setup:'));
   console.log(chalk.white('   → Check that "api", "internal", and "audit" schemas exist'));

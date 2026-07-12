@@ -170,7 +170,7 @@ export class TFCService {
     const hoursByDepartment: Record<string, number> = {};
     const hoursByWorkflowType: Record<string, number> = {};
 
-    usageAnalytics.forEach((usage) => {
+    for (const usage of usageAnalytics) {
       const hours = usage.count * this.timeSavingsPerProcess[usage.workflow_type];
 
       totalHoursSaved += hours;
@@ -180,7 +180,7 @@ export class TFCService {
 
       hoursByWorkflowType[usage.workflow_type] =
         (hoursByWorkflowType[usage.workflow_type] || 0) + hours;
-    });
+    }
 
     return {
       totalHoursSaved,

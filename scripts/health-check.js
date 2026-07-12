@@ -263,10 +263,10 @@ async function performHealthCheck() {
 
   console.log(chalk.blue.bold('\n📊 Health Check Summary\n'));
 
-  results.forEach((result) => {
+  for (const result of results) {
     const status = result.passed ? chalk.green('✓ PASS') : chalk.red('✗ FAIL');
     console.log(`${status} ${result.name}`);
-  });
+  }
 
   const healthScore = Math.round((passedChecks / checks.length) * 100);
 
