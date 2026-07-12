@@ -10,6 +10,10 @@ env:
   NODE_VERSION: '22'
   PNPM_VERSION: '11.11.0'
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   test:
     timeout-minutes: 60
@@ -26,11 +30,21 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'pnpm'
+        registry-url: https://npm.pkg.github.com
+        scope: '@thepia'
 
     # Workspace root install: examples/flows-admin-demo has no lockfile of its
     # own, it's resolved through the root pnpm-lock.yaml.
+    # @thepia/flows-auth is a devDependency resolved from GitHub Packages
+    # (types only, see package.json `comments`). GITHUB_TOKEN is scoped to
+    # this repo — if install fails with 404/403 pulling flows-auth, the org
+    # doesn't allow cross-repo package reads via GITHUB_TOKEN; swap this for
+    # a PAT in the NODE_AUTH_TOKEN repo secret (read:packages scope), same
+    # as thepia.com/.github/workflows/deploy-auth-api.yml.
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ephemeral, auto-expires
 
     - name: Install Playwright Browsers
       working-directory: examples/flows-admin-demo
