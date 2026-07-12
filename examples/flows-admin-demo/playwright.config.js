@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -26,7 +28,11 @@ export default defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://dev.thepia.net:5173',
+    // Locally this hits the persistent dev.thepia.net:5173 server you keep
+    // running yourself. CI has nothing running there, so it builds+previews
+    // the demo instead (see webServer below) and points here at localhost.
+    baseURL:
+      process.env.DEMO_BASE_URL || (isCI ? 'http://localhost:4173' : 'https://dev.thepia.net:5173'),
 
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
@@ -82,13 +88,18 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'pnpm run dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: true,
-  //   timeout: 120000,
-  // },
+  // CI has no reachable dev.thepia.net server, so build+preview the demo
+  // locally and let Playwright manage its lifecycle. Locally, this is left
+  // undefined — you keep your own dev server running (see CLAUDE.md) and
+  // baseURL above points at it directly.
+  webServer: isCI
+    ? {
+        command: 'pnpm run build && pnpm run preview',
+        url: 'http://localhost:4173',
+        reuseExistingServer: false,
+        timeout: 120000,
+      }
+    : undefined,
 
   /* Global setup and teardown */
   globalSetup: './tests/global-setup.js',

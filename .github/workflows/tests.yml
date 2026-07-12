@@ -46,6 +46,11 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ephemeral, auto-expires
 
+    # examples/flows-admin-demo's own build runs `copy:sw`, which copies
+    # dist/flows-sw.js out of the root package — it must exist first.
+    - name: Build flows-client
+      run: pnpm build
+
     - name: Install Playwright Browsers
       working-directory: examples/flows-admin-demo
       run: pnpm exec playwright install --with-deps
@@ -53,6 +58,10 @@ jobs:
     - name: Run Playwright tests
       working-directory: examples/flows-admin-demo
       run: pnpm run test
+      env:
+        # Playwright's webServer builds+previews the demo locally in CI
+        # (no live dev.thepia.net server reachable from a GH-hosted runner).
+        DEMO_BASE_URL: http://localhost:4173
 
     - name: Upload Playwright Report
       uses: actions/upload-artifact@v7
