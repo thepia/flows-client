@@ -151,7 +151,7 @@
     "docs/"
   ],
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.117.3",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "dotenv": "^16.3.1",
@@ -160,9 +160,9 @@
     "jose": "^5.2.0",
     "node-cron": "^3.0.3",
     "ora": "^7.0.1",
-    "sharp": "^0.34.2",
-    "uuid": "^14.0.0",
-    "winston": "^3.11.0",
+    "sharp": "^0.35.5",
+    "uuid": "^14.0.3",
+    "winston": "^3.19.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
