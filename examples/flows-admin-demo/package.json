@@ -63,7 +63,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "@lucide/svelte": "^1.17.0",
-    "shadcn-svelte": "^0.14.1",
+    "shadcn-svelte": "^1.7.0",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "^0.2.1"
   },
