@@ -83,7 +83,7 @@ importers:
         version: 9.1.7
       lint-staged:
         specifier: ^15.1.0
-        version: 15.5.2
+        version: 15.5.2(supports-color@7.2.0)
       service-worker-mock:
         specifier: ^2.0.5
         version: 2.0.5
@@ -95,7 +95,7 @@ importers:
         version: 8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0)
       vitest:
         specifier: ^4.1.0
-        version: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0))
+        version: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0))
 
   examples/flows-admin-demo:
     dependencies:
@@ -150,7 +150,7 @@ importers:
         version: 6.6.3
       '@testing-library/svelte':
         specifier: ^5.2.8
-        version: 5.2.8(svelte@5.34.8)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))(vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10(vitest@4.1.8))(jsdom@26.1.0)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)))
+        version: 5.2.8(svelte@5.34.8)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))(vitest@4.1.8)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.6)
@@ -159,7 +159,7 @@ importers:
         version: 1.8.0(svelte@5.34.8)
       jsdom:
         specifier: ^26.1.0
-        version: 26.1.0
+        version: 26.1.0(supports-color@7.2.0)
       postcss:
         specifier: ^8.4.47
         version: 8.5.6
@@ -180,13 +180,13 @@ importers:
         version: 5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)
       vite-node:
         specifier: ^3.2.4
-        version: 3.2.4(@types/node@20.19.1)(lightningcss@1.32.0)
+        version: 3.2.4(@types/node@20.19.1)(lightningcss@1.32.0)(supports-color@7.2.0)
       vite-plugin-restart:
-        specifier: ^0.4.2
-        version: 0.4.2(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
+        specifier: ^2.0.0
+        version: 2.0.0(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
       vitest:
         specifier: ^4.1.0
-        version: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10(vitest@4.1.8))(jsdom@26.1.0)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
+        version: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
     optionalDependencies:
       '@thepia/branding':
         specifier: ^1.0.1
@@ -729,9 +729,6 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
-
-  '@jridgewell/trace-mapping@0.3.25':
-    resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
@@ -2982,10 +2979,10 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
-  vite-plugin-restart@0.4.2:
-    resolution: {integrity: sha512-9aWN2ScJ8hbT7aC8SDeZnsbWapnslz1vhNq6Vgf2GU9WdN4NExlrWhtnu7pmtOUG3Guj8y6lPcUZ+ls7SVP33w==}
+  vite-plugin-restart@2.0.0:
+    resolution: {integrity: sha512-OYsD89msjtd72HHpXnidZmQ+14ztJR74IxQq9aPa48LUx3IeukS+NmnVtk+/VaNoYQJLnTFWG3Sbq/AEwaAyeQ==}
     peerDependencies:
-      vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
+      vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
   vite@5.4.19:
     resolution: {integrity: sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==}
@@ -3263,7 +3260,7 @@ snapshots:
   '@ampproject/remapping@2.3.0':
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
-      '@jridgewell/trace-mapping': 0.3.25
+      '@jridgewell/trace-mapping': 0.3.31
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -3617,7 +3614,7 @@ snapshots:
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:
       '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
       '@jridgewell/trace-mapping': 0.3.31
 
   '@jridgewell/remapping@2.3.5':
@@ -3632,11 +3629,6 @@ snapshots:
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
-
-  '@jridgewell/trace-mapping@0.3.25':
-    dependencies:
-      '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
 
   '@jridgewell/trace-mapping@0.3.31':
     dependencies:
@@ -3981,13 +3973,13 @@ snapshots:
       lodash: 4.17.21
       redent: 3.0.0
 
-  '@testing-library/svelte@5.2.8(svelte@5.34.8)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))(vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10(vitest@4.1.8))(jsdom@26.1.0)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)))':
+  '@testing-library/svelte@5.2.8(svelte@5.34.8)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))(vitest@4.1.8)':
     dependencies:
       '@testing-library/dom': 10.4.0
       svelte: 5.34.8
     optionalDependencies:
       vite: 5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)
-      vitest: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10(vitest@4.1.8))(jsdom@26.1.0)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
+      vitest: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
 
   '@thepia/branding@1.0.1(typescript@5.8.3)':
     dependencies:
@@ -4095,7 +4087,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0))
+      vitest: 4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0))
 
   '@vitest/expect@4.1.8':
     dependencies:
@@ -4590,9 +4582,11 @@ snapshots:
 
   date-fns@4.1.0: {}
 
-  debug@4.4.1:
+  debug@4.4.1(supports-color@7.2.0):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 7.2.0
 
   decimal.js@10.5.0: {}
 
@@ -4683,7 +4677,7 @@ snapshots:
 
   esrap@1.4.9:
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   estree-walker@3.0.3:
     dependencies:
@@ -4810,17 +4804,17 @@ snapshots:
 
   html-escaper@2.0.2: {}
 
-  http-proxy-agent@7.0.2:
+  http-proxy-agent@7.0.2(supports-color@7.2.0):
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@7.0.6:
+  https-proxy-agent@7.0.6(supports-color@7.2.0):
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -4952,14 +4946,14 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  jsdom@26.1.0:
+  jsdom@26.1.0(supports-color@7.2.0):
     dependencies:
       cssstyle: 4.6.0
       data-urls: 5.0.0
       decimal.js: 10.5.0
       html-encoding-sniffer: 4.0.0
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
+      http-proxy-agent: 7.0.2(supports-color@7.2.0)
+      https-proxy-agent: 7.0.6(supports-color@7.2.0)
       is-potential-custom-element-name: 1.0.1
       nwsapi: 2.2.20
       parse5: 7.3.0
@@ -5088,11 +5082,11 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  lint-staged@15.5.2:
+  lint-staged@15.5.2(supports-color@7.2.0):
     dependencies:
       chalk: 5.4.1
       commander: 13.1.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@7.2.0)
       execa: 8.0.1
       lilconfig: 3.1.3
       listr2: 8.3.3
@@ -5727,7 +5721,7 @@ snapshots:
   svelte@5.34.8:
     dependencies:
       '@ampproject/remapping': 2.3.0
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
       '@types/estree': 1.0.8
       acorn: 8.15.0
@@ -5738,7 +5732,7 @@ snapshots:
       esrap: 1.4.9
       is-reference: 3.0.3
       locate-character: 3.0.0
-      magic-string: 0.30.17
+      magic-string: 0.30.21
       zimmerframe: 1.1.2
 
   symbol-tree@3.2.4: {}
@@ -5867,10 +5861,10 @@ snapshots:
 
   uuid@8.3.2: {}
 
-  vite-node@3.2.4(@types/node@20.19.1)(lightningcss@1.32.0):
+  vite-node@3.2.4(@types/node@20.19.1)(lightningcss@1.32.0)(supports-color@7.2.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@7.2.0)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)
@@ -5885,7 +5879,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-restart@0.4.2(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)):
+  vite-plugin-restart@2.0.0(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)):
     dependencies:
       micromatch: 4.0.8
       vite: 5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)
@@ -5921,7 +5915,7 @@ snapshots:
     optionalDependencies:
       vite: 5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)
 
-  vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10(vitest@4.1.8))(jsdom@26.1.0)(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)):
+  vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0)):
     dependencies:
       '@vitest/expect': 4.1.8
       '@vitest/mocker': 4.1.8(vite@5.4.19(@types/node@20.19.1)(lightningcss@1.32.0))
@@ -5946,11 +5940,11 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.1
       '@vitest/coverage-v8': 4.1.10(vitest@4.1.8)
-      jsdom: 26.1.0
+      jsdom: 26.1.0(supports-color@7.2.0)
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0)):
+  vitest@4.1.8(@types/node@20.19.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0(supports-color@7.2.0))(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0)):
     dependencies:
       '@vitest/expect': 4.1.8
       '@vitest/mocker': 4.1.8(vite@8.0.16(@types/node@20.19.1)(jiti@2.6.1)(yaml@2.8.0))
@@ -5975,7 +5969,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.1
       '@vitest/coverage-v8': 4.1.10(vitest@4.1.8)
-      jsdom: 26.1.0
+      jsdom: 26.1.0(supports-color@7.2.0)
     transitivePeerDependencies:
       - msw
 
