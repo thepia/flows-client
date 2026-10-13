@@ -57,17 +57,17 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.117.3",
     "@thepia/flows-auth": "~1.0.14",
     "@thepia/flows-client": "workspace:*",
     "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "@lucide/svelte": "^1.17.0",
+    "date-fns": "^4.4.0",
+    "@lucide/svelte": "^1.55.0",
     "shadcn-svelte": "^0.14.1",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "^0.2.1"
   },
   "optionalDependencies": {
-    "@thepia/branding": "^1.0.1"
+    "@thepia/branding": "^1.6.0"
   }
 }
